@@ -1,13 +1,14 @@
 import ipaddress
-import io
+import subprocess
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
-from urllib.error import URLError
 
 from scripts import sync_rules
 
 
-PRIMARY = sync_rules.CONFIGS[0]
+PRIMARY = sync_rules.CONFIGS["sr_top500_whitelist_ad.conf"]
 UPSTREAM = """# upstream build
 [General]
 ipv6 = false
@@ -51,7 +52,7 @@ class SyncRulesTests(unittest.TestCase):
         self.assertEqual(sync_rules.customize(modern, PRIMARY), config)
 
     def test_direct_config_keeps_public_traffic_direct(self):
-        filename = "sr_direct_banad.conf"
+        filename = sync_rules.CONFIGS["sr_direct_banad.conf"]
         source = UPSTREAM.replace("FINAL,PROXY", "FINAL,direct")
         config = sync_rules.customize(source, filename)
         self.assertEqual(ip_policy(config, "192.168.55.249"), "TAILSCALE")
@@ -71,29 +72,48 @@ class SyncRulesTests(unittest.TestCase):
         self.assertIn("dns-server = https://dns.alidns.com/dns-query", config)
         self.assertEqual(sync_rules.customize(config, PRIMARY), config)
 
-    def test_invalid_download_is_rejected(self):
+    def test_invalid_source_is_rejected(self):
         for source in (
             "<html>Service unavailable</html>",
             "[General]\nipv6 = false\n",
             "[General]\nipv6 = false\n[Rule]\nDOMAIN,ads.example,REJECT\n",
         ):
             with self.assertRaises(ValueError):
-                    sync_rules.customize(source, PRIMARY)
+                sync_rules.customize(source, PRIMARY)
 
-    def test_network_failure_keeps_published_file(self):
-        with patch.object(sync_rules, "urlopen", side_effect=URLError("offline")):
+    def test_missing_release_keeps_published_file(self):
+        error = subprocess.CalledProcessError(128, ["git", "rev-parse"])
+        with patch.object(sync_rules.subprocess, "check_output", side_effect=error):
             with patch.object(sync_rules.Path, "write_text") as write:
-                with self.assertRaises(URLError):
-                    sync_rules.main()
+                with self.assertRaises(subprocess.CalledProcessError):
+                    sync_rules.generate(Path("."))
                 write.assert_not_called()
 
-    def test_second_download_failure_does_not_publish_first_file(self):
-        responses = [io.BytesIO(UPSTREAM.encode()), URLError("second download failed")]
-        with patch.object(sync_rules, "urlopen", side_effect=responses):
+    def test_second_source_failure_does_not_publish_first_file(self):
+        responses = [
+            "abc123\n", UPSTREAM.encode(),
+            subprocess.CalledProcessError(128, ["git", "show"]),
+        ]
+        with patch.object(sync_rules.subprocess, "check_output", side_effect=responses):
             with patch.object(sync_rules.Path, "write_text") as write:
-                with self.assertRaises(URLError):
-                    sync_rules.main()
+                with self.assertRaises(subprocess.CalledProcessError):
+                    sync_rules.generate(Path("."))
                 write.assert_not_called()
+
+    def test_generate_uses_new_names_and_leaves_originals_unchanged(self):
+        direct = UPSTREAM.replace("FINAL,PROXY", "FINAL,direct")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            originals = dict(zip(sync_rules.CONFIGS, (UPSTREAM, direct)))
+            for filename, source in originals.items():
+                (root / filename).write_text(source, encoding="utf-8")
+            responses = ["abc123\n", UPSTREAM.encode(), direct.encode()]
+            with patch.object(sync_rules.subprocess, "check_output", side_effect=responses):
+                sync_rules.generate(root)
+            for source_name, filename in sync_rules.CONFIGS.items():
+                self.assertEqual((root / source_name).read_text(), originals[source_name])
+                result = (root / filename).read_text()
+                self.assertEqual(result, sync_rules.customize(originals[source_name], filename))
 
 
 if __name__ == "__main__":

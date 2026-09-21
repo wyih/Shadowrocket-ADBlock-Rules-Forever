@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
-"""Fetch the selected upstream configs and apply this fork's Tailscale routing."""
+"""Generate separately named Tailscale configs from the synced release branch."""
 
 import ipaddress
 import re
+import subprocess
 from pathlib import Path
-from urllib.request import urlopen
 
 
-CONFIGS = ("sr_top500_whitelist_ad.conf", "sr_direct_banad.conf")
-UPSTREAM_BASE = (
-    "https://raw.githubusercontent.com/Johnshall/"
-    "Shadowrocket-ADBlock-Rules-Forever/release"
-)
+CONFIGS = {
+    "sr_top500_whitelist_ad.conf": "sr_top500_whitelist_ad_tailscale.conf",
+    "sr_direct_banad.conf": "sr_direct_banad_tailscale.conf",
+}
 UPDATE_BASE = (
     "https://raw.githubusercontent.com/wyih/"
-    "Shadowrocket-ADBlock-Rules-Forever/release"
+    "Shadowrocket-ADBlock-Rules-Forever/tailscale"
 )
 TAILSCALE_ROUTES = ("100.64.0.0/10", "192.168.2.0/24", "192.168.55.0/24")
 NETWORKS = tuple(ipaddress.ip_network(route) for route in TAILSCALE_ROUTES)
@@ -74,16 +73,20 @@ def customize(source: str, filename: str) -> str:
     return "".join(output)
 
 
-def main() -> None:
-    # Validate both downloads before writing either file.
+def generate(root: Path) -> None:
+    # Pin both reads to the same synced commit; validate before publishing either.
+    revision = subprocess.check_output(
+        ["git", "rev-parse", "origin/release"], cwd=root, text=True
+    ).strip()
     results = {}
-    for filename in CONFIGS:
-        with urlopen(f"{UPSTREAM_BASE}/{filename}", timeout=30) as response:
-            results[filename] = customize(response.read().decode("utf-8"), filename)
-    root = Path(__file__).resolve().parent.parent
+    for source_name, filename in CONFIGS.items():
+        source = subprocess.check_output(
+            ["git", "show", f"{revision}:{source_name}"], cwd=root
+        ).decode("utf-8")
+        results[filename] = customize(source, filename)
     for filename, result in results.items():
         destination = root / filename
-        if destination.read_text(encoding="utf-8") == result:
+        if destination.exists() and destination.read_text(encoding="utf-8") == result:
             print(f"{filename}: already up to date")
             continue
         destination.write_text(result, encoding="utf-8")
@@ -91,4 +94,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    generate(Path(__file__).resolve().parent.parent)

@@ -1,0 +1,54 @@
+name: Sync fork and generate Tailscale configs
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [tailscale]
+    paths:
+      - scripts/**
+      - tests/**
+      - .github/workflows/tailscale.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-upstream-tailscale
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tailscale
+
+      - name: Verify routing customization
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Sync fork release branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # Upstream recreates release as an orphan commit every day.
+        # Only release is reset; all personal files live on tailscale.
+        run: gh repo sync "$GITHUB_REPOSITORY" --source Johnshall/Shadowrocket-ADBlock-Rules-Forever --branch release --force
+
+      - name: Generate separately named configurations
+        run: |
+          git fetch origin +refs/heads/release:refs/remotes/origin/release
+          python3 scripts/sync_rules.py
+
+      - name: Publish updated configurations
+        run: |
+          git add sr_top500_whitelist_ad_tailscale.conf sr_direct_banad_tailscale.conf
+          if git diff --cached --quiet; then
+            echo "Configuration is already up to date."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m "Regenerate Tailscale configs from synced release"
+          git push origin HEAD:tailscale
