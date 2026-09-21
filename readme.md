@@ -1,3 +1,54 @@
+## Yihong 的 Tailscale 内网配置
+
+本 fork 每小时检查 Johnshall 发布的白名单去广告配置及全局直连去广告配置，应用个人 Tailscale 分流后发布到本仓库。上游的广告过滤、网站分流和 DNS 设置随源文件更新。
+
+**在 Shadowrocket 中导入以下两个地址，并让现有 Rule 场景使用相应的配置：**
+
+白名单 + 去广告：
+
+```text
+https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/release/sr_top500_whitelist_ad.conf
+```
+
+全局直连 + 去广告：
+
+```text
+https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/release/sr_direct_banad.conf
+```
+
+两份文件内的 `update-url` 分别指向对应地址，后续更新会继续包含个人分流。白名单配置保持上游的默认代理策略；直连配置保持上游的默认直连策略。
+
+### 内网分流
+
+以下网段通过 Shadowrocket 内置的 Tailscale 模块访问：
+
+- `100.64.0.0/10`：Tailscale 节点。
+- `192.168.2.0/24`：2 网段。
+- `192.168.55.0/24`：55 网段。
+
+生成时会移除与这些网段重叠的 `skip-proxy` 和 TUN 旁路条目，并将对应的 `TAILSCALE` 规则放到 `[Rule]` 最前面。其余上游规则保留。两个内网按 `/24` 配置；需要调整网段时修改 [scripts/sync_rules.py](scripts/sync_rules.py) 中的 `TAILSCALE_ROUTES`。
+
+手机端需启用 Shadowrocket 的 Tailscale 模块及「使用 Tailscale 子网」，使用已接入该网络的设备身份。认证密钥保存在手机中。
+
+### 自动同步
+
+[Sync upstream with Tailscale](https://github.com/wyih/Shadowrocket-ADBlock-Rules-Forever/actions/workflows/release.yml) **每小时第 17 分钟**检查上游；配置没有变化时不创建提交。也可在 Actions 页面手动运行，修改同步脚本或工作流后会自动运行一次。GitHub 的定时任务可能延迟。
+
+每次重新获取上游发布文件后应用个人修改，使用普通提交发布；上游每日重写 `release` 历史不会影响本 fork。两份文件都下载并校验成功后才写入；失败时保留上次发布的配置，并让工作流报错。当前自动维护以上两份文件；其他配置文件为 fork 时的上游副本。
+
+仓库更新后，手机需要在 Shadowrocket 中更新已导入的配置；仓库定时任务不会主动触发手机更新。请保留本 fork 的脚本和工作流，日常规则更新由 Actions 完成。
+
+本地同步及验证（只需 Python 3 标准库）：
+
+```sh
+python3 -m unittest discover -s tests -v
+python3 scripts/sync_rules.py
+```
+
+---
+
+以下保留上游使用说明。
+
 ## 最完善的 iOS Shadowrocket规则
 
 ### 试更新公告
