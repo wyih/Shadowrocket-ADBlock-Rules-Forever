@@ -27,7 +27,9 @@ jobs:
           ref: tailscale
 
       - name: Verify routing customization
-        run: python3 -m unittest discover -s tests -v
+        run: |
+          python3 -m unittest discover -s tests -v
+          node tests/test_rednote_watermark.cjs
 
       - name: Sync fork release branch
         env:

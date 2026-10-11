@@ -1,9 +1,9 @@
-# Shadowrocket：上游原版与 Tailscale 定制版
+# Shadowrocket：上游配置、个人配置与模块
 
 上游：[Johnshall/Shadowrocket-ADBlock-Rules-Forever](https://github.com/Johnshall/Shadowrocket-ADBlock-Rules-Forever)。
 
 - **[release 分支](https://github.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tree/release)**：通过 GitHub 官方 `gh repo sync` 同步整个上游 `release` 分支，所有原版配置保持原名和原内容。
-- **tailscale 分支**：保存生成脚本与下面两份另取名称的个人配置。它是默认分支，以便 GitHub Actions 定时运行。
+- **tailscale 分支**：保存生成脚本、下面两份另取名称的个人配置，以及 [`modules/`](modules/README.md) 中的个人模块。它是默认分支，以便 GitHub Actions 定时运行。
 
 ## 导入地址
 
@@ -25,6 +25,10 @@
 上游每天通过 orphan commit 重建 `release` 历史，所以同步使用 `--force`，作用范围仅为保存原版的 `release` 分支。个人文件保存在 `tailscale` 分支。网页手动使用 **Sync fork** 时，选择 `release` 分支。
 
 GitHub 定时任务可能延迟。仓库发布更新后，手机仍需在 Shadowrocket 中更新已导入的配置。
+
+## 个人模块
+
+[`modules/`](modules/README.md) 维护小红书（RedNote）修复版、现有 DNS 模块，以及 `MITM Keep Enabled` 的公开模板。包含私人 CA 的完整 MITM 模块保存在 Git 忽略的 `private/` 目录。Script Hub Beta 直接使用官方模块，说明中记录依赖地址。自动同步只生成两份 `_tailscale.conf`，保留这些模块。
 
 ## 个人规则
 
