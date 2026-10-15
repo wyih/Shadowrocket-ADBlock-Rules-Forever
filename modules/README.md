@@ -11,6 +11,8 @@
 | 网易云音乐修复版 | [`NeteaseCloudMusic.sgmodule`](NeteaseCloudMusic.sgmodule) |
 | 爱奇艺规则修复版 | [`Iqiyi.sgmodule`](Iqiyi.sgmodule) |
 | 腾讯视频依赖修复版 | [`TencentVideo.sgmodule`](TencentVideo.sgmodule) |
+| 微信公众号现有规则基线 | [`WeChatOfficialAccounts.sgmodule`](WeChatOfficialAccounts.sgmodule) |
+| 微信小程序现有规则基线 | [`WeChatMiniPrograms.sgmodule`](WeChatMiniPrograms.sgmodule) |
 | 自己的 DNS 模块 | [`DNS.sgmodule`](DNS.sgmodule) |
 | MITM Keep Enabled 公开模板 | [`MITM-Keep-Enabled.sgmodule.example`](MITM-Keep-Enabled.sgmodule.example) |
 | 含现有证书的完整 MITM 模块 | 本地 `private/MITM-Keep-Enabled.sgmodule`，Git 忽略 |
@@ -21,6 +23,10 @@
 上述六个修复版保留原作者署名与现有规则，只修复本次调试发现的问题。它们的 `#!url` 更新头指向本仓库的 raw URL，正常更新会拉取本仓库版本。下载地址为 `https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/<文件名>`。
 
 具体原因、检查范围和手机验证记录见 [`compatibility-audit.md`](compatibility-audit.md)。本地检查：`node tests/test_module_repairs.cjs`，需要 Node.js 和 jq。
+
+## 微信模块基线
+
+`WeChatOfficialAccounts.sgmodule` 和 `WeChatMiniPrograms.sgmodule` 来自手机现有的“微信公众号去广告”和“微信小程序去广告”模块，保留原作者、规则、脚本及设置，仅将 `#!url` 更新地址改为本仓库。后续微信修复以这两份为基线；当前提交尚未修复用户反馈的公众号信息流广告图片和小程序广告问题，也未替换手机上的微信模块。
 
 ## 小红书
 
