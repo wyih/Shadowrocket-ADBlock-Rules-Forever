@@ -43,6 +43,45 @@ for (const module of ['Bilibili', 'AppleWeather', 'NeteaseCloudMusic']) {
   }
 }
 const bili = read('modules/Bilibili.sgmodule');
+// Splash replies must clear each advertised list and work without browser-only globals.
+const splashScript = read('scripts/bilibili-splash.js');
+const splashRule = bili.split('\n').find(l => l.startsWith('开屏空列表 ='));
+assert.match(splashRule, /type=http-request/);
+assert.match(splashRule, /script-path=https:\/\/raw\.githubusercontent\.com\/wyih\/Shadowrocket-ADBlock-Rules-Forever\/tailscale\/scripts\/bilibili-splash\.js/);
+const splashPattern = new RegExp(splashRule.split('pattern=(?i)')[1].split(', script-path=')[0], 'i');
+function splashReply(url) {
+  let result;
+  vm.runInNewContext(splashScript, {
+    $request: { url },
+    $done: value => { result = JSON.parse(JSON.stringify(value)); }
+  });
+  return result;
+}
+for (const endpoint of ['list', 'show', 'event/list2', 'brand/list']) {
+  for (const query of ['', '?build=123&test=1']) {
+    const url = `https://app.bilibili.com/x/v2/splash/${endpoint}${query}`;
+    assert(splashPattern.test(url));
+    const { response } = splashReply(url);
+    assert.equal(response.status, 200);
+    assert.equal(response.headers['Content-Type'], 'application/json');
+    assert.equal(Number(response.headers['Content-Length']), Buffer.byteLength(response.body));
+    const payload = JSON.parse(response.body);
+    assert.equal(payload.code, 0);
+    assert.equal(payload.data.max_time, 0);
+    for (const field of ['list', 'show', 'event_list', 'keep_ids']) {
+      assert.deepEqual(payload.data[field], []);
+    }
+  }
+}
+for (const url of [
+  'https://app.bilibili.com/x/v2/feed/index?test=1',
+  'https://app.bilibili.com/x/v2/splash/list2',
+  'https://example.com/x/v2/splash/list'
+]) {
+  assert(!splashPattern.test(url));
+  assert.deepEqual(splashReply(url), {});
+}
+assert(!bili.split('\n').some(l => l.includes('splash') && l.includes('data-type=')));
 for (const line of bili.split('\n').filter(l => l.includes('argument='))) {
   const raw = line.split('argument=')[1].slice(1, -1)
     .replace(/\{\{\{purifyComment\}\}\}/g, 'true')
