@@ -10,7 +10,7 @@
 | 高德地图 | 旧开屏脚本只调整第一条创意的时间，依赖具体响应结构。开屏专用接口改为返回空广告数组；AOCS 响应主动清空 SplashScreenControl、splashscreen、splashview_config，即使服务器本次未返回这些缓存项；保留其余地图数据和上游过滤。重名脚本改用唯一名称。 | jq 检查缓存清除与非广告字段保留通过；手机保存后以及模块更新、VPN 重连后，两次冷启动均直接进入地图，未出现开屏广告；日志确认 AOCS 请求命中响应处理。旧 splash 接口在本次启动中未出现。 |
 | Apple 天气增强 | `new URL` 在默认 JSCore 报 ReferenceError；两条规则改用 WebView，兼容 URL 和二进制解码所需接口。 | 手机日志确认通过 WebView 执行、不再报 URL 错误；VPN 开启时天气页面正常显示。测试用代理路由已移除。 |
 | 网易云音乐 | 压缩响应依赖 TextDecoder；仅指定 WebView 后仍有缺失错误。六条规则改用仓库兼容脚本，补 UTF-8 解码并规范化参数，修正上游问候栏数组赋值和旧首页路径。 | 作者实际脚本的 AES 加密、gzip 响应测试通过，覆盖推荐块过滤、正常音乐栏目与底栏保留；手机效果待用户更新验证。 |
-| 腾讯视频 | 通用 replace-body.js 地址返回 404。使用本仓库的 tencent-video-request.js 保留原 getvinfo 表单替换。 | 检查了参数替换、中间及尾部字段保留、无匹配和无正文；尚未验证客户端广告。原上游已声明较新客户端可能失效。 |
+| 腾讯视频 | 旧模块只改写播放参数，缺少首页推荐流处理。新增 i.video.qq.com 二进制广告卡片过滤和对应 MITM；getvinfo 覆盖 svv 域名，独立处理三个广告参数。 | 合成 Protobuf 测试与固定上游对照通过，覆盖广告卡片和广告扩展删除、正常推荐保留、未知结构透传；现有日志未含解密后的首页响应，9.04.60 手机效果待用户更新验证。 |
 
 | 爱奇艺 | 转换结果含一条空 jq 表达式，Shadowrocket 每次加载均记录 Invalid rule format。删除该无效行，保留紧邻的有效评论过滤规则及其他规则。 | 删除旧条目、重连 VPN 后，日志不再出现 Invalid rule format；未逐项验证客户端广告。 |
 
@@ -55,3 +55,15 @@
 上游逻辑从作者 [Keywos/rule 的固定版本](https://github.com/Keywos/rule/blob/a06d921d370ad6fca9e972a3f76e64d90bc8cfae/script/wy/js/wyres.js) 加载；内容与原 kelee.one 脚本正文一致。成功后按版本缓存，首次下载设 3 秒超时，下载失败保留原响应。仓库不复制上游编译包。
 
 `node tests/test_netease_response.cjs` 验证参数、UTF-8 中文及 emoji、字节视图偏移、原生解码器、缓存与下载失败。将该固定版本保存到本地，再执行 `node tests/test_netease_response.cjs /绝对路径/wyres.js`，可运行作者实际脚本的加密响应检查。本轮已通过 AES-128-ECB、gzip/非压缩和有/无原生 TextDecoder 的组合，验证模拟推广块移除、每日推荐与歌单保留、隐藏开关、两条问候栏路径、默认底栏与显式隐藏、位置广告清空、batch 非广告字段保留及旧首页广告横幅过滤。模拟推广块不代表已取得截图广告的真实响应正文；手机实际效果由用户更新后复测。
+
+## 腾讯视频首页广告卡片（2026-10-15，待用户复测）
+
+14:11 截图显示首页推荐流中携程广告的图片区域空白，广告标签、文案和下载按钮仍在。14:09:15 日志的 14:10–14:11 流量中，`xs.gdt.qq.com` 被拒绝 60 次、`pgdt.gtimg.cn` 被拒绝 8 次；`i.video.qq.com` 通过直连建立连接，旧模块仅解密 `vv.video.qq.com`，没有首页响应过滤。日志未提供这张广告卡片的解密响应。
+
+`TencentVideo.sgmodule` 版本 `20261015.2` 新增 `i.video.qq.com/` 的二进制响应脚本。脚本采用 [Feng-Feng1/surge 的固定 PageClean 版本](https://github.com/Feng-Feng1/surge/blob/f7463681d65bd57c6bbeeded95cb12b6ded800c0/TencentVideo-PageClean-V1.txt)（MIT）中的首页协议解析及广告识别逻辑，仅保留本次所需的信息流卡片与广告扩展过滤。需同时符合首页服务标识、完整协议帧、页面配置、广告类型及广告追踪标记才修改；保留其他字段，重算协议长度；日志仅记录删除数量或解析状态。
+
+MITM 增加首页、`svv.video.qq.com` 以及本次日志与上游配置共同出现的六个直连入口。响应脚本仍仅匹配 `i.video.qq.com/`；IP URL、其他业务和未知结构保持原样。未新增对 `tab.video.qq.com`、`svv.video.qq.com`、`playproxy.video.qq.com` 或视频 CDN 的整域拒绝。原请求脚本改为分别处理 `sppreviewtype`、`spsrt`、`spadseg`，支持参数换序、首项和多位数，保持其他表单内容原样。
+
+验证：`node tests/test_tencent_video.cjs`、`node tests/test_module_repairs.cjs`、脚本语法及 `git diff --check`。合成帧包含图片广告、视频广告、广告扩展、正常推荐及未知类型；另覆盖重复执行、截断帧、非首页响应及错误状态。用固定上游脚本处理相同合成输入，结果一致。测试素材完全合成，原始日志、响应及私人证书均未加入仓库。
+
+手机复测：在 Shadowrocket 更新腾讯视频模块，重连 VPN，完全退出腾讯视频后重新打开并刷新首页，检查携程广告整张卡片是否消失、普通推荐和视频是否正常。此次发布尚未验证手机结果。

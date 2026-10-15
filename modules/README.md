@@ -10,7 +10,7 @@
 | Apple 天气增强修复版 | [`AppleWeather.sgmodule`](AppleWeather.sgmodule) |
 | 网易云音乐修复版 | [`NeteaseCloudMusic.sgmodule`](NeteaseCloudMusic.sgmodule) |
 | 爱奇艺规则修复版 | [`Iqiyi.sgmodule`](Iqiyi.sgmodule) |
-| 腾讯视频依赖修复版 | [`TencentVideo.sgmodule`](TencentVideo.sgmodule) |
+| 腾讯视频首页广告修复版 | [`TencentVideo.sgmodule`](TencentVideo.sgmodule) |
 | 微信公众号现有规则基线 | [`WeChatOfficialAccounts.sgmodule`](WeChatOfficialAccounts.sgmodule) |
 | 微信小程序现有规则基线 | [`WeChatMiniPrograms.sgmodule`](WeChatMiniPrograms.sgmodule) |
 | 自己的 DNS 模块 | [`DNS.sgmodule`](DNS.sgmodule) |
@@ -23,6 +23,8 @@
 上述六个修复版保留原作者署名与现有规则，只修复本次调试发现的问题。它们的 `#!url` 更新头指向本仓库的 raw URL，正常更新会拉取本仓库版本。下载地址为 `https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/<文件名>`。
 
 具体原因、检查范围和手机验证记录见 [`compatibility-audit.md`](compatibility-audit.md)。本地检查：`node tests/test_module_repairs.cjs` 和 `node tests/test_netease_response.cjs`，需要 Node.js 和 jq。网易云兼容脚本补充缺失的 UTF-8 解码、规范化界面参数，再执行作者 GitHub 固定版本的响应过滤；加密响应检查方法见检查记录。
+
+腾讯视频另有 `node tests/test_tencent_video.cjs`，覆盖首页二进制广告卡片过滤与正常内容保留。版本 `20261015.2` 补充首页接口解密和过滤，手机 9.04.60 的实际效果待更新复测。
 
 ## 微信模块基线
 
