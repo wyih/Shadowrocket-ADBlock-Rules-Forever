@@ -11,8 +11,8 @@
 | 网易云音乐修复版 | [`NeteaseCloudMusic.sgmodule`](NeteaseCloudMusic.sgmodule) |
 | 爱奇艺规则修复版 | [`Iqiyi.sgmodule`](Iqiyi.sgmodule) |
 | 腾讯视频首页广告修复版 | [`TencentVideo.sgmodule`](TencentVideo.sgmodule) |
-| 微信公众号现有规则基线 | [`WeChatOfficialAccounts.sgmodule`](WeChatOfficialAccounts.sgmodule) |
-| 微信小程序现有规则基线 | [`WeChatMiniPrograms.sgmodule`](WeChatMiniPrograms.sgmodule) |
+| 微信公众号文章广告修复版 | [`WeChatOfficialAccounts.sgmodule`](WeChatOfficialAccounts.sgmodule) |
+| 微信小程序规则与依赖修复版 | [`WeChatMiniPrograms.sgmodule`](WeChatMiniPrograms.sgmodule) |
 | 自己的 DNS 模块 | [`DNS.sgmodule`](DNS.sgmodule) |
 | MITM Keep Enabled 公开模板 | [`MITM-Keep-Enabled.sgmodule.example`](MITM-Keep-Enabled.sgmodule.example) |
 | 含现有证书的完整 MITM 模块 | 本地 `private/MITM-Keep-Enabled.sgmodule`，Git 忽略 |
@@ -26,9 +26,24 @@
 
 腾讯视频另有 `node tests/test_tencent_video.cjs`，覆盖首页二进制广告卡片过滤与正常内容保留。版本 `20261015.2` 补充首页接口解密和过滤，手机 9.04.60 的实际效果待更新复测。
 
-## 微信模块基线
+## 微信模块修复
 
-`WeChatOfficialAccounts.sgmodule` 和 `WeChatMiniPrograms.sgmodule` 来自手机现有的“微信公众号去广告”和“微信小程序去广告”模块，保留原作者、规则、脚本及设置，仅将 `#!url` 更新地址改为本仓库。后续微信修复以这两份为基线；当前提交尚未修复用户反馈的公众号信息流广告图片和小程序广告问题，也未替换手机上的微信模块。
+`WeChatOfficialAccounts.sgmodule` 和 `WeChatMiniPrograms.sgmodule` 以手机原有模块为基础，统一维护现有适配。公众号文章广告接口改为清空广告数量与列表，保留其他字段；小程序修复同一接口被拆开的删除规则，将原来依赖 12 个外部脚本的 JSON 过滤内置到模块。茶颜悦色的广告图片替换、M Stand 的广告跳转链接删除改为删除对应广告配置。
+
+两模块原有 114 条本地映射由同一请求脚本返回完整响应，保持原有状态码与空结果，避开已发现的 Shadowrocket HTTP/2 本地映射正文丢失路径。另补丰巢广告位列表的空数组响应，以及其 DSP 接口的服务端无广告格式。模块保留原来的域名规则、解密域名和用户 HTTPS 设置。
+
+在 Shadowrocket 导入或更新以下两个仓库地址；旧 Script Hub 地址仍会下载原模块，需要先替换来源。无须另装每个小程序的补丁或单独导入脚本：
+
+- [微信公众号模块](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/WeChatOfficialAccounts.sgmodule)
+- [微信小程序模块](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/WeChatMiniPrograms.sgmodule)
+
+本地验证：`node tests/test_wechat_modules.cjs`。覆盖广告列表与组件配置删除、非广告字段保留、嵌套 JSON 异常保留、URL 匹配以及响应字节长度。手机效果待更新后验证；这些改写覆盖可读取的 HTTP 接口，尚未解决微信原生信息流卡片和微信自身小程序开屏的完整移除。
+
+### 微信规则来源
+
+- 原模块由可莉、RuCu6 维护；本次对照 [Loon 原文件存档](https://github.com/mihoyo-typ/KeleeOne/blob/ab6c3182fb2b09bcc34456f496282ec0b8e9217b/Plugin/WexinMiniPrograms_Remove_ads.lpx) 核对转换语义。当前本机访问其 12 个 kelee.one 脚本地址均返回 HTTP 403，不据此推断手机缓存状态。
+- 内置过滤对应存档中的 [`Script` 目录](https://github.com/mihoyo-typ/KeleeOne/tree/ab6c3182fb2b09bcc34456f496282ec0b8e9217b/Script) 的 kff、ems、xiaotucc、FamilyMart、lawson、chayanyuese_remove_ads、coco、qingju、alittle-tea、M_Stand、T3、ming。另对照 [fmz200/wool_scripts 固定版本](https://github.com/fmz200/wool_scripts/tree/5d5f63fcf98bc69d5f8f1b1bae6f86a01ee4bb97/Scripts)；罗森使用原模块存档的字段过滤，不引入另一版本的预购/推荐接口处理。
+- 公众号列表清空来自 [NobyDa/Wechat.js](https://github.com/NobyDa/Script/blob/0b8d083d444f4476700cb9d5d059c07b42da85eb/QuantumultX/File/Wechat.js)。丰巢空结果结构来自 [qDonl 的抓包与实测记录](https://github.com/qDonl/loon-plugin/blob/c8d3a63653fb2163e6b811eb2f262eb08d071ec4/fengchao/fengchao.plugin)；其中 `wxAdsFlag` 的回退开关含义为作者推测，未验证微信开屏受其控制。本仓库未加入换入口方案。
 
 ## 小红书
 

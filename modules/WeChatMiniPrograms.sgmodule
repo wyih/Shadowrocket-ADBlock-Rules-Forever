@@ -1,13 +1,13 @@
 #!url=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/WeChatMiniPrograms.sgmodule
 #!name=微信小程序去广告
-#!desc=收录常用小程序的去广告，作者署名在插件内。
+#!desc=常用小程序去广告；修复原规则转换与响应兼容问题，内置原脚本的JSON过滤。作者署名在插件内。
 #!author=可莉🅥[https://github.com/luestr/ProxyResource/blob/main/README.md]
 #!icon=https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/WeixinMiniPrograms.png
 #!openUrl=https://apps.apple.com/app/id414478124
 #!category=去广告
 #!loon_version=3.5.1(998)
 #!homepage=https://hub.kelee.one
-#!date=2026-10-02 13:57:49
+#!date=2026-10-15
 
 [Rule]
 DOMAIN,wxsnsdy.wxs.qq.com,REJECT
@@ -18,267 +18,267 @@ DOMAIN,ad.maoyan.com,REJECT
 DOMAIN,e.jparking.cn,REJECT
 
 [Body Rewrite]
-http-response-jq (?i)^https:\/\/mcsp\.cloudpnr\.com\/api\/miniapp\/popular\/T_MINIAPP$ 'delpaths([["data"]])'
-http-response-jq (?i)^https:\/\/saas-ad\.cloudpnr\.com\/huifuad-base-api\/api\/tactics\/ad$ 'delpaths([["data",0]])'
-http-response-jq (?i)^https:\/\/saas-ad\.cloudpnr\.com\/huifuad-base-api\/api\/tactics\/ad$ 'delpaths([["data",1]])'
-http-response-jq (?i)^https:\/\/saas-ad\.cloudpnr\.com\/huifuad-base-api\/api\/tactics\/ad$ 'delpaths([["data",2]])'
+http-response-jq (?i)^https:\/\/mcsp\.cloudpnr\.com\/api\/miniapp\/popular\/T_MINIAPP(?:\?|$) 'delpaths([["data"]])'
+http-response-jq (?i)^https:\/\/saas-ad\.cloudpnr\.com\/huifuad-base-api\/api\/tactics\/ad(?:\?|$) 'delpaths([["data",0],["data",1],["data",2]])'
 http-response-jq (?i)^https:\/\/rms\.meituan\.com\/api\/v1\/rmsmina\/c\/queryShopPortalInfo\? 'delpaths([["data","popUpWindows"]])'
 http-response-jq (?i)^https:\/\/chong\.qq\.com\/tws\/wxmobile\/GetProduct4App\? 'del(.respInfo.reserveProductList) | .respInfo.shortcut |= map(select(.name != "充流量" and .name != "领话费券"))'
 http-response-jq (?i)^https:\/\/chong\.qq\.com\/tws\/wxmobile4app\/GetSecondProduct\? 'del(.respInfo.productList) | .respInfo.shortcut |= map(select(.name != "充流量" and .name != "领话费券"))'
-http-response-jq (?i)^https:\/\/chong\.qq\.com\/tws\/usernumberinfo\/GetUserInfo\? 'delpaths([["data","request","number","markSeat","servicehallOperList"]])'
-http-response-jq (?i)^https:\/\/chong\.qq\.com\/tws\/usernumberinfo\/GetUserInfo\? 'delpaths([["data","request","number","servicehallOperList"]])'
-http-response-jq (?i)^https:\/\/chong\.qq\.com\/tws\/usernumberinfo\/GetUserInfo\? 'delpaths([["data","request","number","markSeat","servicehallFuncList"]])'
-http-response-jq (?i)^https:\/\/chong\.qq\.com\/tws\/usernumberinfo\/GetUserInfo\? 'delpaths([["data","request","number","servicehallFuncList"]])'
-
-[Map Local]
-(?i)^https:\/\/webapi\.qmai\.cn\/web\/catering\/advertising\/ data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/webapi\.qmai\.cn\/web\/cmk-center\/marketing\/canvas\/advert-reach data-type=text data="" status-code=404
-
-(?i)^https:\/\/images\.qmai\.cn\/s214925\/2023 data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/creditcardapp\.bankcomm\.com\/cnsvPmpaMdbcardWeb\/page\/getGuidePageAds data-type=text data="" status-code=404
-
-(?i)^https:\/\/mbmodule-openapi\.paas\.cmbchina\.com\/graphic\/v2\/module\/graphic data-type=text data="" status-code=404
-
-(?i)^https:\/\/webchatapp\.fcbox\.com\/fcboxactivityweb\/api\/v2\/clientPage\/modulesAggregated\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/webchatapp\.fcbox\.com\/fcboxactivityweb\/api\/v2\/clientPage\/getHomeLiveInfo$ data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/dsp\.fcbox\.com\/adSearch\/ data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/webchatapp\.fcbox\.com\/post\/suggestion\/query$ data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/webchatapp\.fcbox\.com\/fcboxactivityweb\/marketingEntrance\/v2\/infoWithItems$ data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/webchatapp\.fcbox\.com\/fcboxactivityweb\/marketingEntrance\/info$ data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/app\.95504\.net\/app\/json\/page_ad\/initPageAd\?ver= data-type=text data="" status-code=404
-
-(?i)^https:\/\/minipro\.95504\.net\/app\/json\/ad\/getPopAdData data-type=text data="" status-code=404
-
-(?i)^https:\/\/minipro\.95504\.net\/app\/json\/ad\/getIndexAdData data-type=text data="" status-code=404
-
-(?i)^https:\/\/flow\.dmall\.com\/app\/home\/pops data-type=text data="" status-code=404
-
-(?i)^https:\/\/api\.yonghuivip\.com\/api\/fp\/homepage\/pop data-type=text data="" status-code=404
-
-(?i)^https:\/\/activity\.yonghuivip\.com\/api\/app\/fp\/homepage\/pop data-type=text data="" status-code=404
-
-(?i)^https:\/\/activity\.yonghuivip\.com\/api\/\/web\/shensuan\/ad data-type=text data="" status-code=404
-
-(?i)^https:\/\/sauron-report\.yonghuivip\.com\/collect data-type=text data="" status-code=404
-
-(?i)^https:\/\/res\.pizzahut\.com\.cn\/CRM data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/api\.mcd\.cn\/bff\/portal\/home\/hotActivity data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/3pp\.starbucks\.com\.cn\/wxmem\/popup data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/3pp\.starbucks\.com\.cn\/wxmem\/index\/banner data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/3pp\.starbucks\.com\.cn\/wxmem\/index\/global data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/wechat-api\.i-xiaoma\.com\.cn\/app\/v1\/bus\/wechat\/content data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/apiproxy\.zuche\.com\/resource\/carrctapi\/home\/marketing data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/apiproxy\.zuche\.com\/resource\/carrctapi\/home\/page\/advertising data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/miniprogram\.ishansong\.com\/cms\/faq\/query data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/ads\.ishansong\.com\/advert data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/ump\.ems\.com\.cn\/mailAd$ data-type=text data="" status-code=404
-
-(?i)^https:\/\/minicap\.caocaokeji\.cn\/advert-bss\/pullAdvert data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/r2\.gzyct\.com\/qrcode\/advert data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/applets\.jtexpress\.com\.cn data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/api\.hellobike\.com\/api\?adx data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/api\.kuaidihelp\.com\/g_order_core\/v2\/mina\/User\/getBannerList data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/wxproj\.seeyouyima\.com\/data\/today_tips data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/suyun-guest\.daojia\.com\/api\/kuaigou\/banjia\/review data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/ne\.gdsz\.sinopec\.com\/gateway\/api\/omp\/mt\/appAdvertising data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/qapi\.huolala\.cn\/ads data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/qapi\.huolala\.cn\/home_new_user data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/qapi\.huolala\.cn\/get_service_list data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/appuser-static\.huolala\.cn\/imgs data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/apis\.alenable\.com\/mall\/v1\/api\/mall\/skin\/user\/get data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/apis\.alenable\.com\/ycx\/v1\/api\/adPut data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/dock\.tenchii\.com\/DockCard\/api\/mini\/card\/list data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/customer-app\.sto\.cn\/api\/app\/banner\/banner data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/sto-customer-app\.oss-cn-shanghai\.aliyuncs\.com\/images data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/supplier-api\.imdada\.cn\/fe\/public\/ad\/spot\?forwardServiceName=growth-activity data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/hdgateway\.zto\.com\/getApolloConfig data-type=text data="" status-code=404
-
-(?i)^https:\/\/hdgateway\.zto\.com\/track data-type=text data="" status-code=404
-
-(?i)^https:\/\/hdgateway\.zto\.com\/getAdInfo data-type=text data="" status-code=404
-
-(?i)^https:\/\/hdgateway\.zto\.com\/listJumperShow data-type=text data="" status-code=404
-
-(?i)^https:\/\/fscdn\.zto\.com\/fs1 data-type=text data="" status-code=404
-
-(?i)^https:\/\/mobile-api\.imlaidian\.com\/api\/args data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/wxs-weixin\.sd\.zhumanggroup\.com\/api\/v2\/ad data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/s\.jiediankeji\.com\/adv data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/smarket\.dian\.so data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/file\.dian\.so\/c\/leto data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/aag\.enmonster\.com\/apa\/index\/advert\/skin data-type=text data="" status-code=404
-
-(?i)^https:\/\/ad\.xiaotucc\.com\/advert data-type=text data="" status-code=404
-
-(?i)^https:\/\/api-marketing\.zhinengxiyifang\.cn\/api\/v2\/cloudcode\/wechat\/bid data-type=text data="" status-code=404
-
-(?i)^https:\/\/api\.songguo7\.com\/(\w{3})?mp\/v2\/misc\/(toast|user_operate_info|unlock_without_order|unlock_operate_info) data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/ccmsupport-sz\.tenpay\.com\/cgi-bin\/common\/ccm_page_element.cgi data-type=text data="" status-code=404
-
-(?i)^https:\/\/tm-api\.pin-dao\.cn\/home\/api\/index\/activeConfig\/v2 data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/tm-api\.pin-dao\.cn\/home\/api\/resource\/config\/homeBannerNodes data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/api-fouth-mem\.huazhu\.com\/api\/rights\/bannerList data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/wxapp\.bestwehotel\.com\/gw3\/app-mini\/trip-hotel-banner\/activity\/getActivityInfo data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/wx\.bthhotels\.com\/miniapp\/weixin\/v1\/home\/index_banner data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/app\.homeinns\.com\/api\/v6\/indexs data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/app\.homeinns\.com\/api\/v5\/local data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/app\.homeinns\.com\/api\/v5\/index data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/mxsa\.mxbc\.net\/api\/v1\/adinfo\/adplace\/query data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/htwkop\.xiaojukeji\.com\/gateway\?api=cms\.htw\.delivery data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/htwkop\.xiaojukeji\.com\/gateway\?api=hm\.fa\.combineHomepageInfo data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/htwkop\.xiaojukeji\.com\/gateway\?api=hm\.fa\.mallRecommend data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/lawsonapi\.yorentown\.com\/area\/sh-lawson\/app\/v1\/mina\/systemSetting data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/plt\.yorentown\.com\/pltapp\/v1\/banner data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/member\.lxjchina\.com\.cn\/mini-server\/home\/page\/banner data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/cbd-gateway-service-applets\.hualala\.com\/arch\/api\/banner\/QueryBannerImgList data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/alittle-tea\.oss-cn-shanghai\.aliyuncs\.com\/images\/platform\/alittle data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/api\.prod\.dj\.mstand\.cn\/scrm\/app\/mdm\/index\/listAdv\?types data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/gw-passenger-wap\.01zhuanche\.com\/gw-passenger-wap\/zhuanche-passenger-token\/commonSkipToken\/common\/getAdList data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/www\.deppon\.com\/gwapi\/memberService\/eco\/member\/grade\/commonInterface data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/passengerapi\.saicmobility\.com\/(ad\/requestAd|pay\/v1\/queryOpenedCouponPackages) data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/passenger\.t3go\.cn\/passenger-activity-api\/notoken\/api\/v1\/resource\/getSource data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/m\.ctrip\.com\/restapi\/soa2\/13916\/tripAds data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/m\.ctrip\.com\/restapi\/soa2\/12673\/queryWeChatHotEvent data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/ad\.maoyan\.com\/api\/position\/detail data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/wx\.maoyan\.com\/maoyansh\/api\/mobile\/(hotMatchList|eSportsIps) data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/vod-movie\.maoyan\.com\/vod\/video\/onlineMovies\.json data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/wx\.maoyan\.com\/maoyansh\/myshow\/ajax\/movie\/wonderShow data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/wx\.maoyan\.com\/maoyansh\/myshow\/ajax\/performances\/calendar\/0 data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/wx\.maoyan\.com\/maoyansh\/myshow\/ajax\/performances\/rob\/main data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/wx\.maoyan\.com\/maoyansh\/myshow\/ajax\/celebrityBasicList\/query data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/wx\.maoyan\.com\/maoyansh\/myshow\/ajax\/recommend\/performances data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/api\.maoyan\.com\/sns\/common\/feed\/channel\/v2\/list\.json data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/wx\.maoyan\.com\/maoyansh\/myshow\/ajax\/ad\/detail data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/mkt-gateway\.tuhu\.cn\/mkt-scene-marketing-service\/api\/scene\/queryScheme data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/api\.hengdianfilm\.com\/\/cinema\/queryAvailableBannerInfo\/2\?cid= data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/api\.hengdianfilm\.com\/\/cinema\/queryAvailableBannerInfo\/4\?cid= data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/tbgapplet\.carlsberg\.asia\/tuborg\/banner\/(loading|index) data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/api\.pinduoduo\.com\/api\/ktt_gateway\/activity\/feeds\/personal_home_page\/ data-type=text data="" status-code=404
-
-(?i)^https:\/\/ucmp\.sf-express\.com\/proxy\/operation-platform\/info-flow-adver\/query data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/ucmp\.sf-express\.com\/proxy\/esgcempcore\/memberGoods\/pointMallService\/goodsList data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/as\.xiaojukeji\.com\/ep\/as\/conf\?ns=daijia-front&name= data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/daijia\.kuaidadi\.com\/gateway\?api=prado\.cms\.delivery\.batch&apiVe data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/api\.szbgcx\.cn\/account\/adv\/ data-type=text data="" status-code=404
-
-(?i)^https:\/\/mobile\.12306\.cn\/wxxcx\/openplatform-inner\/miniprogram\/wifiapps\/appFrontEnd\/v2\/lounge\/open-smooth-common\/qrCode\/getAdvInfo$ data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/mobile\.12306\.cn\/wxxcx\/openplatform-inner\/miniprogram\/wifiapps\/tourism\/tourismBase\/api\/scenic\/getThemeProduct? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/mobile\.12306\.cn\/wxxcx\/openplatform-inner\/miniprogram\/wifiapps\/appFrontEnd\/v2\/lounge\/open-smooth-common\/carService\/getCivilzedSlogan data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/wx\.online-cmcc\.cn\/contactpoint\/customer\/api\/list\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
-(?i)^https:\/\/wx\.10086\.cn\/qwhdhub\/activity\/info data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+http-response-jq (?i)^https:\/\/chong\.qq\.com\/tws\/usernumberinfo\/GetUserInfo\? 'delpaths([["data","request","number","markSeat","servicehallOperList"],["data","request","number","servicehallOperList"],["data","request","number","markSeat","servicehallFuncList"],["data","request","number","servicehallFuncList"]])'
+
+# 内置过滤来源与固定版本见 README.md 的“微信模块修复”。
+# 企迈点单系统去广告
+http-response-jq (?i)^https:\/\/webapi\.qmai\.cn\/web\/catering\/design\/homePage-Config '. as $original | try (.data.config |= (fromjson | map(select((.id // "") | test("13502ede-f5fd-4d5c-90f5-f2454a30fda0|c1caaf62-e91d-4040-b533-dab39c0fec13|cc9d17ec-3ac5-494b-b82e-8d3c72c243d4|7bef8fe9-0daf-46b3-a2b0-dd9fba49423f|ff7e1263-d8d2-4f09-9947-d8c43c77bb10|874197b4-fe93-4a80-a555-8df1bc7e8211|0ba6a615-b7e9-48aa-afe7-329635385f2c|a11b0e7d-a162-4802-ac71-21d98e8adddf") | not)) | tojson)) catch $original'
+# EMS中国邮政物流速递去广告
+http-response-jq (?i)^https:\/\/ump\.ems\.com\.cn\/new-generation-extend\/redis\/pageInfoByChannel '. as $original | try (.info.moduleJson |= (fromjson | map(select((.moduleName // "") | contains("广告") | not)) | tojson)) catch $original'
+# 小兔充充去广告
+http-response-jq (?i)^https:\/\/mapi\.xiaotucc\.com\/mall\/main(?:\?|$) 'del(.data)'
+http-response-jq (?i)^https:\/\/mapi\.xiaotucc\.com\/main_page\/index\/getActivity(?:\?|$) 'del(.data.p3)'
+# 全家微会员去广告
+http-response-jq (?i)^https:\/\/minifm\.maxxipoint\.com\/banner\/list 'del(.data.topBanner)'
+# 罗森点点去广告
+http-response-jq (?i)^https:\/\/lawsonapi\.yorentown\.com\/area\/sh-lawson\/app\/v1\/home 'del(.data.homeButtonList, .data.dysmorphismPictureList)'
+# 茶颜悦色去广告
+http-response-jq (?i)^https:\/\/miniapp\.sexytea2013\.com\/cms\/slot\/queryByCodes\?codes=INDEX_TOP_BANNER 'del(.data.INDEX_SLOT_01, .data.INDEX_SLOT_02, .data.INDEX_TOP_BANNER)'
+# COCO点单去广告
+http-response-jq (?i)^https:\/\/coco-com\.e\.verystar\.net\/v1\/home\/info 'del(.data.top_background_url, .data.bottom_banner_list)'
+# 滴滴青桔去广告
+http-response-jq (?i)^https:\/\/htwkop\.xiaojukeji\.com\/gateway\?api=hm\.fa\.homeConfig 'del(.data.bannerInfoConfig)'
+# 一点点+去广告
+http-response-jq (?i)^https:\/\/cappapi\.alittle-tea\.com\/open\?method=catering\.set\.ad 'del(.data)'
+# M Stand去广告
+http-response-jq (?i)^https:\/\/api\.prod\.dj\.mstand\.cn\/scrm\/mini\/app\/index\/info 'del(.data.homeNewsAdv, .data.homeDineInAdv, .data.homePickupAdv, .data.nearbyShopInfo, .data.homeEventThemesAdv, .data.eventThemes, .data.homeRootAdv, .data.homeTopAdv, .data.homeDialogAdv, .data.homeBannerAdv, .data.homeCouponAdv, .data.homeCompanyAdv, .data.homeDeliveryAdv)'
+# T3出行去广告
+http-response-jq (?i)^https:\/\/passenger\.t3go\.cn\/(solution\-|common\-)?(passenger\-)?(activity\-|app\-)?api\/notoken\/(trip\/)?api\/(home\/|common\/)?(v[1-3]\/)?(ad\/getNegativescreen|solution\/passenger\/open\/getHomeMenu|leftmenu|getHomeInfoGlobal) 'del(.data)'
+# 古茗去广告
+http-response-jq (?i)^https:\/\/newton\.gumingnc\.com\/newton-buyer\/newton\/buyer\/(ump|touch|external\/front) '.data = []'
 
 [Script]
-企迈点单系统去广告 = type=http-response, pattern=(?i)^https:\/\/webapi\.qmai\.cn\/web\/catering\/design\/homePage-Config, script-path=https://kelee.one/Resource/JavaScript/WexinMiniPrograms/kff/kff.js, requires-body=true
+# 同一响应脚本处理原有 reject-dict/reject；丰巢两种空结果在其接口单独选择。
+小程序本地响应001 = type=http-request, pattern=(?i)^https:\/\/webapi\.qmai\.cn\/web\/catering\/advertising\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
 
-EMS中国邮政物流速递去广告 = type=http-response, pattern=(?i)^https:\/\/ump\.ems\.com\.cn\/new-generation-extend\/redis\/pageInfoByChannel, script-path=https://kelee.one/Resource/JavaScript/WexinMiniPrograms/ems/ems.js, requires-body=true
+小程序本地响应002 = type=http-request, pattern=(?i)^https:\/\/webapi\.qmai\.cn\/web\/cmk-center\/marketing\/canvas\/advert-reach, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
 
-小兔充充去广告 = type=http-response, pattern=(?i)^https:\/\/mapi\.xiaotucc\.com\/(mall\/main|main_page\/index\/getActivity), script-path=https://kelee.one/Resource/JavaScript/WexinMiniPrograms/xiaotucc/xiaotucc.js, requires-body=true
+小程序本地响应003 = type=http-request, pattern=(?i)^https:\/\/images\.qmai\.cn\/s214925\/2023, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
 
-全家微会员去广告 = type=http-response, pattern=(?i)^https:\/\/minifm\.maxxipoint\.com\/banner\/list, script-path=https://kelee.one/Resource/JavaScript/WexinMiniPrograms/FamilyMart/FamilyMart.js, requires-body=true
+小程序本地响应004 = type=http-request, pattern=(?i)^https:\/\/creditcardapp\.bankcomm\.com\/cnsvPmpaMdbcardWeb\/page\/getGuidePageAds, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
 
-罗森点点去广告 = type=http-response, pattern=(?i)^https:\/\/lawsonapi\.yorentown\.com\/area\/sh-lawson\/app\/v1\/home, script-path=https://kelee.one/Resource/JavaScript/WexinMiniPrograms/lawson/lawson.js, requires-body=true
+小程序本地响应005 = type=http-request, pattern=(?i)^https:\/\/mbmodule-openapi\.paas\.cmbchina\.com\/graphic\/v2\/module\/graphic, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
 
-茶颜悦色去广告 = type=http-response, pattern=(?i)^https:\/\/miniapp\.sexytea2013\.com\/cms\/slot\/queryByCodes\?codes=INDEX_TOP_BANNER, script-path=https://kelee.one/Resource/JavaScript/WexinMiniPrograms/chayanyuese/chayanyuese_remove_ads.js, requires-body=true
+小程序本地响应006 = type=http-request, pattern=(?i)^https:\/\/webchatapp\.fcbox\.com\/fcboxactivityweb\/api\/v2\/clientPage\/modulesAggregated\?, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
 
-COCO点单去广告 = type=http-response, pattern=(?i)^https:\/\/coco-com\.e\.verystar\.net\/v1\/home\/info, script-path=https://kelee.one/Resource/JavaScript/WexinMiniPrograms/coco/coco.js, requires-body=true
+小程序本地响应007 = type=http-request, pattern=(?i)^https:\/\/webchatapp\.fcbox\.com\/fcboxactivityweb\/api\/v2\/clientPage\/getHomeLiveInfo(?:\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
 
-滴滴青桔去广告 = type=http-response, pattern=(?i)^https:\/\/htwkop\.xiaojukeji\.com\/gateway\?api=hm\.fa\.homeConfig, script-path=https://kelee.one/Resource/JavaScript/WexinMiniPrograms/qingju/qingju.js, requires-body=true
+丰巢广告空结果 = type=http-request, pattern=(?i)^https:\/\/dsp\.fcbox\.com\/adSearch\/get(?:Multi)?(?:\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=fcbox-dsp
+丰巢广告位空列表 = type=http-request, pattern=(?i)^https:\/\/webchatapp\.fcbox\.com\/commerce\/mobile\/appConfig\/getPositions(?:\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=fcbox-positions
+小程序本地响应008 = type=http-request, pattern=(?i)^https:\/\/dsp\.fcbox\.com\/adSearch\/(?!get(?:Multi)?(?:\?|$)), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
 
-一点点+去广告 = type=http-response, pattern=(?i)^https:\/\/cappapi\.alittle-tea\.com\/open\?method=catering\.set\.ad, script-path=https://kelee.one/Resource/JavaScript/WexinMiniPrograms/alittle-tea/alittle-tea.js, requires-body=true
+小程序本地响应009 = type=http-request, pattern=(?i)^https:\/\/webchatapp\.fcbox\.com\/post\/suggestion\/query(?:\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
 
-M Stand去广告 = type=http-response, pattern=(?i)^https:\/\/api\.prod\.dj\.mstand\.cn\/scrm\/mini\/app\/index\/info, script-path=https://kelee.one/Resource/JavaScript/WexinMiniPrograms/M_Stand/M_Stand.js, requires-body=true
+小程序本地响应010 = type=http-request, pattern=(?i)^https:\/\/webchatapp\.fcbox\.com\/fcboxactivityweb\/marketingEntrance\/v2\/infoWithItems(?:\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
 
-T3出行去广告 = type=http-response, pattern=(?i)^https:\/\/passenger\.t3go\.cn\/(solution\-|common\-)?(passenger\-)?(activity\-|app\-)?api\/notoken\/(trip\/)?api\/(home\/|common\/)?(v[1-3]\/)?(ad\/getNegativescreen|solution\/passenger\/open\/getHomeMenu|leftmenu|getHomeInfoGlobal), script-path=https://kelee.one/Resource/JavaScript/WexinMiniPrograms/T3/T3.js, requires-body=true
+小程序本地响应011 = type=http-request, pattern=(?i)^https:\/\/webchatapp\.fcbox\.com\/fcboxactivityweb\/marketingEntrance\/info(?:\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
 
-古茗去广告 = type=http-response, pattern=(?i)^https:\/\/newton\.gumingnc\.com\/newton-buyer\/newton\/buyer\/(ump|touch|external\/front), script-path=https://kelee.one/Resource/JavaScript/WexinMiniPrograms/ming/ming.js, requires-body=true
+小程序本地响应012 = type=http-request, pattern=(?i)^https:\/\/app\.95504\.net\/app\/json\/page_ad\/initPageAd\?ver=, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
+
+小程序本地响应013 = type=http-request, pattern=(?i)^https:\/\/minipro\.95504\.net\/app\/json\/ad\/getPopAdData, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
+
+小程序本地响应014 = type=http-request, pattern=(?i)^https:\/\/minipro\.95504\.net\/app\/json\/ad\/getIndexAdData, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
+
+小程序本地响应015 = type=http-request, pattern=(?i)^https:\/\/flow\.dmall\.com\/app\/home\/pops, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
+
+小程序本地响应016 = type=http-request, pattern=(?i)^https:\/\/api\.yonghuivip\.com\/api\/fp\/homepage\/pop, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
+
+小程序本地响应017 = type=http-request, pattern=(?i)^https:\/\/activity\.yonghuivip\.com\/api\/app\/fp\/homepage\/pop, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
+
+小程序本地响应018 = type=http-request, pattern=(?i)^https:\/\/activity\.yonghuivip\.com\/api\/\/web\/shensuan\/ad, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
+
+小程序本地响应019 = type=http-request, pattern=(?i)^https:\/\/sauron-report\.yonghuivip\.com\/collect, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
+
+小程序本地响应020 = type=http-request, pattern=(?i)^https:\/\/res\.pizzahut\.com\.cn\/CRM, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应021 = type=http-request, pattern=(?i)^https:\/\/api\.mcd\.cn\/bff\/portal\/home\/hotActivity, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应022 = type=http-request, pattern=(?i)^https:\/\/3pp\.starbucks\.com\.cn\/wxmem\/popup, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应023 = type=http-request, pattern=(?i)^https:\/\/3pp\.starbucks\.com\.cn\/wxmem\/index\/banner, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应024 = type=http-request, pattern=(?i)^https:\/\/3pp\.starbucks\.com\.cn\/wxmem\/index\/global, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应025 = type=http-request, pattern=(?i)^https:\/\/wechat-api\.i-xiaoma\.com\.cn\/app\/v1\/bus\/wechat\/content, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应026 = type=http-request, pattern=(?i)^https:\/\/apiproxy\.zuche\.com\/resource\/carrctapi\/home\/marketing, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应027 = type=http-request, pattern=(?i)^https:\/\/apiproxy\.zuche\.com\/resource\/carrctapi\/home\/page\/advertising, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应028 = type=http-request, pattern=(?i)^https:\/\/miniprogram\.ishansong\.com\/cms\/faq\/query, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应029 = type=http-request, pattern=(?i)^https:\/\/ads\.ishansong\.com\/advert, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应030 = type=http-request, pattern=(?i)^https:\/\/ump\.ems\.com\.cn\/mailAd(?:\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
+
+小程序本地响应031 = type=http-request, pattern=(?i)^https:\/\/minicap\.caocaokeji\.cn\/advert-bss\/pullAdvert, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应032 = type=http-request, pattern=(?i)^https:\/\/r2\.gzyct\.com\/qrcode\/advert, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应033 = type=http-request, pattern=(?i)^https:\/\/applets\.jtexpress\.com\.cn, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应034 = type=http-request, pattern=(?i)^https:\/\/api\.hellobike\.com\/api\?adx, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应035 = type=http-request, pattern=(?i)^https:\/\/api\.kuaidihelp\.com\/g_order_core\/v2\/mina\/User\/getBannerList, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应036 = type=http-request, pattern=(?i)^https:\/\/wxproj\.seeyouyima\.com\/data\/today_tips, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应037 = type=http-request, pattern=(?i)^https:\/\/suyun-guest\.daojia\.com\/api\/kuaigou\/banjia\/review, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应038 = type=http-request, pattern=(?i)^https:\/\/ne\.gdsz\.sinopec\.com\/gateway\/api\/omp\/mt\/appAdvertising, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应039 = type=http-request, pattern=(?i)^https:\/\/qapi\.huolala\.cn\/ads, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应040 = type=http-request, pattern=(?i)^https:\/\/qapi\.huolala\.cn\/home_new_user, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应041 = type=http-request, pattern=(?i)^https:\/\/qapi\.huolala\.cn\/get_service_list, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应042 = type=http-request, pattern=(?i)^https:\/\/appuser-static\.huolala\.cn\/imgs, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应043 = type=http-request, pattern=(?i)^https:\/\/apis\.alenable\.com\/mall\/v1\/api\/mall\/skin\/user\/get, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应044 = type=http-request, pattern=(?i)^https:\/\/apis\.alenable\.com\/ycx\/v1\/api\/adPut, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应045 = type=http-request, pattern=(?i)^https:\/\/dock\.tenchii\.com\/DockCard\/api\/mini\/card\/list, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应046 = type=http-request, pattern=(?i)^https:\/\/customer-app\.sto\.cn\/api\/app\/banner\/banner, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应047 = type=http-request, pattern=(?i)^https:\/\/sto-customer-app\.oss-cn-shanghai\.aliyuncs\.com\/images, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应048 = type=http-request, pattern=(?i)^https:\/\/supplier-api\.imdada\.cn\/fe\/public\/ad\/spot\?forwardServiceName=growth-activity, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应049 = type=http-request, pattern=(?i)^https:\/\/hdgateway\.zto\.com\/getApolloConfig, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
+
+小程序本地响应050 = type=http-request, pattern=(?i)^https:\/\/hdgateway\.zto\.com\/track, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
+
+小程序本地响应051 = type=http-request, pattern=(?i)^https:\/\/hdgateway\.zto\.com\/getAdInfo, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
+
+小程序本地响应052 = type=http-request, pattern=(?i)^https:\/\/hdgateway\.zto\.com\/listJumperShow, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
+
+小程序本地响应053 = type=http-request, pattern=(?i)^https:\/\/fscdn\.zto\.com\/fs1, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
+
+小程序本地响应054 = type=http-request, pattern=(?i)^https:\/\/mobile-api\.imlaidian\.com\/api\/args, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应055 = type=http-request, pattern=(?i)^https:\/\/wxs-weixin\.sd\.zhumanggroup\.com\/api\/v2\/ad, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应056 = type=http-request, pattern=(?i)^https:\/\/s\.jiediankeji\.com\/adv, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应057 = type=http-request, pattern=(?i)^https:\/\/smarket\.dian\.so, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应058 = type=http-request, pattern=(?i)^https:\/\/file\.dian\.so\/c\/leto, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应059 = type=http-request, pattern=(?i)^https:\/\/aag\.enmonster\.com\/apa\/index\/advert\/skin, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
+
+小程序本地响应060 = type=http-request, pattern=(?i)^https:\/\/ad\.xiaotucc\.com\/advert, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
+
+小程序本地响应061 = type=http-request, pattern=(?i)^https:\/\/api-marketing\.zhinengxiyifang\.cn\/api\/v2\/cloudcode\/wechat\/bid, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
+
+小程序本地响应062 = type=http-request, pattern=(?i)^https:\/\/api\.songguo7\.com\/(\w{3})?mp\/v2\/misc\/(toast|user_operate_info|unlock_without_order|unlock_operate_info), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应063 = type=http-request, pattern=(?i)^https:\/\/ccmsupport-sz\.tenpay\.com\/cgi-bin\/common\/ccm_page_element.cgi, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
+
+小程序本地响应064 = type=http-request, pattern=(?i)^https:\/\/tm-api\.pin-dao\.cn\/home\/api\/index\/activeConfig\/v2, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应065 = type=http-request, pattern=(?i)^https:\/\/tm-api\.pin-dao\.cn\/home\/api\/resource\/config\/homeBannerNodes, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应066 = type=http-request, pattern=(?i)^https:\/\/api-fouth-mem\.huazhu\.com\/api\/rights\/bannerList, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应067 = type=http-request, pattern=(?i)^https:\/\/wxapp\.bestwehotel\.com\/gw3\/app-mini\/trip-hotel-banner\/activity\/getActivityInfo, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应068 = type=http-request, pattern=(?i)^https:\/\/wx\.bthhotels\.com\/miniapp\/weixin\/v1\/home\/index_banner, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应069 = type=http-request, pattern=(?i)^https:\/\/app\.homeinns\.com\/api\/v6\/indexs, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应070 = type=http-request, pattern=(?i)^https:\/\/app\.homeinns\.com\/api\/v5\/local, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应071 = type=http-request, pattern=(?i)^https:\/\/app\.homeinns\.com\/api\/v5\/index, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应072 = type=http-request, pattern=(?i)^https:\/\/mxsa\.mxbc\.net\/api\/v1\/adinfo\/adplace\/query, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应073 = type=http-request, pattern=(?i)^https:\/\/htwkop\.xiaojukeji\.com\/gateway\?api=cms\.htw\.delivery, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应074 = type=http-request, pattern=(?i)^https:\/\/htwkop\.xiaojukeji\.com\/gateway\?api=hm\.fa\.combineHomepageInfo, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应075 = type=http-request, pattern=(?i)^https:\/\/htwkop\.xiaojukeji\.com\/gateway\?api=hm\.fa\.mallRecommend, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应076 = type=http-request, pattern=(?i)^https:\/\/lawsonapi\.yorentown\.com\/area\/sh-lawson\/app\/v1\/mina\/systemSetting, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应077 = type=http-request, pattern=(?i)^https:\/\/plt\.yorentown\.com\/pltapp\/v1\/banner, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应078 = type=http-request, pattern=(?i)^https:\/\/member\.lxjchina\.com\.cn\/mini-server\/home\/page\/banner, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应079 = type=http-request, pattern=(?i)^https:\/\/cbd-gateway-service-applets\.hualala\.com\/arch\/api\/banner\/QueryBannerImgList, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应080 = type=http-request, pattern=(?i)^https:\/\/alittle-tea\.oss-cn-shanghai\.aliyuncs\.com\/images\/platform\/alittle, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应081 = type=http-request, pattern=(?i)^https:\/\/api\.prod\.dj\.mstand\.cn\/scrm\/app\/mdm\/index\/listAdv\?types, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应082 = type=http-request, pattern=(?i)^https:\/\/gw-passenger-wap\.01zhuanche\.com\/gw-passenger-wap\/zhuanche-passenger-token\/commonSkipToken\/common\/getAdList, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应083 = type=http-request, pattern=(?i)^https:\/\/www\.deppon\.com\/gwapi\/memberService\/eco\/member\/grade\/commonInterface, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应084 = type=http-request, pattern=(?i)^https:\/\/passengerapi\.saicmobility\.com\/(ad\/requestAd|pay\/v1\/queryOpenedCouponPackages), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应085 = type=http-request, pattern=(?i)^https:\/\/passenger\.t3go\.cn\/passenger-activity-api\/notoken\/api\/v1\/resource\/getSource, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应086 = type=http-request, pattern=(?i)^https:\/\/m\.ctrip\.com\/restapi\/soa2\/13916\/tripAds, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应087 = type=http-request, pattern=(?i)^https:\/\/m\.ctrip\.com\/restapi\/soa2\/12673\/queryWeChatHotEvent, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应088 = type=http-request, pattern=(?i)^https:\/\/ad\.maoyan\.com\/api\/position\/detail, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应089 = type=http-request, pattern=(?i)^https:\/\/wx\.maoyan\.com\/maoyansh\/api\/mobile\/(hotMatchList|eSportsIps), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应090 = type=http-request, pattern=(?i)^https:\/\/vod-movie\.maoyan\.com\/vod\/video\/onlineMovies\.json, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应091 = type=http-request, pattern=(?i)^https:\/\/wx\.maoyan\.com\/maoyansh\/myshow\/ajax\/movie\/wonderShow, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应092 = type=http-request, pattern=(?i)^https:\/\/wx\.maoyan\.com\/maoyansh\/myshow\/ajax\/performances\/calendar\/0, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应093 = type=http-request, pattern=(?i)^https:\/\/wx\.maoyan\.com\/maoyansh\/myshow\/ajax\/performances\/rob\/main, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应094 = type=http-request, pattern=(?i)^https:\/\/wx\.maoyan\.com\/maoyansh\/myshow\/ajax\/celebrityBasicList\/query, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应095 = type=http-request, pattern=(?i)^https:\/\/wx\.maoyan\.com\/maoyansh\/myshow\/ajax\/recommend\/performances, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应096 = type=http-request, pattern=(?i)^https:\/\/api\.maoyan\.com\/sns\/common\/feed\/channel\/v2\/list\.json, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应097 = type=http-request, pattern=(?i)^https:\/\/wx\.maoyan\.com\/maoyansh\/myshow\/ajax\/ad\/detail, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应098 = type=http-request, pattern=(?i)^https:\/\/mkt-gateway\.tuhu\.cn\/mkt-scene-marketing-service\/api\/scene\/queryScheme, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应099 = type=http-request, pattern=(?i)^https:\/\/api\.hengdianfilm\.com\/\/cinema\/queryAvailableBannerInfo\/2\?cid=, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应100 = type=http-request, pattern=(?i)^https:\/\/api\.hengdianfilm\.com\/\/cinema\/queryAvailableBannerInfo\/4\?cid=, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应101 = type=http-request, pattern=(?i)^https:\/\/tbgapplet\.carlsberg\.asia\/tuborg\/banner\/(loading|index), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应102 = type=http-request, pattern=(?i)^https:\/\/api\.pinduoduo\.com\/api\/ktt_gateway\/activity\/feeds\/personal_home_page\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
+
+小程序本地响应103 = type=http-request, pattern=(?i)^https:\/\/ucmp\.sf-express\.com\/proxy\/operation-platform\/info-flow-adver\/query, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应104 = type=http-request, pattern=(?i)^https:\/\/ucmp\.sf-express\.com\/proxy\/esgcempcore\/memberGoods\/pointMallService\/goodsList, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应105 = type=http-request, pattern=(?i)^https:\/\/as\.xiaojukeji\.com\/ep\/as\/conf\?ns=daijia-front&name=, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应106 = type=http-request, pattern=(?i)^https:\/\/daijia\.kuaidadi\.com\/gateway\?api=prado\.cms\.delivery\.batch&apiVe, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应107 = type=http-request, pattern=(?i)^https:\/\/api\.szbgcx\.cn\/account\/adv\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=reject
+
+小程序本地响应108 = type=http-request, pattern=(?i)^https:\/\/mobile\.12306\.cn\/wxxcx\/openplatform-inner\/miniprogram\/wifiapps\/appFrontEnd\/v2\/lounge\/open-smooth-common\/qrCode\/getAdvInfo(?:\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应109 = type=http-request, pattern=(?i)^https:\/\/mobile\.12306\.cn\/wxxcx\/openplatform-inner\/miniprogram\/wifiapps\/tourism\/tourismBase\/api\/scenic\/getThemeProduct(?:\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应110 = type=http-request, pattern=(?i)^https:\/\/mobile\.12306\.cn\/wxxcx\/openplatform-inner\/miniprogram\/wifiapps\/appFrontEnd\/v2\/lounge\/open-smooth-common\/carService\/getCivilzedSlogan, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应111 = type=http-request, pattern=(?i)^https:\/\/wx\.online-cmcc\.cn\/contactpoint\/customer\/api\/list\?, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+小程序本地响应112 = type=http-request, pattern=(?i)^https:\/\/wx\.10086\.cn\/qwhdhub\/activity\/info, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
 
 [MITM]
 hostname = %APPEND% 3pp.starbucks.com.cn, aag.enmonster.com, activity.yonghuivip.com, ad.maoyan.com, ad.xiaotucc.com, ads.ishansong.com, alittle-tea.oss-cn-shanghai.aliyuncs.com, api-fouth-mem.huazhu.com, api-marketing.zhinengxiyifang.cn, api.hellobike.com, api.hengdianfilm.com, api.hongyibo.com.cn, api.kuaidihelp.com, api.maoyan.com, api.mcd.cn, api.pinduoduo.com, api.prod.dj.mstand.cn, api.songguo7.com, api.yonghuivip.com, apiproxy.zuche.com, apis.alenable.com, app.95504.net, app.homeinns.com, applets.jtexpress.com.cn, appuser-static.huolala.cn, as.xiaojukeji.com, capis*.didapinche.com, cappapi.alittle-tea.com, cbd-gateway-service-applets.hualala.com, ccmsupport-sz.tenpay.com, coco-com.e.verystar.net, creditcardapp.bankcomm.com, customer-app.sto.cn, daijia.kuaidadi.com, dock.tenchii.com, dsp.fcbox.com, file.dian.so, flow.dmall.com, fscdn.zto.com, gw-passenger-wap.01zhuanche.com, hdgateway.zto.com, htwkop.xiaojukeji.com, images.qmai.cn, lawsonapi.yorentown.com, m.ctrip.com, mapi.xiaotucc.com, mbmodule-openapi.paas.cmbchina.com, member.lxjchina.com.cn, miniapp.sexytea2013.com, minicap.caocaokeji.cn, minifm.maxxipoint.com, minipro.95504.net, miniprogram.ishansong.com, mkt-gateway.tuhu.cn, mobile-api.imlaidian.com, mxsa.mxbc.net, newton.gumingnc.com, passenger.t3go.cn, passengerapi.saicmobility.com, plt.yorentown.com, qapi.huolala.cn, r2.gzyct.com, res.hongyibo.com.cn, res.pizzahut.com.cn, s.jiediankeji.com, saas-ad.cloudpnr.com, sauron-report.yonghuivip.com, smarket.dian.so, sto-customer-app.oss-cn-shanghai.aliyuncs.com, supplier-api.imdada.cn, suyun-guest.daojia.com, tbgapplet.carlsberg.asia, tm-api.pin-dao.cn, ucmp.sf-express.com, ump.ems.com.cn, vod-movie.maoyan.com, webapi.qmai.cn, webchatapp.fcbox.com, wechat-api.i-xiaoma.com.cn, www.deppon.com, wx.bthhotels.com, wx.maoyan.com, wxapp.bestwehotel.com, wxproj.seeyouyima.com, wxs-weixin.sd.zhumanggroup.com, mcsp.cloudpnr.com, api.szbgcx.cn, rms.meituan.com, chong.qq.com, wx.online-cmcc.cn, wx.10086.cn, ne.gdsz.sinopec.com, mobile.12306.cn

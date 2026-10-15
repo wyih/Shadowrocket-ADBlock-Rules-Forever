@@ -7,15 +7,19 @@
 #!category=去广告
 #!loon_version=3.5.1(998)
 #!homepage=https://hub.kelee.one
-#!date=2026-10-02 13:57:49
+#!date=2026-10-15
 
 [Rule]
 DOMAIN-SUFFIX,wxs.qq.com,REJECT
 
-[Map Local]
-(?i)^https:\/\/mp\.weixin\.qq\.com\/mp\/(cps_product_info|getappmsgad|jsmonitor|masonryfeed|relatedarticle)\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+[Body Rewrite]
+# 按 NobyDa 原脚本清空广告列表，保留返回的其余字段。
+http-response-jq (?i)^https:\/\/mp\.weixin\.qq\.com\/mp\/getappmsgad(?:\?|$) '.advertisement_num = 0 | .advertisement_info = [] | del(.appid)'
 
-(?i)^https:\/\/mp\.weixin\.qq\.com\/mp\/relatedsearchword data-type=text data="{}" status-code=200 header="Content-Type:application/json"
+[Script]
+公众号本地响应1 = type=http-request, pattern=(?i)^https:\/\/mp\.weixin\.qq\.com\/mp\/(cps_product_info|jsmonitor|masonryfeed|relatedarticle)(?:\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
+
+公众号本地响应2 = type=http-request, pattern=(?i)^https:\/\/mp\.weixin\.qq\.com\/mp\/relatedsearchword, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, timeout=5, engine=webview, argument=dict
 
 [MITM]
 hostname = %APPEND% mp.weixin.qq.com
