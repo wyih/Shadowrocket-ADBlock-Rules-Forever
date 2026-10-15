@@ -82,13 +82,56 @@ for (const url of [
   assert.deepEqual(splashReply(url), {});
 }
 assert(!bili.split('\n').some(l => l.includes('splash') && l.includes('data-type=')));
-for (const line of bili.split('\n').filter(l => l.includes('argument='))) {
-  const raw = line.split('argument=')[1].slice(1, -1)
-    .replace(/\{\{\{purifyComment\}\}\}/g, 'true')
-    .replace(/\{\{\{[^}]+\}\}\}/g, 'test');
-  const args = JSON.parse(raw);
-  if ('purifyComment' in args) assert.equal(typeof args.purifyComment, 'boolean');
+const compatScript = read('scripts/bilibili-protobuf-compat.js');
+function runCompat(argument, cache = new Map(), status = 200) {
+  let result;
+  const downloads = [];
+  vm.runInNewContext(compatScript, {
+    $argument: argument,
+    $persistentStore: {
+      read: key => cache.get(key),
+      write: (value, key) => cache.set(key, value)
+    },
+    $httpClient: {
+      get: (options, callback) => {
+        downloads.push(options.url);
+        callback(null, { status }, '$done({parsed: JSON.parse($argument)});');
+      }
+    },
+    console: { log() {} },
+    $done: value => { result = JSON.parse(JSON.stringify(value)); }
+  });
+  return { result, downloads };
 }
+// Exercise the configured rules, including a disabled comment filter and quoted legacy values.
+for (const line of bili.split('\n').filter(l => l.includes('argument='))) {
+  assert.match(line, /script-path=.*\/bilibili-protobuf-compat\.js,/);
+  const raw = line.split('argument=')[1]
+    .replace(/\{\{\{purifyComment\}\}\}/g, 'false')
+    .replace(/\{\{\{displayUpList\}\}\}/g, '"hide"')
+    .replace(/\{\{\{sponsorBlock\}\}\}/g, '#')
+    .replace(/\{\{\{logLevel\}\}\}/g, '"error"');
+  const { result, downloads } = runCompat(raw);
+  assert.equal(result.parsed.logLevel, 'error');
+  if (raw.includes('purifyComment=')) assert.equal(result.parsed.purifyComment, false);
+  const phase = raw.split('_biliPhase=')[1];
+  assert.equal(downloads[0], `https://raw.githubusercontent.com/kokoryh/Sparkle/290bcbdd2f158cdd8f7db9c996e90fe63490e16f/dist/bilibili.protobuf.${phase}.js`);
+}
+const options = { purifyComment: false, logLevel: 'debug', _biliPhase: 'request' };
+const jsonOptions = JSON.stringify(options);
+for (const raw of [jsonOptions, JSON.stringify(jsonOptions), '"' + jsonOptions + '"',
+  'purifyComment="false"&logLevel=debug&_biliPhase=request',
+  'purifyComment=%22false%22&logLevel=debug&_biliPhase=request']) {
+  assert.deepEqual(runCompat(raw).result.parsed, { purifyComment: false, logLevel: 'debug' });
+}
+assert.equal(runCompat('purifyComment=true&_biliPhase=request').result.parsed.purifyComment, true);
+const sourceCache = new Map();
+assert.equal(runCompat(jsonOptions, sourceCache).downloads.length, 1);
+assert.equal(runCompat(jsonOptions, sourceCache).downloads.length, 0);
+assert.deepEqual(runCompat('purifyComment=true&_biliPhase=invalid').result, {});
+const failedCache = new Map();
+assert.deepEqual(runCompat(jsonOptions, failedCache, 404).result, {});
+assert.equal(failedCache.size, 0);
 for (const module of ['Bilibili', 'Amap', 'AppleWeather', 'NeteaseCloudMusic', 'TencentVideo', 'Iqiyi']) {
   const text = read(`modules/${module}.sgmodule`);
   assert.doesNotMatch(text, /script\.hub|192\.168\.|amap-probe|Bili probe/);
