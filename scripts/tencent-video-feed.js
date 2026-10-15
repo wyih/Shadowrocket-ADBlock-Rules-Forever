@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 // Adapted from Feng-Feng1/surge TencentVideo-PageClean-V1.txt (MIT):
 // https://github.com/Feng-Feng1/surge/blob/f7463681d65bd57c6bbeeded95cb12b6ded800c0/TencentVideo-PageClean-V1.txt
-// Changes: feed cards and their ad extensions only; retain other page content.
+// Changes: feed cards, carousel ad items and ad extensions; retain other content.
 (function () {
   "use strict";
   const PREFIX = "type.googleapis.com/com.tencent.qqlive.protocol.pb.";
@@ -140,16 +140,23 @@
     return any ? anyPayload(any.data, name) : null;
   }
 
-  function isAdBlock(b) {
+  function isAdBlock(b, mode) {
     const fs = parse(b);
-    if (numeric(fs, 1, -1) !== 16 || numeric(fs, 2, -1) !== 3) return false;
+    if (numeric(fs, 1, -1) !== 16 || numeric(fs, 2, -1) !== mode) return false;
     const any = one(fs, 4, 2);
     if (!any) return false;
     const ad = anyPayload(any.data, "AdFeedInfo");
-    if (!ad || !contains(ad, "ad_request_id") || !contains(ad, "gdt_stats.fcg")) return false;
+    if (!ad || !contains(ad, "ad_request_id")) return false;
+    const focusTracking = mode === 1 &&
+      contains(ad, "://nc.gdt.qq.com/gdt_report.fcg?") &&
+      contains(ad, "://c.l.qq.com/click?") &&
+      contains(ad, "://p2.l.qq.com/p?");
+    if (!contains(ad, "gdt_stats.fcg") && !focusTracking) return false;
     const poster = one(parse(ad), 3, 2);
-    return !!poster && (anyPayload(poster.data, "AdFeedImagePoster") !== null ||
-      anyPayload(poster.data, "AdFeedVideoPoster") !== null);
+    if (!poster) return false;
+    if (mode === 1) return anyPayload(poster.data, "AdFocusPoster") !== null;
+    return anyPayload(poster.data, "AdFeedImagePoster") !== null ||
+      anyPayload(poster.data, "AdFeedVideoPoster") !== null;
   }
 
   function isFeedAd(field) {
@@ -167,7 +174,38 @@
     const list = one(listFields, 5, 2);
     if (!list || listFields.some(f => ![4, 5, 8].includes(f.n) || f.w !== 2)) return false;
     const items = parse(list.data);
-    return items.length === 1 && items[0].n === 1 && items[0].w === 2 && isAdBlock(items[0].data);
+    return items.length === 1 && items[0].n === 1 && items[0].w === 2 && isAdBlock(items[0].data, 3);
+  }
+
+  function isFocusAd(field) {
+    const fs = parse(field.data);
+    if (fs.some(f => ![1, 2, 10].includes(f.n))) return false;
+    if (!one(fs, 1, 2) || !one(fs, 2, 2)) return false;
+    const ext = one(fs, 10, 2);
+    if (!ext) return false;
+    const block = extensionPayload(ext, 2, "Block");
+    return block !== null && isAdBlock(block, 1);
+  }
+
+  function cleanCarousel(moduleField, counts) {
+    const fs = parse(moduleField.data);
+    const changes = new Map();
+    for (const f of fs) {
+      if (f.n !== 4 || f.w !== 2) continue;
+      const mp = parse(f.data);
+      if (mp.length !== 2) continue;
+      const key = one(mp, 1, 2), value = one(mp, 2, 2);
+      if (!key || !value || !textEquals(key.data, "0")) continue;
+      const items = parse(value.data);
+      if (!items.length || items.some(x => x.n !== 1 || x.w !== 2)) continue;
+      const keep = items.filter(x => !isFocusAd(x));
+      // Keep the upstream guard against handing the client an empty carousel.
+      if (keep.length === items.length || keep.length === 0) continue;
+      counts.focus += items.length - keep.length;
+      const list = concat(keep.map(x => x.raw));
+      changes.set(f, wrap(f, rebuild(mp, new Map([[value, wrap(value, list)]]))));
+    }
+    return changes.size ? wrap(moduleField, rebuild(fs, changes)) : moduleField.raw;
   }
 
   function isAdResponse(field) {
@@ -197,6 +235,7 @@
     })) return null;
 
     const changes = new Map();
+    const counts = { focus: 0 };
     let normalMaps = 0, removed = 0;
     for (const f of fs) {
       if (f.n !== 1 || f.w !== 2) continue;
@@ -207,12 +246,15 @@
       if (++normalMaps > 1) return null;
       const modules = parse(value.data);
       if (modules.some(m => m.n !== 1 || m.w !== 2)) return null;
-      const keep = modules.filter(m => !isFeedAd(m));
+      const keep = [];
+      for (const module of modules) {
+        if (isFeedAd(module)) { removed++; continue; }
+        keep.push(cleanCarousel(module, counts));
+      }
       // Preserve the upstream guard against returning a completely empty page.
       if (!keep.length) return null;
-      removed = modules.length - keep.length;
-      if (removed) {
-        const list = concat(keep.map(m => m.raw));
+      if (removed || counts.focus) {
+        const list = concat(keep);
         changes.set(f, wrap(f, rebuild(mp, new Map([[value, wrap(value, list)]]))));
       }
     }
@@ -227,7 +269,7 @@
     output[5] = Math.floor(len / 65536) & 255;
     output[6] = Math.floor(len / 256) & 255;
     output[7] = len & 255;
-    return { body: output, removed, adResponses };
+    return { body: output, removed, focus: counts.focus, adResponses };
   }
 
   let output = {};
@@ -240,10 +282,11 @@
       const result = body && cleanFrame(body);
       if (result) output = { body: result.body };
       console.log("TencentVideo feed: removed=" + (result ? result.removed : 0) +
-        ", adResponses=" + (result ? result.adResponses : 0));
+        ", focus=" + (result ? result.focus : 0) +
+        ", adResponses=" + (result ? result.adResponses : 0) + ", version=20261015.3");
     }
   } catch (_) {
-    console.log("TencentVideo feed: passthrough (unrecognized frame)");
+    console.log("TencentVideo feed: passthrough (unrecognized frame), version=20261015.3");
   }
   $done(output);
 })();

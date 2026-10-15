@@ -1,6 +1,6 @@
 #!url=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/TencentVideo.sgmodule
 #!name=腾讯视频去广告
-#!desc=过滤已识别的首页推荐流广告卡片、广告素材与播放广告参数。首页过滤需启用 MITM 并信任证书；未知响应结构原样保留，9.04.60 客户端效果待实测。
+#!desc=过滤已识别的首页推荐流广告卡片、顶部轮播广告、广告素材与播放广告参数。首页过滤需启用 MITM 并信任证书；未知响应结构原样保留，9.04.60 客户端效果待实测。
 #!author=RuCu6[https://github.com/RuCu6]
 #!icon=https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/Tencent_Video.png
 #!openUrl=https://apps.apple.com/app/id458318329
@@ -8,7 +8,7 @@
 #!loon_version=3.5.1(998)
 #!homepage=https://hub.kelee.one
 #!date=2026-10-15
-#!version=20261015.2
+#!version=20261015.3
 
 [Rule]
 DOMAIN,adsmind.gdtimg.com,REJECT
@@ -33,7 +33,7 @@ URL-REGEX,"^http:\/\/apd-\w+\.v\.smtcdns\.com\/(defaultts|omts|vmind\.qqvideo)\.
 
 [Script]
 移除广告 = type=http-request, pattern=(?i)^https?:\/\/(?:s)?vv\.video\.qq\.com\/getvinfo(?:\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/tencent-video-request.js, requires-body=true
-首页广告卡片 = type=http-response, pattern=(?i)^https:\/\/i\.video\.qq\.com\/$, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/tencent-video-feed.js, requires-body=true, binary-body-mode=true, max-size=2097152, timeout=10
+首页广告卡片 = type=http-response, pattern=(?i)^https:\/\/i\.video\.qq\.com\/$, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/tencent-video-feed.js?v=20261015.3, requires-body=true, binary-body-mode=true, max-size=2097152, timeout=10
 
 [MITM]
 # 日志中出现的直连入口；脚本仍只处理 i.video.qq.com 的已识别首页响应。

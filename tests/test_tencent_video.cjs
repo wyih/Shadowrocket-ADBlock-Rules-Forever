@@ -61,6 +61,16 @@ function adModule({ poster = 'AdFeedImagePoster', tracking = 'ad_request_id=fake
   const list = field(5, field(1, block));
   return field(1, field(10, extension(1, 'Module', field(2, list))));
 }
+const focusTracking = 'ad_request_id=fake https://nc.gdt.qq.com/gdt_report.fcg?fake=1 https://c.l.qq.com/click?fake=1 https://p2.l.qq.com/p?fake=1';
+function focusItem({ poster = 'AdFocusPoster', tracking = focusTracking, blockType = 16, mode = 1 } = {}) {
+  const adInfo = join(field(1, tracking), field(3, any(poster, field(1, 'fake poster'))));
+  const block = join(num(1, blockType), num(2, mode), field(4, any('AdFeedInfo', adInfo)));
+  return field(1, join(field(1, 'fake carousel id'), field(2, 'fake title'), field(10, extension(2, 'Block', block))));
+}
+function carousel(items, key = '0') {
+  return field(1, join(field(1, 'carousel metadata'),
+    field(4, join(field(1, key), field(2, join(...items)))), field(6, 'keep module metadata')));
+}
 const normal = field(1, join(field(1, 'normal video'), field(2, 'keep title and playback reference')));
 const unknown = field(1, field(10, extension(2, 'FutureModule', field(1, 'ad_request_id=fake gdt_stats.fcg'))));
 const extensionItems = join(
@@ -104,12 +114,37 @@ const expected = frame([normal, unknown, untouched]);
 const filtered = run(mixed);
 assert.deepEqual(Buffer.from(filtered.output.body), expected);
 assert.deepEqual(mixed, before, 'input bytes must not be mutated');
-assert.deepEqual(filtered.logs, ['TencentVideo feed: removed=2, adResponses=1']);
+assert.deepEqual(filtered.logs, ['TencentVideo feed: removed=2, focus=0, adResponses=1, version=20261015.3']);
 assert.equal(Buffer.from(filtered.output.body).readUInt32BE(4), expected.length);
 assert.deepEqual(Buffer.from(run(mixed.buffer.slice(mixed.byteOffset, mixed.byteOffset + mixed.byteLength)).output.body), expected);
 unchanged(expected);
 assert.deepEqual(Buffer.from(run(frame([normal], { ext: adExtensions })).output.body), frame([normal]));
 unchanged(frame([normal, adModule({ blockType: 15 }), adModule({ poster: 'NormalPoster' })]));
+// The top carousel nests its ad among regular items rather than feed modules.
+const regularFocus = focusItem({ blockType: 1, poster: 'VideoPoster', tracking: 'ordinary programme' });
+const ambiguousFocus = [
+  focusItem({ tracking: 'gdt_stats.fcg without a request id' }),
+  focusItem({ tracking: 'ad_request_id=fake https://nc.gdt.qq.com/gdt_report.fcg?fake=1' }),
+  focusItem({ poster: 'VideoPoster' }),
+  focusItem({ mode: 3 })
+];
+const focusKeep = [regularFocus, ...ambiguousFocus];
+const carouselInput = frame([carousel([focusItem(), ...focusKeep,
+  focusItem({ tracking: 'ad_request_id=fake gdt_stats.fcg' })]), normal], { ext: adExtensions });
+const carouselExpected = frame([carousel(focusKeep), normal]);
+const carouselBefore = Buffer.from(carouselInput);
+const carouselFiltered = run(carouselInput);
+assert.deepEqual(Buffer.from(carouselFiltered.output.body), carouselExpected);
+assert.deepEqual(carouselInput, carouselBefore, 'carousel input must not be mutated');
+assert(carouselFiltered.logs.some(line => /focus=2(?:,|$)/.test(line)));
+assert.equal(Buffer.from(carouselFiltered.output.body).readUInt32BE(4), carouselExpected.length);
+unchanged(carouselExpected);
+assert.deepEqual(Buffer.from(run(frame([carousel([regularFocus, focusItem()]), normal])).output.body),
+  frame([carousel([regularFocus]), normal]));
+assert.deepEqual(Buffer.from(run(frame([carousel([regularFocus, focusItem()]), adModule(), normal])).output.body),
+  frame([carousel([regularFocus]), normal]));
+unchanged(frame([carousel([focusItem(), regularFocus], 'unknown-group'), normal]));
+unchanged(frame([carousel([focusItem()]), normal]));
 unchanged(frame([adModule()]));
 unchanged(frame([normal, adModule()], { metadata: num(1, 1) }));
 unchanged(frame([normal, adModule()], { ext: field(8, field(1, extension(1, 'OtherPage', Buffer.alloc(0)))) }));
@@ -135,5 +170,6 @@ assert.deepEqual(Buffer.from(run(mixed,
 if (process.env.TENCENT_REFERENCE_SCRIPT) {
   const reference = fs.readFileSync(process.env.TENCENT_REFERENCE_SCRIPT, 'utf8');
   assert.deepEqual(Buffer.from(run(mixed, {}, {}, reference).output.body), expected);
+  assert.deepEqual(Buffer.from(run(carouselInput, {}, {}, reference).output.body), carouselExpected);
 }
 console.log('Tencent Video request and binary feed checks passed');
