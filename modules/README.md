@@ -5,10 +5,22 @@
 | 内容 | 维护位置 |
 | --- | --- |
 | 小红书（RedNote）修复版 | [`RedNote.sgmodule`](RedNote.sgmodule) |
+| 哔哩哔哩修复版 | [`Bilibili.sgmodule`](Bilibili.sgmodule) |
+| 高德地图修复版 | [`Amap.sgmodule`](Amap.sgmodule) |
+| Apple 天气增强修复版 | [`AppleWeather.sgmodule`](AppleWeather.sgmodule) |
+| 网易云音乐修复版 | [`NeteaseCloudMusic.sgmodule`](NeteaseCloudMusic.sgmodule) |
+| 爱奇艺规则修复版 | [`Iqiyi.sgmodule`](Iqiyi.sgmodule) |
+| 腾讯视频依赖修复版 | [`TencentVideo.sgmodule`](TencentVideo.sgmodule) |
 | 自己的 DNS 模块 | [`DNS.sgmodule`](DNS.sgmodule) |
 | MITM Keep Enabled 公开模板 | [`MITM-Keep-Enabled.sgmodule.example`](MITM-Keep-Enabled.sgmodule.example) |
 | 含现有证书的完整 MITM 模块 | 本地 `private/MITM-Keep-Enabled.sgmodule`，Git 忽略 |
 | Script Hub Beta | 官方仓库，见下方依赖说明 |
+
+## 2026-10-15 转换兼容修复
+
+上述六个修复版保留原作者署名与现有规则，只修复本次调试发现的问题。它们的 `#!url` 更新头指向本仓库的 raw URL，正常更新会拉取本仓库版本。下载地址为 `https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/<文件名>`。
+
+具体原因、检查范围和手机验证记录见 [`compatibility-audit.md`](compatibility-audit.md)。本地检查：`node tests/test_module_repairs.cjs`，需要 Node.js 和 jq。
 
 ## 小红书
 
