@@ -31,9 +31,19 @@
   delete settings._biliPhase;
   if (phase !== "request" && phase !== "response") return $done({});
 
+  function __biliKeepPinnedReply(reply) {
+    const commerceWords = /淘宝|某宝|天猫|京东|狗东|拼多多|饿了么|美团|转转|妙界|神气小鹿/;
+    const links = Object.values(reply.content?.urls || {});
+    if (!links.some(link => commerceWords.test(link.title) || commerceWords.test(link.appName))) return true;
+    console.log("Bilibili comments: version=20261017.1 removed-pinned-commerce=1");
+    return false;
+  }
+
   function execute(source) {
     // Direct eval retains Shadowrocket's injected APIs and supplies valid JSON to upstream.
     const $argument = JSON.stringify(settings);
+    // Both pinned bundles use this one predicate inside their purifyComment branch.
+    source = source.replace(".topReplies.filter(", ".topReplies.filter(__biliKeepPinnedReply).filter(");
     try { eval(source); } catch (error) {
       console.log("[Bilibili compat] " + error.message);
       $done({});

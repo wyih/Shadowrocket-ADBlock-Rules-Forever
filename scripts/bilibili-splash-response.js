@@ -4,7 +4,7 @@
 (function () {
   const url = $request.url;
   const path = url.split("?")[0].replace(/^https:\/\/[^/]+/i, "");
-  if (!/^https:\/\/app\.bilibili\.com\/x\/v2\/splash\/(?:list|show|event\/list2|brand\/list)(?:\?|$)/i.test(url) ||
+  if (!/^https:\/\/app\.bilibili\.com\/x\/v2\/splash\/(?:list|show|event\/list2|brand\/(?:list|config))(?:\?|$)/i.test(url) ||
       typeof $response === "undefined" || typeof $response.body !== "string") {
     $done({});
     return;
@@ -25,7 +25,7 @@
     });
     message = JSON.parse(protectedBody);
   } catch (_) {
-    console.log("Bilibili splash: version=20261016.3 path=" + path + " invalid-json");
+    console.log("Bilibili splash: version=20261017.1 path=" + path + " invalid-json");
     $done({});
     return;
   }
@@ -34,18 +34,24 @@
     $done({});
     return;
   }
-  const beforeList = Array.isArray(data.list) ? data.list.length : data.list == null ? 0 : -1;
-  const beforeKeep = Array.isArray(data.keep_ids) ? data.keep_ids.length : data.keep_ids == null ? 0 : -1;
-  for (const field of ["account", "preload"]) delete data[field];
-  // Send explicit empty arrays, including the server's cache-retention directive.
-  for (const field of ["list", "show", "event_list", "keep_ids"]) data[field] = [];
-  for (const [field, value] of Object.entries({ max_time: 0, min_interval: 31536000, pull_interval: 31536000 })) {
-    if (Object.prototype.hasOwnProperty.call(data, field)) data[field] = value;
+  if (path.toLowerCase() === "/x/v2/splash/brand/config") {
+    // This dedicated splash endpoint's live schema is unknown; return an empty config.
+    message.data = {};
+    console.log("Bilibili splash: version=20261017.1 path=" + path + " config=empty");
+  } else {
+    const beforeList = Array.isArray(data.list) ? data.list.length : data.list == null ? 0 : -1;
+    const beforeKeep = Array.isArray(data.keep_ids) ? data.keep_ids.length : data.keep_ids == null ? 0 : -1;
+    for (const field of ["account", "preload"]) delete data[field];
+    // Send explicit empty arrays, including the server's cache-retention directive.
+    for (const field of ["list", "show", "event_list", "keep_ids"]) data[field] = [];
+    for (const [field, value] of Object.entries({ max_time: 0, min_interval: 31536000, pull_interval: 31536000 })) {
+      if (Object.prototype.hasOwnProperty.call(data, field)) data[field] = value;
+    }
+    const event = /[?&]open_event=(hot|cold|background)(?:&|$)/i.exec(url);
+    console.log("Bilibili splash: version=20261017.1 path=" + path +
+      " event=" + (event ? event[1].toLowerCase() : "other") +
+      " list=" + beforeList + "->0 keep=" + beforeKeep + "->0");
   }
-  const event = /[?&]open_event=(hot|cold|background)(?:&|$)/i.exec(url);
-  console.log("Bilibili splash: version=20261016.3 path=" + path +
-    " event=" + (event ? event[1].toLowerCase() : "other") +
-    " list=" + beforeList + "->0 keep=" + beforeKeep + "->0");
   let body = JSON.stringify(message);
   integers.forEach((literal, index) => {
     body = body.split(JSON.stringify(prefix + index)).join(literal);

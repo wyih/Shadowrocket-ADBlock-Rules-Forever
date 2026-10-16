@@ -46,11 +46,22 @@ for (const endpoint of ['list', 'show', 'event/list2', 'brand/list']) {
     Object.assign(expected.data, { max_time: 0, min_interval: 31536000, pull_interval: 31536000 });
     assert.deepEqual(JSON.parse(result.body), expected);
     assert.equal(logs.length, 1);
-    assert.match(logs[0], /version=20261016\.3.*list=4->0 keep=1->0$/);
+    assert.match(logs[0], /version=20261017\.1.*list=4->0 keep=1->0$/);
     assert(!logs[0].includes('private-fixture'));
     assert(!logs[0].includes('12345678901234567'));
     assert.deepEqual(rewrite(url, result.body).result, result);
   }
+}
+// The newly observed dedicated brand config is emptied without inventing its schema.
+for (const query of ['', '?access_key=private-fixture']) {
+  const url = `https://app.bilibili.com/x/v2/splash/brand/config${query}`;
+  assert(pattern.test(url));
+  const { result, logs } = rewrite(url, input);
+  assert.deepEqual(JSON.parse(result.body), { ...fixture, data: {} });
+  assert.match(logs[0], /version=20261017\.1 path=\/x\/v2\/splash\/brand\/config config=empty$/);
+  assert(!logs[0].includes('private-fixture'));
+  assert.deepEqual(rewrite(url, result.body).result, result);
+  assert.deepEqual(rewrite(url, '{"code":-400,"data":{}}').result, {});
 }
 for (const event of ['hot', 'cold', 'background']) {
   assert(rewrite(`https://app.bilibili.com/x/v2/splash/list?open_event=${event}`, input).logs[0].includes(`event=${event}`));
@@ -59,7 +70,7 @@ for (const body of ['bad-json', 'null', '{}', '{"code":-400,"data":{}}', '{"code
   assert.deepEqual(rewrite('https://app.bilibili.com/x/v2/splash/list', body).result, {});
 }
 assert.deepEqual(rewrite('https://app.bilibili.com/x/v2/splash/list', input, false).result, {});
-for (const url of ['https://app.bilibili.com/x/v2/feed/index', 'https://app.bilibili.com/x/v2/splash/list2', 'https://example.com/x/v2/splash/list']) {
+for (const url of ['https://app.bilibili.com/x/v2/feed/index', 'https://app.bilibili.com/x/v2/splash/list2', 'https://app.bilibili.com/x/v2/splash/brand/configuration', 'https://example.com/x/v2/splash/list']) {
   assert(!pattern.test(url));
   assert.deepEqual(rewrite(url, input).result, {});
 }
