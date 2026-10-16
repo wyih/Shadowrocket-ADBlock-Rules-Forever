@@ -97,24 +97,22 @@ https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailsc
 
 ## MITM Keep Enabled
 
-在 Shadowrocket 导入并启用[通用模块](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/MITM-Keep-Enabled.sgmodule)。版本 `20261016.1` 的全部设置只有：
+[通用模块](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/MITM-Keep-Enabled.sgmodule)仅设置 HTTPS 解密开关。对于更新配置后出现 `mitm no ca-p12` 的设备，暂时保留当前可用设置，不用本模块替换已有修复。版本 `20261016.2` 的全部设置只有：
 
 ```ini
 [MITM]
 enable = true
 ```
 
-模块沿用当前配置自己的证书，不设置 `ca-p12`、`ca-passphrase`、解密域名或 HTTP/2。直连配置与白名单配置可以继续使用各自不同的 CA；模块可公开分享或通过 iCloud 同步，无须填写证书参数。证书及密码仍保存在各自的配置中，系统负责安装与信任。
+模块不设置 `ca-p12`、`ca-passphrase`、解密域名或 HTTP/2；配置自己的证书和密码保持原样。运行时仍需由 Shadowrocket 正确加载当前配置的 CA，系统信任也须匹配该 CA。模块可公开分享或通过 iCloud 同步，无须填写证书参数。[旧 `.example` 地址](MITM-Keep-Enabled.sgmodule.example) 保留为同内容的无证书版本。
 
-从旧的含证书模块迁移时，在每台设备上停用旧版，再导入并启用上述通用版；只保留一份启用的 `MITM Keep Enabled`。旧私人模块没有更新地址，不能靠“更新模块”自动替换。保留两份配置已有的证书；如果某份配置尚无证书，在该配置的“HTTPS 解密”页面生成、安装并信任后使用。[旧 `.example` 地址](MITM-Keep-Enabled.sgmodule.example) 也保留为同内容的无证书版本。
+2026-10-11 的实机记录中，两份配置更新后分别出现 `mitm disable`；只固定解密开关后，又在 18:22:59 出现 `mitm no ca-p12`。当时保存的配置中证书仍然存在，缺失发生在更新后的运行状态。只保留开关的方案已在这个场景下失败，不能把系统持续信任证书等同于运行时已加载证书。
 
-### 更新远程配置时保留各自的证书
+本次无证书模块尚未解决上述失效问题，也未完成两份独立 CA 在更新配置、更新模块及 VPN 重连后的实机验收。旧私人模块没有更新地址，发布本模块不会自动替换设备上的旧版。
 
-本模块只保持解密开关。远程“更新配置”会覆盖本地修改，不能依靠本模块恢复被覆盖的证书。需要持续更新上游规则并保留两张不同的 CA 时，使用 Shadowrocket 原生的“扩展配置”：
+### 本地证书与远程规则的保存方式
 
-1. 分别从直连、白名单远程配置创建本地扩展配置，例如 `直连-本地.conf` 与 `白名单-本地.conf`，各自包含对应的远程配置。
-2. 在两份本地扩展配置中分别保存原来对应的 CA 和密码，安装并信任。证书留在各自配置内，MITM 模块不存放证书。
-3. 选择对应的本地扩展配置使用；已有 Rule 场景也改为引用对应的本地扩展配置。后续更新被包含的远程配置，本地扩展配置不设置远程更新地址。
+Shadowrocket 原生的“扩展配置”允许本地配置包含远程配置，本地值优先。它可以将每份配置的本地 CA 与远程规则分开保存，处理远程文件覆盖本地修改的问题。当前历史故障是证书仍保存在配置里、运行时未加载 CA；扩展配置能否修复这个故障尚未验证，不作为已完成修复，也暂不据此迁移设备配置。
 
 上述配置包含与覆盖关系见 [Shadowrocket 的扩展配置说明](https://github.com/LOWERTOP/Shadowrocket/wiki#扩展配置)，远程更新行为见[更新配置说明](https://github.com/LOWERTOP/Shadowrocket/wiki#更新配置)。含证书的本地配置保存在设备或用户自己的 iCloud 中，不上传到公开仓库。
 
