@@ -43,16 +43,25 @@ for (const module of ['Bilibili', 'AppleWeather', 'NeteaseCloudMusic']) {
   }
 }
 const bili = read('modules/Bilibili.sgmodule');
+// Reject the observed ad endpoint before TLS; do not block shared playback/image hosts.
+const biliDomainRejects = bili.split('\n').filter(line => /^DOMAIN(?:-SUFFIX)?,.*?,REJECT$/.test(line));
+assert(biliDomainRejects.includes('DOMAIN,cm.bilibili.com,REJECT'));
+for (const host of ['app.bilibili.com', 'api.bilibili.com', 'grpc.biliapi.net', 'bilivideo.com', 'hdslb.com']) {
+  assert(!biliDomainRejects.some(line => line.split(',')[1] === host));
+}
 // Splash replies must clear each advertised list and work without browser-only globals.
 const splashScript = read('scripts/bilibili-splash.js');
 const splashRule = bili.split('\n').find(l => l.startsWith('开屏空列表 ='));
 assert.match(splashRule, /type=http-request/);
 assert.match(splashRule, /script-path=https:\/\/raw\.githubusercontent\.com\/wyih\/Shadowrocket-ADBlock-Rules-Forever\/tailscale\/scripts\/bilibili-splash\.js/);
+assert.match(splashRule, /bilibili-splash\.js\?v=20261016\.1,/);
 const splashPattern = new RegExp(splashRule.split('pattern=(?i)')[1].split(', script-path=')[0], 'i');
+const splashLogs = [];
 function splashReply(url) {
   let result;
   vm.runInNewContext(splashScript, {
     $request: { url },
+    console: { log: value => splashLogs.push(value) },
     $done: value => { result = JSON.parse(JSON.stringify(value)); }
   });
   return result;
@@ -82,6 +91,9 @@ for (const url of [
   assert.deepEqual(splashReply(url), {});
 }
 assert(!bili.split('\n').some(l => l.includes('splash') && l.includes('data-type=')));
+splashLogs.length = 0;
+splashReply('https://app.bilibili.com/x/v2/splash/list?access_key=private-test-value');
+assert.deepEqual(splashLogs, ['Bilibili splash: version=20261016.1 path=/x/v2/splash/list returning-empty-response']);
 const compatScript = read('scripts/bilibili-protobuf-compat.js');
 function runCompat(argument, cache = new Map(), status = 200) {
   let result;

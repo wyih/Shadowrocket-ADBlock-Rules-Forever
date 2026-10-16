@@ -1,6 +1,7 @@
-// Return a complete JSON response so cached splash ads are cleared over HTTP/1.1 and HTTP/2.
+// Return a complete empty splash response over HTTP/1.1 and HTTP/2.
 // Limit the response to the observed splash endpoints; all other requests pass through.
 if (/^https:\/\/app\.bilibili\.com\/x\/v2\/splash\/(?:list|show|event\/list2|brand\/list)(?:\?|$)/i.test($request.url)) {
+  const path = $request.url.split("?")[0].replace(/^https:\/\/[^/]+/i, "");
   const body = JSON.stringify({
     code: 0,
     message: "OK",
@@ -16,6 +17,7 @@ if (/^https:\/\/app\.bilibili\.com\/x\/v2\/splash\/(?:list|show|event\/list2|bra
       splash_request_id: ""
     }
   });
+  console.log("Bilibili splash: version=20261016.1 path=" + path + " returning-empty-response");
   $done({
     response: {
       status: 200,
