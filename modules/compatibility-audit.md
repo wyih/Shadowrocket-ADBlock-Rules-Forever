@@ -30,25 +30,41 @@
 
 验证完成后已关闭诊断页“允许访问”和临时启用的日志记录；本地调试服务已停止。网易云、腾讯视频和爱奇艺的验证仍限于所列依赖、规则与运行环境，未逐项实测客户端广告位。
 
-## 哔哩哔哩开屏后续修复（待用户复测）
+## 哔哩哔哩启动广告修复记录
 
 用户反馈视频页广告已消失，开屏仍会出现。`PacketTunnel-20261015105706.log` 记录了 `splash/list`、`splash/show`、`splash/event/list2` 和 `splash/brand/list` 请求。旧版通过本地映射返回 `list:[{}]`，另有独立 jq 规则处理 show/event，未统一覆盖这四条路径。
 
-本轮将四条开屏路径改为请求脚本 `scripts/bilibili-splash.js`，返回完整的成功 JSON 响应，显式清空 list、show、event_list 和 keep_ids，并设置 max_time 为 0。移除会先行截获该请求的旧本地映射和重复 jq 规则。脚本不依赖 URL、TextDecoder 或模块参数，模块仍使用 WebView；视频页规则保持原样。
+2026-10-15 版本将四条开屏路径改为请求脚本 `scripts/bilibili-splash.js`，返回完整的成功 JSON 响应，显式清空 list、show、event_list 和 keep_ids，并设置 max_time 为 0。移除会先行截获该请求的旧本地映射和重复 jq 规则。脚本不依赖 URL、TextDecoder 或模块参数，模块仍使用 WebView；视频页规则保持原样。
 
-本地检查覆盖四条路径有无查询参数、响应 JSON、空列表、Content-Length 和其他请求放行。后续锁屏恢复反馈见下节；参数解析修复见“哔哩哔哩参数兼容”。
+该版本地检查覆盖四条路径有无查询参数、响应 JSON、空列表、Content-Length 和其他请求放行。此请求空响应已由下节的真实响应过滤取代；旧脚本地址保留原行为。
 
-### 锁屏恢复后开屏广告（2026-10-16，版本 20261016.1 待用户复测）
+### 回前台全屏广告（2026-10-16，版本 20261016.2 待用户实测）
 
-用户确认应用内广告过滤有效，但锁屏一段时间、恢复播放时仍会出现开屏广告。`PacketTunnel-20261016140329.log` 覆盖 14:03:30–14:34:52，其中 14:05:42 至 14:33:14 没有流量记录。恢复后 14:33:19 的 `cm.bilibili.com:443` 命中 `FINAL,DIRECT`；14:33:44、14:34:29 和 14:34:42 的 `splash/list` 仍命中 `bilibili-splash.js`。全段有 15 次开屏脚本上下文回收记录，无脚本异常或脚本超时。
+用户新截图明确为回前台时的全屏倒计时广告，且确认冷启动广告已经去掉。此前把此现象与播放器暂停接口混在一起，现按回前台全屏链路处理。
 
-这确认了一个未覆盖的广告通道，同时保留了“热启动先使用本地开屏缓存”的解释。日志未记录屏幕展示时刻或解密后的开屏响应，尚不能把本次展示归因到某条响应；脚本命中也不等于客户端已经丢弃旧素材。
+`PacketTunnel-20261016152203.log` 的第二份附件覆盖 15:22:03–15:37:42。15 次开屏脚本日志均为 `20261016.1`；69 次 `cm.bilibili.com` 策略判断全部 REJECT。12 次 `splash/list` 的 `open_event` 分为 hot 4 次、background 7 次、cold 1 次。每次均上报相同的 27 个缓存 ID、66 个已加载创意 ID。旧空响应没有让这些客户端上报列表发生变化，支持缓存留存解释；日志未记录本次屏幕使用的具体素材。
 
-版本 `20261016.1` 增加精确域名规则 `DOMAIN,cm.bilibili.com,REJECT`，在 TLS 和脚本执行之前拦截该通道。[Tartarus2014 的 Bilibili 模块](https://github.com/Tartarus2014/Surge-Script/blob/master/Bilibili.sgmodule) 同样将此域名列为广告拦截对象。本仓库只加入日志实际出现的主机，不扩展到共享视频、图片或主 API 域名；现有四条开屏接口的空响应和视频页过滤保持原样。
+版本 `20261016.1` 增加的 cm 域名拦截保留。版本 `20261016.2` 取消四条 splash 接口的固定请求空响应，改为 `scripts/bilibili-splash-response.js` 处理真实成功响应。依据 [kokoryh/Sparkle 固定版本的 handleSplash](https://github.com/kokoryh/Sparkle/blob/290bcbdd2f158cdd8f7db9c996e90fe63490e16f/src/script/bilibili/json/handler.ts)：
 
-开屏脚本地址增加 `?v=20261016.1`，强制更新脚本缓存。返回空响应前记录版本、无查询参数的公共路径和 `returning-empty-response`，不记录账号、查询串或正文。没有将 WebView 冻结作为已确认原因，也未改变 HTTP/2 设置或其他脚本引擎。
+- 删除 `account`、`event_list`、`preload`、`show`。
+- 已存在的 `max_time` 设为 0，`min_interval`、`pull_interval` 设为 31536000。
+- 对实际返回的每条 `list` 素材，已有的 `duration` 设为 0，`begin_time`、`end_time` 改为上游的未来时间值，`enable_pre_download` 设为 false。
 
-本地 `node tests/test_module_repairs.cjs` 通过：覆盖新增精确域名规则、共享播放主机不被整域拒绝、四条开屏响应、版本标记及日志不含查询参数。手机复测应覆盖锁屏一段时间后恢复播放，以及普通视频播放；新日志可核对 `cm.bilibili.com` 的 REJECT 和版本标记。已缓存并开始展示的广告仍需这条实际路径验证。
+保留 ID、keep_ids、其他根字段与未知素材字段；17 位数值 ID 在解析和输出中保留原始整数文字，避免 JS 双精度舍入。失败响应、缺失正文或无有效 data 时保留原响应。脚本不生成新素材，也不读取或删除 App 本地文件。
+
+新脚本地址带 `?v=20261016.2`，日志只记录版本、公共路径、hot/cold/background 枚举及处理素材数量；不记录查询参数、素材 ID 或正文。原 `bilibili-splash.js` 保持旧请求契约，尚未更新模块的订阅仍可使用；新模块没有请求拦截或 Map Local 抢先返回 splash 数据。新响应脚本及所附许可证按 GPL-3.0 发布。
+
+本地检查覆盖四接口、三种 open_event、素材有效期与展示字段修改、未知数据与大整数保留、异常响应放行和旧脚本兼容；含素材的响应处理结果与上述固定版 Sparkle handler 对照一致。手机上回前台广告消失及冷启动仍无广告，待用户更新后验证。
+
+## 闲鱼启动广告与共用传输层（2026-10-16，待用户实测）
+
+`PacketTunnel-20261016154038.log` 覆盖 15:40:38–15:45:37。实际使用 ASUS 场景的 `sr_direct_banad_tailscale.db`，解密名单已包含闲鱼域名。15:45:15、15:45:17、15:45:24 的 UDP TLS 嗅探识别出 `acs.m.goofish.com` 和 `g-acs.m.goofish.com`，随后连接仍以 IP:443 命中 FINAL,DIRECT 并建立 UDP 直连。该段没有进入可改写的闲鱼广告 HTTP 接口。这里有明确的传输绕过证据，不将其归为哔哩哔哩的缓存问题。
+
+`AdBlock-Transport.sgmodule` 作为独立共用层设置 `block-quic = all`，让支持回退的连接走 TCP HTTPS，再由各 App 原有模块处理。参数含义对照 [LOWERTOP 的 Shadowrocket 配置](https://github.com/LOWERTOP/Shadowrocket/blob/main/lazy_group.conf)。该值影响所有 UDP/443，包括直连；不改变其他 UDP 端口、DNS 或证书。日志也记录豆包输入法的 QUIC 语音域名，故导入说明明确告知语音异常时关闭此独立模块，不自动改变用户设备配置。
+
+`FleaMarket.sgmodule` 来自用户现有“闲鱼去广告”（可莉、2026-10-02 转换版），17 条 jq 规则逐字保留。原 7 条 `{}`/200 本地响应改用已有 `wechat-ad-response.js` 的 dict 模式，提供实际正文及准确 Content-Length，避开已知 H2 Map Local 正文丢失路径；复用原脚本地址，不改变现有微信调用。开屏 `idlecommerce.splash.ads` 同时覆盖 goofish 与旧 taobao 主机；旧 `idle.home.welcome` 沿用用户可莉通用模块的 404 行为。MITM 仅补对应 taobao 主机，更新来源指向本仓库。
+
+检查：`node tests/test_startup_ads.cjs`、`node tests/test_module_repairs.cjs`；闲鱼全部 jq 表达式编译通过，首页样例删除广告保留正常商品。原 7 个接口与返回语义已逐项对照，新增匹配不包含商品详情、交易创建或相似前缀接口。手机需验证 QUIC 不再绕过、广告接口实际进入改写，以及首页、搜索和商品浏览正常；这些结果尚未实测。
 
 ## 哔哩哔哩参数兼容（待用户复测）
 

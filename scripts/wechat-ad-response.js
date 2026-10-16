@@ -1,4 +1,4 @@
-// Complete local replies for the existing WeChat modules. The WebView request
+// Complete local replies shared by the WeChat and FleaMarket modules. The WebView request
 // bridge avoids Shadowrocket build 3445 dropping Map Local bodies over HTTP/2.
 // Only module rules select these replies; this is not a filter for arbitrary JSON.
 // FCBox's no-ad schemas: qDonl/loon-plugin, c8d3a63653fb2163e6b811eb2f262eb08d071ec4.

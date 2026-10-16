@@ -5,6 +5,8 @@
 | 内容 | 维护位置 |
 | --- | --- |
 | 小红书（RedNote）修复版 | [`RedNote.sgmodule`](RedNote.sgmodule) |
+| 去广告传输兼容（QUIC 回退） | [`AdBlock-Transport.sgmodule`](AdBlock-Transport.sgmodule) |
+| 闲鱼修复版 | [`FleaMarket.sgmodule`](FleaMarket.sgmodule) |
 | 哔哩哔哩修复版 | [`Bilibili.sgmodule`](Bilibili.sgmodule) |
 | 高德地图修复版 | [`Amap.sgmodule`](Amap.sgmodule) |
 | Apple 天气增强修复版 | [`AppleWeather.sgmodule`](AppleWeather.sgmodule) |
@@ -17,6 +19,18 @@
 | MITM Keep Enabled 公开模板 | [`MITM-Keep-Enabled.sgmodule.example`](MITM-Keep-Enabled.sgmodule.example) |
 | 含现有证书的完整 MITM 模块 | 本地 `private/MITM-Keep-Enabled.sgmodule`，Git 忽略 |
 | Script Hub Beta | 官方仓库，见下方依赖说明 |
+
+## 更新哔哩哔哩与闲鱼，另装一份传输兼容模块
+
+- **哔哩哔哩**：更新现有模块至 `20261016.2`。回前台全屏广告改用真实响应过滤，移除展示/预加载字段，逐项将素材时长设为 0、展示期移至未来；原视频页与评论规则不变。
+- **闲鱼**：用[仓库版 FleaMarket.sgmodule](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)替换现有 Script Hub 订阅来源。它以用户现有“闲鱼去广告”为基线，完整保留 17 条首页、搜索、商品与个人页 jq 规则，将 7 条本地映射换为完整脚本响应，并覆盖旧开屏接口。不要同时启用两份闲鱼模块。
+- **共用传输层**：另外导入并启用[去广告传输兼容](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule)。只需一份，可供现有各 App 模块共用。它设置 `block-quic = all`，阻止 UDP/443 绕过 HTTPS 改写；不修改 DNS、证书或其他 UDP 端口。
+
+传输模块会影响所有 UDP/443 连接，包括日志中豆包输入法使用的 QUIC 连接。支持回退的功能改走 TCP；只支持该传输的功能可能不可用。若语音等功能异常，关闭**去广告传输兼容**即可恢复，保留各 App 模块。
+
+这一共用层解决的是传输绕过。广告响应结构仍由各 App 的专用模块处理；它不能直接清理 App 沙盒内已有的素材文件。两个修复版均已做本地检查，手机上的冷启动、切回前台和闲鱼正常浏览效果待用户更新后复测。
+
+本地检查：`node tests/test_startup_ads.cjs`、`node tests/test_module_repairs.cjs`。哔哩哔哩新的响应脚本基于 [kokoryh/Sparkle 的固定版本](https://github.com/kokoryh/Sparkle/blob/290bcbdd2f158cdd8f7db9c996e90fe63490e16f/src/script/bilibili/json/handler.ts)，按 GPL-3.0 发布，许可证见 [`bilibili-splash-response.LICENSE`](../scripts/bilibili-splash-response.LICENSE)。旧请求脚本地址保留原行为，供尚未更新模块的订阅使用。
 
 ## 2026-10-15 转换兼容修复
 

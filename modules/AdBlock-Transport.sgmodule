@@ -1,0 +1,9 @@
+#!url=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule
+#!name=去广告传输兼容
+#!desc=屏蔽直连与代理的 UDP/443（QUIC），让支持回退的 App 使用可被 HTTPS 解密和改写的 TCP 连接。需搭配各 App 去广告模块。影响所有 UDP/443 流量；只支持 QUIC 的功能可能无法使用，关闭本模块即可恢复。
+#!author=wyih
+#!date=2026-10-16
+#!version=20261016.1
+
+[General]
+block-quic = all
