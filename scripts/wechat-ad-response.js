@@ -5,6 +5,18 @@
 const replies = {
   dict: [200, {}],
   reject: [404, null],
+  "idle-scene": [200, {
+    api: "mtop.idle.idleadv.scene.restore",
+    data: { trackParams: { stageMatch: "false" } },
+    ret: ["SUCCESS::调用成功"],
+    v: "1.0"
+  }],
+  "idle-splash": [200, {
+    api: "mtop.taobao.idlecommerce.splash.async.ads",
+    data: { adMap: {} },
+    ret: ["SUCCESS::调用成功"],
+    v: "1.0"
+  }],
   "fcbox-dsp": [200, {
     code: "370100000",
     msg: "操作成功",
@@ -30,6 +42,9 @@ if (Object.prototype.hasOwnProperty.call(replies, mode)) {
   // Content-Length without requiring TextEncoder in the proxy's script engine.
   const body = value === null ? "" : JSON.stringify(value).replace(/[\u007f-\uffff]/g,
     char => "\\u" + char.charCodeAt(0).toString(16).padStart(4, "0"));
+  if (mode === "idle-scene" || mode === "idle-splash") {
+    console.log("FleaMarket startup: version=20261016.2 mode=" + mode);
+  }
   $done({response: {
     status,
     headers: {

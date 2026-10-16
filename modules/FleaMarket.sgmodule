@@ -8,7 +8,7 @@
 #!loon_version=3.5.1(998)
 #!homepage=https://hub.kelee.one
 #!date=2026-10-16
-#!version=20261016.1
+#!version=20261016.2
 
 [Body Rewrite]
 http-response-jq (?i)^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.home\.nextfresh\/ '.data.homeTopList |= map(select(.sectionType == "kingkongDo")) | .data.sections |= map(select(.data.clickParam.args.cardType as $ct | $ct != "homeMultiBanner" and $ct != "mamaAD")) | .data.sections |= map(select((.template.name|type=="string")and(.template.name=="idlefish_home_new_commodity_card"or(.template.name|contains("fish_home_tags_item_card")))))'
@@ -30,6 +30,10 @@ http-response-jq (?i)^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtop
 http-response-jq (?i)^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.trade\.full\.info\/ '.data.components |= map(select(.render | . == "orderStatusVO" or . == "addressInfoVO" or . == "orderInfoVO"))'
 
 [Script]
+闲鱼广告场景恢复 = type=http-request, pattern=(?i)^https:\/\/acs\.m\.(?:goofish|taobao)\.com\/gw\/mtop\.idle\.idleadv\.scene\.restore(?:\/|\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261016.2, engine=webview, timeout=5, argument=idle-scene
+
+闲鱼异步开屏广告 = type=http-request, pattern=(?i)^https:\/\/acs\.m\.(?:goofish|taobao)\.com\/gw\/mtop\.taobao\.idlecommerce\.splash\.async\.ads(?:\/|\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261016.2, engine=webview, timeout=5, argument=idle-splash
+
 闲鱼开屏广告 = type=http-request, pattern=(?i)^https:\/\/acs\.m\.(?:goofish|taobao)\.com\/gw\/mtop\.taobao\.idlecommerce\.splash\.ads\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, engine=webview, timeout=5, argument=dict
 
 闲鱼用户策略 = type=http-request, pattern=(?i)^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.user\.strategy\.list\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js, engine=webview, timeout=5, argument=dict

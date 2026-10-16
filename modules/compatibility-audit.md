@@ -38,25 +38,23 @@
 
 该版本地检查覆盖四条路径有无查询参数、响应 JSON、空列表、Content-Length 和其他请求放行。此请求空响应已由下节的真实响应过滤取代；旧脚本地址保留原行为。
 
-### 回前台全屏广告（2026-10-16，版本 20261016.2 待用户实测）
+### 回前台全屏广告（2026-10-16，版本 20261016.3 待用户实测）
 
-用户新截图明确为回前台时的全屏倒计时广告，且确认冷启动广告已经去掉。此前把此现象与播放器暂停接口混在一起，现按回前台全屏链路处理。
+用户截图明确为回前台时的全屏倒计时广告，且确认早先版本的冷启动广告已经去掉。此前混入播放器暂停接口的调查现已撤出主线。
 
-`PacketTunnel-20261016152203.log` 的第二份附件覆盖 15:22:03–15:37:42。15 次开屏脚本日志均为 `20261016.1`；69 次 `cm.bilibili.com` 策略判断全部 REJECT。12 次 `splash/list` 的 `open_event` 分为 hot 4 次、background 7 次、cold 1 次。每次均上报相同的 27 个缓存 ID、66 个已加载创意 ID。旧空响应没有让这些客户端上报列表发生变化，支持缓存留存解释；日志未记录本次屏幕使用的具体素材。
+`PacketTunnel-20261016152203.log` 第二份附件（15:22:03–15:37:42）中，15 次开屏脚本日志均为 `20261016.1`，69 次 cm 域名判断全部 REJECT。12 次 `splash/list` 分为 hot 4 次、background 7 次、cold 1 次；均上报相同的 27 个缓存 ID、66 个已加载创意 ID。空响应未令客户端上报列表变化，因而调查转向回前台广告的数据和缓存留存。
 
-版本 `20261016.1` 增加的 cm 域名拦截保留。版本 `20261016.2` 取消四条 splash 接口的固定请求空响应，改为 `scripts/bilibili-splash-response.js` 处理真实成功响应。依据 [kokoryh/Sparkle 固定版本的 handleSplash](https://github.com/kokoryh/Sparkle/blob/290bcbdd2f158cdd8f7db9c996e90fe63490e16f/src/script/bilibili/json/handler.ts)：
+版本 `20261016.2` 按 [kokoryh/Sparkle 固定版本的 handleSplash](https://github.com/kokoryh/Sparkle/blob/290bcbdd2f158cdd8f7db9c996e90fe63490e16f/src/script/bilibili/json/handler.ts) 处理真实响应：删除展示/预加载字段，修改素材时长和有效期，保留 list 素材与 keep_ids。合成响应与该上游结果一致。
 
-- 删除 `account`、`event_list`、`preload`、`show`。
-- 已存在的 `max_time` 设为 0，`min_interval`、`pull_interval` 设为 31536000。
-- 对实际返回的每条 `list` 素材，已有的 `duration` 设为 0，`begin_time`、`end_time` 改为上游的未来时间值，`enable_pre_download` 设为 false。
+随后用户明确反馈两项广告都仍存在。新 `PacketTunnel-20261016160442.log` 覆盖 16:05:02–16:12:01，8 次新版处理日志中，16:05:44 的 hot 处理 39 条素材，16:11:33 的 hot 处理 40 条素材，无脚本异常；客户端仍上报 26～27 个缓存 ID、66 个已加载创意 ID。上游的调度修改方案已运行，但不足以解决该设备的实际展示。
 
-保留 ID、keep_ids、其他根字段与未知素材字段；17 位数值 ID 在解析和输出中保留原始整数文字，避免 JS 双精度舍入。失败响应、缺失正文或无有效 data 时保留原响应。脚本不生成新素材，也不读取或删除 App 本地文件。
+版本 `20261016.3` 保留真实响应阶段处理，在成功响应中显式清空 `list`、`show`、`event_list`、`keep_ids`，删除 `account`、`preload`；已存在的 max_time 归零、两个拉取间隔保持一年。此次不再向客户端返回仅修改了时间的广告素材，也不保留服务端原有的素材保留列表。其余根字段、非广告字段及大整数文字保留。修改 keep_ids 的目标是停止下发保留指令；是否让客户端淘汰旧素材，仍由手机结果验证。
 
-新脚本地址带 `?v=20261016.2`，日志只记录版本、公共路径、hot/cold/background 枚举及处理素材数量；不记录查询参数、素材 ID 或正文。原 `bilibili-splash.js` 保持旧请求契约，尚未更新模块的订阅仍可使用；新模块没有请求拦截或 Map Local 抢先返回 splash 数据。新响应脚本及所附许可证按 GPL-3.0 发布。
+新模块引用 `bilibili-splash-response.js?v=20261016.3`，日志记录公共路径、hot/cold/background、真实列表数量到 0 与 keep_ids 数量到 0；不记录 ID、查询参数或正文。原 `bilibili-splash.js` 保持旧请求入口行为；新模块没有请求 mock 或 Map Local 抢先返回 splash 数据。响应脚本及所附许可证按 GPL-3.0 发布。
 
-本地检查覆盖四接口、三种 open_event、素材有效期与展示字段修改、未知数据与大整数保留、异常响应放行和旧脚本兼容；含素材的响应处理结果与上述固定版 Sparkle handler 对照一致。手机上回前台广告消失及冷启动仍无广告，待用户更新后验证。
+检查覆盖四接口、三种事件、非空素材及保留列表清空、遗漏广告列表的显式置空、非广告字段与大整数保留、异常响应放行、重复处理及旧请求入口兼容。需用户验证新日志 `version=20261016.3 ... list=N->0 keep=M->0` 及回前台广告、冷启动和普通播放效果。
 
-## 闲鱼启动广告与共用传输层（2026-10-16，待用户实测）
+## 闲鱼启动广告与共用传输层（2026-10-16，闲鱼 20261016.2 待用户实测）
 
 `PacketTunnel-20261016154038.log` 覆盖 15:40:38–15:45:37。实际使用 ASUS 场景的 `sr_direct_banad_tailscale.db`，解密名单已包含闲鱼域名。15:45:15、15:45:17、15:45:24 的 UDP TLS 嗅探识别出 `acs.m.goofish.com` 和 `g-acs.m.goofish.com`，随后连接仍以 IP:443 命中 FINAL,DIRECT 并建立 UDP 直连。该段没有进入可改写的闲鱼广告 HTTP 接口。这里有明确的传输绕过证据，不将其归为哔哩哔哩的缓存问题。
 
@@ -64,7 +62,11 @@
 
 `FleaMarket.sgmodule` 来自用户现有“闲鱼去广告”（可莉、2026-10-02 转换版），17 条 jq 规则逐字保留。原 7 条 `{}`/200 本地响应改用已有 `wechat-ad-response.js` 的 dict 模式，提供实际正文及准确 Content-Length，避开已知 H2 Map Local 正文丢失路径；复用原脚本地址，不改变现有微信调用。开屏 `idlecommerce.splash.ads` 同时覆盖 goofish 与旧 taobao 主机；旧 `idle.home.welcome` 沿用用户可莉通用模块的 404 行为。MITM 仅补对应 taobao 主机，更新来源指向本仓库。
 
-检查：`node tests/test_startup_ads.cjs`、`node tests/test_module_repairs.cjs`；闲鱼全部 jq 表达式编译通过，首页样例删除广告保留正常商品。原 7 个接口与返回语义已逐项对照，新增匹配不包含商品详情、交易创建或相似前缀接口。手机需验证 QUIC 不再绕过、广告接口实际进入改写，以及首页、搜索和商品浏览正常；这些结果尚未实测。
+16:05 新日志已出现解密的 `acs.m.goofish.com/gw/mtop.idle.idleadv.scene.restore/1.0`，16:05:05 和 16:05:25 两次均命中 FINAL,DIRECT，现有专用规则漏掉该广告恢复接口；原 7 个本地响应接口没有触发。此时该接口已进入可改写的 HTTP 路径，需要补齐专用规则。Tanx 的广告请求在这份日志中已被拒绝，不再重复添加域名拦截；共享的阿里视频/图片 CDN 不作整域封禁。
+
+闲鱼 `20261016.2` 保留上述全部原规则，补 `idleadv.scene.restore` 的成功无匹配响应（`trackParams.stageMatch="false"`），以及 `splash.async.ads` 的空 `adMap` 响应。返回结构对照 [skernelx/SurgeScripts 的原始处理代码](https://github.com/skernelx/SurgeScripts/blob/master/xianyu/xianyu-ad-block.js)，采用其 SUCCESS/1.0 结构。新增两条规则精确限定 API 名称和边界，使用带版本参数的共享本地响应脚本；日志只记录版本及固定模式名。
+
+检查：`node tests/test_startup_ads.cjs`、`node tests/test_module_repairs.cjs`；闲鱼全部 jq 表达式编译通过，首页样例删除广告保留正常商品。原 7 个接口与返回语义已逐项对照；新恢复/异步开屏接口的 JSON 结构、UTF-8 正文长度和版本日志检查通过，且不包含商品详情、交易创建或相似前缀接口。手机需验证恢复/异步开屏接口命中新增规则、广告消失，以及首页、搜索和商品浏览正常。传输模块本轮不再修改。
 
 ## 哔哩哔哩参数兼容（待用户复测）
 

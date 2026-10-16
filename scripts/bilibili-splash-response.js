@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Adapted from kokoryh/Sparkle's handleSplash; see bilibili-splash-response.LICENSE.
-// Preserve the real response and creative IDs so the app receives updated schedules.
+// Empty the real response's ad lists and retention list, not just creative schedules.
 (function () {
   const url = $request.url;
   const path = url.split("?")[0].replace(/^https:\/\/[^/]+/i, "");
@@ -25,7 +25,7 @@
     });
     message = JSON.parse(protectedBody);
   } catch (_) {
-    console.log("Bilibili splash: version=20261016.2 path=" + path + " invalid-json");
+    console.log("Bilibili splash: version=20261016.3 path=" + path + " invalid-json");
     $done({});
     return;
   }
@@ -34,27 +34,18 @@
     $done({});
     return;
   }
-  for (const field of ["account", "event_list", "preload", "show"]) delete data[field];
+  const beforeList = Array.isArray(data.list) ? data.list.length : data.list == null ? 0 : -1;
+  const beforeKeep = Array.isArray(data.keep_ids) ? data.keep_ids.length : data.keep_ids == null ? 0 : -1;
+  for (const field of ["account", "preload"]) delete data[field];
+  // Send explicit empty arrays, including the server's cache-retention directive.
+  for (const field of ["list", "show", "event_list", "keep_ids"]) data[field] = [];
   for (const [field, value] of Object.entries({ max_time: 0, min_interval: 31536000, pull_interval: 31536000 })) {
     if (Object.prototype.hasOwnProperty.call(data, field)) data[field] = value;
   }
-  let creatives = 0;
-  for (const item of Array.isArray(data.list) ? data.list : []) {
-    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
-    let patched = false;
-    for (const [field, value] of Object.entries({
-      duration: 0, begin_time: 2524579200, end_time: 2524665599, enable_pre_download: false
-    })) {
-      if (Object.prototype.hasOwnProperty.call(item, field)) {
-        item[field] = value;
-        patched = true;
-      }
-    }
-    if (patched) creatives++;
-  }
   const event = /[?&]open_event=(hot|cold|background)(?:&|$)/i.exec(url);
-  console.log("Bilibili splash: version=20261016.2 path=" + path +
-    " event=" + (event ? event[1].toLowerCase() : "other") + " creatives=" + creatives);
+  console.log("Bilibili splash: version=20261016.3 path=" + path +
+    " event=" + (event ? event[1].toLowerCase() : "other") +
+    " list=" + beforeList + "->0 keep=" + beforeKeep + "->0");
   let body = JSON.stringify(message);
   integers.forEach((literal, index) => {
     body = body.split(JSON.stringify(prefix + index)).join(literal);

@@ -41,14 +41,12 @@ for (const endpoint of ['list', 'show', 'event/list2', 'brand/list']) {
     assert(pattern.test(url));
     const { result, logs } = rewrite(url, input);
     const expected = JSON.parse(input);
-    for (const field of ['account', 'preload', 'show', 'event_list']) delete expected.data[field];
+    for (const field of ['account', 'preload']) delete expected.data[field];
+    for (const field of ['list', 'show', 'event_list', 'keep_ids']) expected.data[field] = [];
     Object.assign(expected.data, { max_time: 0, min_interval: 31536000, pull_interval: 31536000 });
-    for (const item of expected.data.list.slice(0, 2)) Object.assign(item, {
-      duration: 0, begin_time: 2524579200, end_time: 2524665599, enable_pre_download: false
-    });
     assert.deepEqual(JSON.parse(result.body), expected);
     assert.equal(logs.length, 1);
-    assert.match(logs[0], /version=20261016\.2.*creatives=2$/);
+    assert.match(logs[0], /version=20261016\.3.*list=4->0 keep=1->0$/);
     assert(!logs[0].includes('private-fixture'));
     assert(!logs[0].includes('12345678901234567'));
     assert.deepEqual(rewrite(url, result.body).result, result);
@@ -65,14 +63,13 @@ for (const url of ['https://app.bilibili.com/x/v2/feed/index', 'https://app.bili
   assert(!pattern.test(url));
   assert.deepEqual(rewrite(url, input).result, {});
 }
-// Minimal success replies stay minimal; do not invent fields or a creative list.
-assert.deepEqual(JSON.parse(rewrite('https://app.bilibili.com/x/v2/splash/show', '{"code":0,"data":{"other":1}}').result.body), { code: 0, data: { other: 1 } });
+// Omitted ad arrays are explicitly empty; unrelated data stays untouched.
+assert.deepEqual(JSON.parse(rewrite('https://app.bilibili.com/x/v2/splash/show', '{"code":0,"data":{"other":1}}').result.body), { code: 0, data: { other: 1, list: [], show: [], event_list: [], keep_ids: [] } });
 // The live client's cached IDs have 17 digits; do not round JSON numeric IDs.
-const largeIds = '{"code":0,"data":{"list":[{"id":12345678901234567,"duration":5}],"keep_ids":[-12345678901234567],"text":"12345678901234567 \\"quoted\\" __bili_integer_"}}';
+const largeIds = '{"code":0,"data":{"id":12345678901234567,"other_ids":[-12345678901234567],"text":"12345678901234567 \\"quoted\\" __bili_integer_"}}';
 const largeResult = rewrite('https://app.bilibili.com/x/v2/splash/list', largeIds).result.body;
 assert.match(largeResult, /"id":12345678901234567/);
-assert.match(largeResult, /"keep_ids":\[-12345678901234567\]/);
-assert.equal(JSON.parse(largeResult).data.list[0].duration, 0);
+assert.match(largeResult, /"other_ids":\[-12345678901234567\]/);
 assert.equal(JSON.parse(largeResult).data.text, JSON.parse(largeIds).data.text);
 const escapedPrefix = '{"code":0,"data":{"id":12345678901234567,"text":"\\u005f_bili_integer_0"}}';
 assert.equal(JSON.parse(rewrite('https://app.bilibili.com/x/v2/splash/list', escapedPrefix).result.body).data.text, '__bili_integer_0');
@@ -83,7 +80,7 @@ assert.doesNotMatch(flea, /script\.hub|\[Map Local\]/);
 const mocks = flea.split('\n').filter(l => l.includes('script-path=')).map(line => ({
   line, pattern: compile(line.split('pattern=')[1].split(', script-path=')[0]), mode: line.split('argument=')[1]
 }));
-assert.equal(mocks.length, 8);
+assert.equal(mocks.length, 10);
 for (const { line } of mocks) {
   assert.match(line, /type=http-request/);
   assert.match(line, /engine=webview/);
@@ -106,7 +103,28 @@ for (const url of mockUrls) {
   assert.equal(Number(reply.headers['Content-Length']), Buffer.byteLength(reply.body));
 }
 assert.equal(mocks.filter(r => r.pattern.test('https://acs.m.taobao.com/gw/mtop.taobao.idle.home.welcome/1.0/'))[0].mode, 'reject');
-for (const endpoint of ['mtop.taobao.idle.item.detail', 'mtop.taobao.idle.trade.create', 'mtop.taobao.idlecommerce.splash.ads.extra']) {
+for (const host of ['goofish', 'taobao']) {
+  for (const [api, mode, data] of [
+    ['mtop.idle.idleadv.scene.restore', 'idle-scene', { trackParams: { stageMatch: 'false' } }],
+    ['mtop.taobao.idlecommerce.splash.async.ads', 'idle-splash', { adMap: {} }]
+  ]) {
+    const url = `https://acs.m.${host}.com/gw/${api}/1.0?private=fixture`;
+    const matching = mocks.filter(r => r.pattern.test(url));
+    assert.equal(matching.length, 1);
+    assert.equal(matching[0].mode, mode);
+    let response;
+    const logs = [];
+    vm.runInNewContext(localReply, {
+      $argument: mode, console: { log: text => logs.push(text) },
+      $done: value => { response = JSON.parse(JSON.stringify(value.response)); }
+    });
+    assert.deepEqual(JSON.parse(response.body), { api, data, ret: ['SUCCESS::调用成功'], v: '1.0' });
+    assert.equal(response.status, 200);
+    assert.equal(Number(response.headers['Content-Length']), Buffer.byteLength(response.body));
+    assert.deepEqual(logs, [`FleaMarket startup: version=20261016.2 mode=${mode}`]);
+  }
+}
+for (const endpoint of ['mtop.taobao.idle.item.detail', 'mtop.taobao.idle.trade.create', 'mtop.taobao.idlecommerce.splash.ads.extra', 'mtop.idle.idleadv.scene.restore.extra', 'mtop.taobao.idlecommerce.splash.async.ads.extra']) {
   assert.equal(mocks.filter(r => r.pattern.test(`https://acs.m.goofish.com/gw/${endpoint}/1.0/`)).length, 0);
 }
 // Compile all preserved native jq expressions and exercise the existing ad-card filter.
