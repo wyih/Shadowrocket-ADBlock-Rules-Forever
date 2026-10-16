@@ -1,0 +1,8 @@
+#!url=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/MITM-Keep-Enabled.sgmodule
+#!name=MITM Keep Enabled
+#!desc=仅保持 HTTPS 解密开启；沿用当前配置自己的证书，不覆盖证书、密码、解密域名或 HTTP/2 设置。使用前请在对应配置中安装并信任证书。
+#!author=wyih
+#!version=20261016.1
+
+[MITM]
+enable = true

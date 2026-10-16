@@ -16,8 +16,7 @@
 | 微信公众号文章广告修复版 | [`WeChatOfficialAccounts.sgmodule`](WeChatOfficialAccounts.sgmodule) |
 | 微信小程序规则与依赖修复版 | [`WeChatMiniPrograms.sgmodule`](WeChatMiniPrograms.sgmodule) |
 | 自己的 DNS 模块 | [`DNS.sgmodule`](DNS.sgmodule) |
-| MITM Keep Enabled 公开模板 | [`MITM-Keep-Enabled.sgmodule.example`](MITM-Keep-Enabled.sgmodule.example) |
-| 含现有证书的完整 MITM 模块 | 本地 `private/MITM-Keep-Enabled.sgmodule`，Git 忽略 |
+| MITM Keep Enabled 通用版 | [`MITM-Keep-Enabled.sgmodule`](MITM-Keep-Enabled.sgmodule) |
 | Script Hub Beta | 官方仓库，见下方依赖说明 |
 
 ## 更新哔哩哔哩与闲鱼，另装一份传输兼容模块
@@ -98,11 +97,26 @@ https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailsc
 
 ## MITM Keep Enabled
 
-今天的完整修复包含 `[MITM] enable = true`、现有已信任证书的 `ca-passphrase` 和 `ca-p12`。它用于保留解密开关与证书，处理更新配置后解密失效的问题，和小红书模块的 HTTP/2 修复分别生效。
+在 Shadowrocket 导入并启用[通用模块](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/MITM-Keep-Enabled.sgmodule)。版本 `20261016.1` 的全部设置只有：
 
-本仓库为公开仓库。`ca-p12` 是含 CA 私钥的证书容器，完整模块只保存在本地 `private/MITM-Keep-Enabled.sgmodule`；`/private/` 已加入 `.gitignore`。公开模板记录结构，不包含证书和密码。恢复时使用完整私人文件及手机已信任的同一张 CA。只有 `enable = true` 的模板不能恢复丢失的证书。
+```ini
+[MITM]
+enable = true
+```
 
-完整私人模块保持今天已经验证的原内容，没有远程更新头。不要给含私人 CA 的模块设置公开更新地址。
+模块沿用当前配置自己的证书，不设置 `ca-p12`、`ca-passphrase`、解密域名或 HTTP/2。直连配置与白名单配置可以继续使用各自不同的 CA；模块可公开分享或通过 iCloud 同步，无须填写证书参数。证书及密码仍保存在各自的配置中，系统负责安装与信任。
+
+从旧的含证书模块迁移时，在每台设备上停用旧版，再导入并启用上述通用版；只保留一份启用的 `MITM Keep Enabled`。旧私人模块没有更新地址，不能靠“更新模块”自动替换。保留两份配置已有的证书；如果某份配置尚无证书，在该配置的“HTTPS 解密”页面生成、安装并信任后使用。[旧 `.example` 地址](MITM-Keep-Enabled.sgmodule.example) 也保留为同内容的无证书版本。
+
+### 更新远程配置时保留各自的证书
+
+本模块只保持解密开关。远程“更新配置”会覆盖本地修改，不能依靠本模块恢复被覆盖的证书。需要持续更新上游规则并保留两张不同的 CA 时，使用 Shadowrocket 原生的“扩展配置”：
+
+1. 分别从直连、白名单远程配置创建本地扩展配置，例如 `直连-本地.conf` 与 `白名单-本地.conf`，各自包含对应的远程配置。
+2. 在两份本地扩展配置中分别保存原来对应的 CA 和密码，安装并信任。证书留在各自配置内，MITM 模块不存放证书。
+3. 选择对应的本地扩展配置使用；已有 Rule 场景也改为引用对应的本地扩展配置。后续更新被包含的远程配置，本地扩展配置不设置远程更新地址。
+
+上述配置包含与覆盖关系见 [Shadowrocket 的扩展配置说明](https://github.com/LOWERTOP/Shadowrocket/wiki#扩展配置)，远程更新行为见[更新配置说明](https://github.com/LOWERTOP/Shadowrocket/wiki#更新配置)。含证书的本地配置保存在设备或用户自己的 iCloud 中，不上传到公开仓库。
 
 ## DNS
 
@@ -123,6 +137,6 @@ https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailsc
 - 同一路径下的 `type=rule-set` 使用 Beta 规则集解析器。
 - `script.hub/convert/` 使用 Beta 脚本转换器。
 
-因此，其他经 Script Hub 转换的订阅，在重新导入或更新时也会使用对应 Beta 解析器。解析器改变会反映到生成结果；具体功能取决于源模块语法。DNS、完整私人 MITM 模块和这里直接维护的 RedNote 模块均不经过 Script Hub 转换，现有两份配置的 GitHub 自动同步也不调用 Script Hub。
+因此，其他经 Script Hub 转换的订阅，在重新导入或更新时也会使用对应 Beta 解析器。解析器改变会反映到生成结果；具体功能取决于源模块语法。DNS、MITM Keep Enabled 通用模块和这里直接维护的 RedNote 模块均不经过 Script Hub 转换，现有两份配置的 GitHub 自动同步也不调用 Script Hub。
 
-官方模块与上述个人模块的作用不同：转换器负责生成模块；MITM Keep Enabled 保留解密开关与证书；DNS 覆盖通用参数；RedNote 执行小红书重写和脚本规则。
+官方模块与上述个人模块的作用不同：转换器负责生成模块；MITM Keep Enabled 只保持解密开关；DNS 覆盖通用参数；RedNote 执行小红书重写和脚本规则。

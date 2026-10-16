@@ -130,4 +130,10 @@ for (const module of ['Bilibili', 'Amap', 'AppleWeather', 'NeteaseCloudMusic', '
 const iqiyi = read('modules/Iqiyi.sgmodule');
 assert.doesNotMatch(iqiyi, /^http-response-jq .+ ''$/m);
 assert.match(iqiyi, /long_video_comments.+has\("alias_name"\)/);
+// The shared toggle must not replace either config's own certificate or TLS settings.
+const mitm = read('modules/MITM-Keep-Enabled.sgmodule');
+assert.deepEqual(mitm.split('\n').filter(line => line.trim() && !line.startsWith('#')),
+  ['[MITM]', 'enable = true']);
+assert.doesNotMatch(mitm, /ca-(?:p12|passphrase)\s*=/i);
+assert.equal(read('modules/MITM-Keep-Enabled.sgmodule.example'), mitm);
 console.log('module repair checks passed');

@@ -1,9 +1,8 @@
+#!url=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/MITM-Keep-Enabled.sgmodule
 #!name=MITM Keep Enabled
-#!desc=Keep the existing trusted certificate active when configurations update.
+#!desc=仅保持 HTTPS 解密开启；沿用当前配置自己的证书，不覆盖证书、密码、解密域名或 HTTP/2 设置。使用前请在对应配置中安装并信任证书。
+#!author=wyih
+#!version=20261016.1
 
 [MITM]
 enable = true
-# 将手机现有已信任证书的两项值填入本地 private/MITM-Keep-Enabled.sgmodule。
-# 完整私人文件用于导入；本模板只记录结构。
-# ca-passphrase = <现有证书密码>
-# ca-p12 = <现有证书的 PKCS#12 Base64>
