@@ -41,14 +41,15 @@ for (const endpoint of ['list', 'show', 'event/list2', 'brand/list']) {
     assert(pattern.test(url));
     const { result, logs } = rewrite(url, input);
     const expected = JSON.parse(input);
-    for (const field of ['account', 'preload']) delete expected.data[field];
-    for (const field of ['list', 'show', 'event_list', 'keep_ids']) expected.data[field] = [];
+    delete expected.data.account;
+    for (const field of ['list', 'show', 'event_list', 'keep_ids', 'preload']) expected.data[field] = [];
+    if (endpoint === 'brand/list') Object.assign(expected.data, { forcibly: false, rule: '', has_new_splash_set: 0 });
     Object.assign(expected.data, { max_time: 0, min_interval: 31536000, pull_interval: 31536000 });
     assert.deepEqual(JSON.parse(result.body), expected);
-    assert.equal(logs.length, 1);
-    assert.match(logs[0], /version=20261017\.1.*list=4->0 keep=1->0$/);
-    assert(!logs[0].includes('private-fixture'));
-    assert(!logs[0].includes('12345678901234567'));
+    assert.equal(logs.length, 2);
+    assert.match(logs[1], /version=20261017\.2.*list=4->0 keep=1->0$/);
+    assert(!logs.join('').includes('private-fixture'));
+    assert(!logs.join('').includes('12345678901234567'));
     assert.deepEqual(rewrite(url, result.body).result, result);
   }
 }
@@ -58,13 +59,13 @@ for (const query of ['', '?access_key=private-fixture']) {
   assert(pattern.test(url));
   const { result, logs } = rewrite(url, input);
   assert.deepEqual(JSON.parse(result.body), { ...fixture, data: {} });
-  assert.match(logs[0], /version=20261017\.1 path=\/x\/v2\/splash\/brand\/config config=empty$/);
-  assert(!logs[0].includes('private-fixture'));
+  assert.match(logs[1], /version=20261017\.2 path=\/x\/v2\/splash\/brand\/config config=empty$/);
+  assert(!logs.join('').includes('private-fixture'));
   assert.deepEqual(rewrite(url, result.body).result, result);
   assert.deepEqual(rewrite(url, '{"code":-400,"data":{}}').result, {});
 }
 for (const event of ['hot', 'cold', 'background']) {
-  assert(rewrite(`https://app.bilibili.com/x/v2/splash/list?open_event=${event}`, input).logs[0].includes(`event=${event}`));
+  assert(rewrite(`https://app.bilibili.com/x/v2/splash/list?open_event=${event}`, input).logs.some(log => log.includes(`event=${event}`)));
 }
 for (const body of ['bad-json', 'null', '{}', '{"code":-400,"data":{}}', '{"code":0,"data":null}', '{"code":0,"data":[]}', undefined]) {
   assert.deepEqual(rewrite('https://app.bilibili.com/x/v2/splash/list', body).result, {});
@@ -75,7 +76,44 @@ for (const url of ['https://app.bilibili.com/x/v2/feed/index', 'https://app.bili
   assert.deepEqual(rewrite(url, input).result, {});
 }
 // Omitted ad arrays are explicitly empty; unrelated data stays untouched.
-assert.deepEqual(JSON.parse(rewrite('https://app.bilibili.com/x/v2/splash/show', '{"code":0,"data":{"other":1}}').result.body), { code: 0, data: { other: 1, list: [], show: [], event_list: [], keep_ids: [] } });
+assert.deepEqual(JSON.parse(rewrite('https://app.bilibili.com/x/v2/splash/show', '{"code":0,"data":{"other":1}}').result.body), { code: 0, data: { other: 1, list: [], show: [], event_list: [], keep_ids: [], preload: [] } });
+// Real brand fields use booleans/strings; some scripts also expect numeric controls.
+for (const endpoint of ['list', 'brand/list']) {
+  for (const controls of [
+    { forcibly: true, rule: 'order', has_new_splash_set: 1 },
+    { forcibly: 1, rule: 1, has_new_splash_set: true }
+  ]) {
+    const body = JSON.stringify({ code: 0, data: { ...controls, preload: [{ thumb: 'asset' }], other: { keep: true } } });
+    const data = JSON.parse(rewrite(`https://app.bilibili.com/x/v2/splash/${endpoint}`, body).result.body).data;
+    for (const [key, original] of Object.entries(controls)) {
+      assert.equal(typeof data[key], typeof original);
+      assert(!data[key]);
+    }
+    assert.deepEqual(data.preload, []);
+    assert.deepEqual(data.other, { keep: true });
+  }
+}
+// Capture only bounded asset samples, stripping credentials-bearing queries and fragments.
+const assets = {
+  code: 0, data: {
+    account: { thumb: 'https://private.example/avatar.jpg' },
+    list: Array.from({ length: 12 }, (_, index) => ({
+      thumb: `https://i${index}.hdslb.com/bfs/sycp/creative_img/${index}.jpg?access_key=secret-query#secret-fragment`,
+      extra: { topview_pic_url: 'https://i0.hdslb.com/bfs/sycp/creative_img/nested.jpg?token=secret-query' },
+      uri: 'https://shop.example/secret-landing-path?token=secret-query',
+      show_urls: ['https://tracking.example/secret-tracking-path?token=secret-query']
+    }))
+  }
+};
+const assetLogs = rewrite('https://app.bilibili.com/x/v2/splash/list?access_key=secret-query', JSON.stringify(assets)).logs;
+const sourceLog = assetLogs.find(log => log.startsWith('Bilibili splash source:'));
+assert(sourceLog.includes('list:12'));
+assert(sourceLog.includes('/bfs/sycp/creative_img/'));
+const [, hostList, sampleList] = sourceLog.match(/ hosts=(\[.*\]) samples=(\[.*\])$/);
+assert.equal(JSON.parse(hostList).length, 8);
+assert.equal(JSON.parse(sampleList).length, 3);
+assert(assetLogs.every(log => !/secret-|private\.example|shop\.example|tracking\.example/.test(log)));
+assert.doesNotMatch(rewrite('https://app.bilibili.com/x/v2/splash/list', '{"code":0,"data":{"thumb":"https://secret-user:secret-pass@cdn.example/a.jpg"}}').logs.join(''), /secret-user|secret-pass/);
 // The live client's cached IDs have 17 digits; do not round JSON numeric IDs.
 const largeIds = '{"code":0,"data":{"id":12345678901234567,"other_ids":[-12345678901234567],"text":"12345678901234567 \\"quoted\\" __bili_integer_"}}';
 const largeResult = rewrite('https://app.bilibili.com/x/v2/splash/list', largeIds).result.body;
