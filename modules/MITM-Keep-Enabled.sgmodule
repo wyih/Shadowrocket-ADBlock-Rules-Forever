@@ -1,8 +1,12 @@
 #!url=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/MITM-Keep-Enabled.sgmodule
 #!name=MITM Keep Enabled
-#!desc=仅设置 HTTPS 解密开关，不存储证书或密码。不能修复配置更新后的 mitm no ca-p12 故障；有此故障时暂勿用本模块替换当前可用方案。
+#!desc=通用证书参数模板。请先保持模块停用，在“编辑参数”填写自己的证书内容和对应密码，将“启用”设为 true 后再启用模块。公共文件不含真实证书或密码；不会改变系统证书的信任开关。
 #!author=wyih
-#!version=20261016.2
+#!version=20261016.3
+#!arguments=启用:false,证书密码:请填写对应证书密码,证书内容:请填写Base64编码PKCS12
+#!arguments-desc=启用：证书和密码填写完整后设为 true。\n\n证书密码：该 PKCS12 对应的实际密码，不是设备解锁密码。\n\n证书内容：在对应配置的“HTTPS 解密 → 证书 ⓘ → 复制”取得的 Base64 编码 PKCS12。\n\n两张证书可以同时保持系统信任。一份模块只有一套证书参数；本模板不提供按配置自动选择证书的功能。参数由 Shadowrocket 保存，开启 iCloud 时也会同步，请勿公开分享填写后的参数文件。
 
 [MITM]
-enable = true
+enable = {{{启用}}}
+ca-passphrase = {{{证书密码}}}
+ca-p12 = {{{证书内容}}}

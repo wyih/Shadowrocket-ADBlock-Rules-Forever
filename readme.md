@@ -28,7 +28,7 @@ GitHub 定时任务可能延迟。仓库发布更新后，手机仍需在 Shadow
 
 ## 个人模块
 
-[`modules/`](modules/README.md) 维护小红书（RedNote）修复版、现有 DNS 模块，以及可直接导入的 [`MITM Keep Enabled`](modules/MITM-Keep-Enabled.sgmodule)。MITM 模块只保持解密开启，证书和密码由各配置自行保存，不写入模块。Script Hub Beta 直接使用官方模块，说明中记录依赖地址。自动同步只生成两份 `_tailscale.conf`，保留这些模块。
+[`modules/`](modules/README.md) 维护小红书（RedNote）修复版、现有 DNS 模块，以及 [`MITM Keep Enabled 通用参数模板`](modules/MITM-Keep-Enabled.sgmodule)。通过 Shadowrocket 的“编辑参数”填写自己的证书和密码，公共模板不含真实证书或密码。Script Hub Beta 直接使用官方模块，说明中记录依赖地址。自动同步只生成两份 `_tailscale.conf`，保留这些模块。
 
 ## 个人规则
 

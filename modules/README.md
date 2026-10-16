@@ -16,7 +16,7 @@
 | 微信公众号文章广告修复版 | [`WeChatOfficialAccounts.sgmodule`](WeChatOfficialAccounts.sgmodule) |
 | 微信小程序规则与依赖修复版 | [`WeChatMiniPrograms.sgmodule`](WeChatMiniPrograms.sgmodule) |
 | 自己的 DNS 模块 | [`DNS.sgmodule`](DNS.sgmodule) |
-| MITM Keep Enabled 通用版 | [`MITM-Keep-Enabled.sgmodule`](MITM-Keep-Enabled.sgmodule) |
+| MITM Keep Enabled 通用参数模板 | [`MITM-Keep-Enabled.sgmodule`](MITM-Keep-Enabled.sgmodule) |
 | Script Hub Beta | 官方仓库，见下方依赖说明 |
 
 ## 更新哔哩哔哩与闲鱼，另装一份传输兼容模块
@@ -97,24 +97,28 @@ https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailsc
 
 ## MITM Keep Enabled
 
-[通用模块](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/MITM-Keep-Enabled.sgmodule)仅设置 HTTPS 解密开关。对于更新配置后出现 `mitm no ca-p12` 的设备，暂时保留当前可用设置，不用本模块替换已有修复。版本 `20261016.2` 的全部设置只有：
+导入 [MITM Keep Enabled 通用参数模板](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/MITM-Keep-Enabled.sgmodule)，版本 `20261016.3`。先保持模块停用，在 Shadowrocket 的“配置 → 模块 → MITM Keep Enabled → 编辑参数”填写：
+
+- **证书内容**：对应配置的“HTTPS 解密 → 证书 ⓘ → 复制”得到的 Base64 编码 PKCS12。
+- **证书密码**：这份 PKCS12 的实际密码。
+- **启用**：前两项填写完整后设为 `true`，保存后再启用模块。默认值为 `false`；未配置好的模板应保持停用，避免覆盖正在使用的解密设置。
+
+模板中的设置为：
 
 ```ini
 [MITM]
-enable = true
+enable = {{{启用}}}
+ca-passphrase = {{{证书密码}}}
+ca-p12 = {{{证书内容}}}
 ```
 
-模块不设置 `ca-p12`、`ca-passphrase`、解密域名或 HTTP/2；配置自己的证书和密码保持原样。运行时仍需由 Shadowrocket 正确加载当前配置的 CA，系统信任也须匹配该 CA。模块可公开分享或通过 iCloud 同步，无须填写证书参数。[旧 `.example` 地址](MITM-Keep-Enabled.sgmodule.example) 保留为同内容的无证书版本。
+公共文件只包含参数占位符，没有任何人的真实证书、私钥或密码。Shadowrocket 将填写的参数保存在模块同名的 `.meta` 文件中；参数不因模块更新而丢失，开启 iCloud 时也会同步。公开分享模板即可，含真实参数的 `.meta` 文件留在自己的设备或 iCloud 中。参数用法见 [Shadowrocket 的编辑参数说明](https://github.com/LOWERTOP/Shadowrocket/wiki#编辑参数)。
 
-2026-10-11 的实机记录中，两份配置更新后分别出现 `mitm disable`；只固定解密开关后，又在 18:22:59 出现 `mitm no ca-p12`。当时保存的配置中证书仍然存在，缺失发生在更新后的运行状态。只保留开关的方案已在这个场景下失败，不能把系统持续信任证书等同于运行时已加载证书。
+两张证书可以同时在系统中保持信任，无须切换系统的信任开关。一份模块只有一套证书参数；它会覆盖当前运行配置的 CA。把两份带不同 CA 的模块同时启用，不会形成“每个配置各取自己的证书”的映射。本模板没有实现按配置自动选择 CA。
 
-本次无证书模块尚未解决上述失效问题，也未完成两份独立 CA 在更新配置、更新模块及 VPN 重连后的实机验收。旧私人模块没有更新地址，发布本模块不会自动替换设备上的旧版。
+版本 `20261016.3` 恢复显式提供 CA 与密码的方式，将真实值改为用户参数。此前只保留 `enable = true` 的版本在 2026-10-11 实机更新配置后出现过 `mitm no ca-p12`，已撤回将其作为完整修复的建议。本次参数化模板已做本地展开检查，尚未进行设备上的更新配置、更新模块和 VPN 重连验证。
 
-### 本地证书与远程规则的保存方式
-
-Shadowrocket 原生的“扩展配置”允许本地配置包含远程配置，本地值优先。它可以将每份配置的本地 CA 与远程规则分开保存，处理远程文件覆盖本地修改的问题。当前历史故障是证书仍保存在配置里、运行时未加载 CA；扩展配置能否修复这个故障尚未验证，不作为已完成修复，也暂不据此迁移设备配置。
-
-上述配置包含与覆盖关系见 [Shadowrocket 的扩展配置说明](https://github.com/LOWERTOP/Shadowrocket/wiki#扩展配置)，远程更新行为见[更新配置说明](https://github.com/LOWERTOP/Shadowrocket/wiki#更新配置)。含证书的本地配置保存在设备或用户自己的 iCloud 中，不上传到公开仓库。
+[旧 `.example` 地址](MITM-Keep-Enabled.sgmodule.example) 保留为同内容的参数模板。旧私人模块没有更新地址，发布新模板不会自动替换设备上没有更新源的旧版。
 
 ## DNS
 
@@ -137,4 +141,4 @@ Shadowrocket 原生的“扩展配置”允许本地配置包含远程配置，�
 
 因此，其他经 Script Hub 转换的订阅，在重新导入或更新时也会使用对应 Beta 解析器。解析器改变会反映到生成结果；具体功能取决于源模块语法。DNS、MITM Keep Enabled 通用模块和这里直接维护的 RedNote 模块均不经过 Script Hub 转换，现有两份配置的 GitHub 自动同步也不调用 Script Hub。
 
-官方模块与上述个人模块的作用不同：转换器负责生成模块；MITM Keep Enabled 只保持解密开关；DNS 覆盖通用参数；RedNote 执行小红书重写和脚本规则。
+官方模块与上述个人模块的作用不同：转换器负责生成模块；MITM Keep Enabled 按参数设置解密开关及 CA；DNS 覆盖通用参数；RedNote 执行小红书重写和脚本规则。

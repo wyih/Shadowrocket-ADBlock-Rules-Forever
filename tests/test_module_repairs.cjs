@@ -130,10 +130,23 @@ for (const module of ['Bilibili', 'Amap', 'AppleWeather', 'NeteaseCloudMusic', '
 const iqiyi = read('modules/Iqiyi.sgmodule');
 assert.doesNotMatch(iqiyi, /^http-response-jq .+ ''$/m);
 assert.match(iqiyi, /long_video_comments.+has\("alias_name"\)/);
-// The shared toggle must not replace either config's own certificate or TLS settings.
+// Certificate data is supplied through native module arguments, never public literals.
 const mitm = read('modules/MITM-Keep-Enabled.sgmodule');
 assert.deepEqual(mitm.split('\n').filter(line => line.trim() && !line.startsWith('#')),
-  ['[MITM]', 'enable = true']);
-assert.doesNotMatch(mitm, /ca-(?:p12|passphrase)\s*=/i);
+  ['[MITM]', 'enable = {{{启用}}}', 'ca-passphrase = {{{证书密码}}}', 'ca-p12 = {{{证书内容}}}']);
+const mitmDefaults = Object.fromEntries(mitm.match(/^#!arguments=(.+)$/m)[1].split(',').map(pair => {
+  const separator = pair.indexOf(':');
+  return [pair.slice(0, separator), pair.slice(separator + 1)];
+}));
+assert.equal(mitmDefaults['启用'], 'false');
+for (const args of [mitmDefaults,
+  { 启用: 'true', 证书密码: 'fixture-password-a', 证书内容: 'Zml4dHVyZS1jZXJ0LWE=' },
+  { 启用: 'true', 证书密码: 'fixture-password-b', 证书内容: 'Zml4dHVyZS1jZXJ0LWI=' }]) {
+  const expanded = mitm.replace(/\{\{\{([^{}]+)\}\}\}/g, (_, name) => args[name]);
+  assert.doesNotMatch(expanded, /\{\{\{|undefined/);
+  assert.equal(expanded.match(/^enable = (.+)$/m)[1], args['启用']);
+  assert.equal(expanded.match(/^ca-passphrase = (.+)$/m)[1], args['证书密码']);
+  assert.equal(expanded.match(/^ca-p12 = (.+)$/m)[1], args['证书内容']);
+}
 assert.equal(read('modules/MITM-Keep-Enabled.sgmodule.example'), mitm);
 console.log('module repair checks passed');
