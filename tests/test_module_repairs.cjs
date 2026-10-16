@@ -94,7 +94,7 @@ function runCompat(argument, cache = new Map(), status = 200) {
 }
 // Exercise the configured rules, including a disabled comment filter and quoted legacy values.
 for (const line of bili.split('\n').filter(l => l.includes('bilibili-protobuf-compat.js') && l.includes('argument='))) {
-  assert.match(line, /script-path=.*\/bilibili-protobuf-compat\.js\?v=20261017\.1,/);
+  assert.match(line, /script-path=.*\/bilibili-protobuf-compat\.js\?v=20261017\.4,/);
   const raw = line.split('argument=')[1]
     .replace(/\{\{\{purifyComment\}\}\}/g, 'false')
     .replace(/\{\{\{displayUpList\}\}\}/g, '"hide"')

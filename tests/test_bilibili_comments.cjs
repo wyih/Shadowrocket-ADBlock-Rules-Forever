@@ -14,6 +14,8 @@ const sources = Object.fromEntries(['request', 'response'].map((phase, index) =>
 for (const source of Object.values(sources)) {
   assert.equal(source.split('.topReplies.filter(').length - 1, 1, 'pinned upstream predicate changed');
 }
+assert.equal(sources.response.split('.dynamicList.list.filter(').length - 1, 1,
+  'pinned upstream dynamic predicate changed');
 
 function varint(value) {
   const bytes = [];
@@ -84,19 +86,20 @@ function fields(buffer) {
   return out;
 }
 
-async function run(phase, { enabled = true, compressed = false, cache = new Map(), original = false } = {}) {
+async function run(phase, { enabled = true, compressed = false, cache = new Map(), original = false,
+  inputPayload = payload, url = 'https://grpc.biliapi.net/bilibili.main.community.reply.v1.Reply/MainList' } = {}) {
   const logs = [], downloads = [];
-  const input = frame(payload, compressed);
+  const input = frame(inputPayload, compressed);
   const headers = { 'content-type': 'application/grpc', 'grpc-status': '0' };
   const response = { status: 200, headers, body: input, h2_trailers: { 'grpc-status': '0' } };
-  const settings = { purifyComment: enabled, logLevel: 'error' };
+  const settings = { displayUpList: 'show', purifyComment: enabled, logLevel: 'error' };
   const result = await new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error('upstream did not finish')), 3000);
     const context = {
       Uint8Array, ArrayBuffer, URL, TextDecoder, TextEncoder,
       $argument: JSON.stringify(original ? settings : { ...settings, _biliPhase: phase }),
       $request: {
-        url: 'https://grpc.biliapi.net/bilibili.main.community.reply.v1.Reply/MainList',
+        url,
         method: 'POST', headers: { te: 'trailers' }, body: frame(Buffer.alloc(0), false)
       },
       ...(phase === 'response' ? { $response: response } : {}),
@@ -154,5 +157,59 @@ async function run(phase, { enabled = true, compressed = false, cache = new Map(
     assert.equal(second.downloads.length, 0);
     assert.equal([...cache.values()][0], sources[phase], 'cache retains the original bundle');
   }
-  console.log('Bilibili pinned commerce comment checks passed (actual upstream, both phases)');
+
+  // DynamicItem.modules and nested modules are unknown fields in the actual upstream decoder.
+  const scalar = (no, value) => Buffer.concat([varint(no * 8), varint(value)]);
+  const dynamic = (label, modules, type = 4) => Buffer.concat([
+    scalar(1, type), ...modules.map(module => field(3, module)),
+    scalar(42, 12345678901234567n), field(80, label.repeat(20))
+  ]);
+  const description = (text, type, goods = false) => field(4, field(1, Buffer.concat([
+    field(1, text), scalar(2, type), ...(goods ? [field(9, scalar(1, 1))] : [])
+  ])));
+  const forward = item => field(5, field(6, field(1, item)));
+  const normal = dynamic('normal', [description('讨论淘宝与京东的服务', 1)]);
+  const goods = dynamic('goods', [field(8, Buffer.concat([
+    scalar(1, 2), field(3, field(2, field(1, '商品标题'.repeat(30))))
+  ]))]);
+  const normalForward = dynamic('normal-forward', [forward(normal)], 1);
+  const reservation = dynamic('reservation', [field(8, Buffer.concat([scalar(1, 8), field(10, '预约')]))]);
+  const malformed = dynamic('unrecognized', [field(4, Buffer.from([10, 127, 1]))]);
+  const items = [normal, goods,
+    dynamic('goods-type', [field(8, scalar(1, 2))]),
+    dynamic('goods-payload', [field(8, field(3, Buffer.alloc(0)))]),
+    dynamic('goods-link', [description('商品链接', 6)]),
+    dynamic('taobao-link', [description('淘宝商品', 14)]),
+    dynamic('goods-metadata', [description('商品链接', 13, true)]),
+    dynamic('forward-goods', [forward(goods)], 1),
+    dynamic('nested-forward', [forward(dynamic('forward-inner', [forward(goods)], 1))], 1),
+    normalForward, reservation, malformed,
+    dynamic('platform-ad', [], 15)
+  ];
+  const options = {
+    url: 'https://grpc.biliapi.net/bilibili.app.dynamic.v2.Dynamic/DynAll',
+    inputPayload: Buffer.concat([
+      field(1, Buffer.concat([...items.map(item => field(1, item)),
+        scalar(2, 12345678901234567n), field(3, 'keep-pagination-offset')])),
+      field(3, 'topic-to-remove'), field(99, 'keep-root-unknown')
+    ])
+  };
+  const listFields = result => fields(result.fields.find(f => f.number === 1).data);
+  const original = await run('response', { ...options, original: true });
+  assert.equal(listFields(original).filter(f => f.number === 1).length, 12,
+    'original filter only removes platform ads');
+  for (const compressed of [false, true]) {
+    const result = await run('response', { ...options, compressed });
+    assert.deepEqual(result.metadata, original.metadata);
+    const list = listFields(result);
+    assert.deepEqual(list.filter(f => f.number === 1).map(f => f.data),
+      [normal, normalForward, reservation, malformed], 'retain normal cards byte for byte');
+    assert.deepEqual(list.filter(f => f.number !== 1).map(f => f.raw),
+      listFields(original).filter(f => f.number !== 1).map(f => f.raw), 'preserve pagination and 64-bit fields');
+    assert.deepEqual(result.fields.filter(f => f.number !== 1).map(f => f.raw),
+      original.fields.filter(f => f.number !== 1).map(f => f.raw));
+    assert.equal(result.logs.length, 8);
+    assert(result.logs.every(log => log === 'Bilibili dynamic: version=20261017.4 removed-commerce=1'));
+  }
+  console.log('Bilibili commerce checks passed (actual upstream, comments and dynamic feed)');
 })().catch(error => { console.error(error); process.exitCode = 1; });
