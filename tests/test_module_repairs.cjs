@@ -69,7 +69,7 @@ for (const endpoint of ['list', 'show', 'event/list2', 'brand/list']) {
 const splashRule = bili.split('\n').find(l => l.startsWith('开屏素材失效 ='));
 assert.match(splashRule, /type=http-response/);
 assert.match(splashRule, /requires-body=true/);
-assert.match(splashRule, /bilibili-splash-response\.js\?v=20261017\.2,/);
+assert.match(splashRule, /bilibili-splash-response\.js\?v=20261017\.3,/);
 assert(!bili.split('\n').some(l => l.includes('splash') && (l.includes('data-type=') || l.includes('type=http-request'))));
 const compatScript = read('scripts/bilibili-protobuf-compat.js');
 function runCompat(argument, cache = new Map(), status = 200) {
@@ -93,7 +93,7 @@ function runCompat(argument, cache = new Map(), status = 200) {
   return { result, downloads };
 }
 // Exercise the configured rules, including a disabled comment filter and quoted legacy values.
-for (const line of bili.split('\n').filter(l => l.includes('argument='))) {
+for (const line of bili.split('\n').filter(l => l.includes('bilibili-protobuf-compat.js') && l.includes('argument='))) {
   assert.match(line, /script-path=.*\/bilibili-protobuf-compat\.js\?v=20261017\.1,/);
   const raw = line.split('argument=')[1]
     .replace(/\{\{\{purifyComment\}\}\}/g, 'false')

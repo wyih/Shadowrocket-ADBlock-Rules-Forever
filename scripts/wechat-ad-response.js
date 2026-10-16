@@ -1,9 +1,10 @@
-// Complete local replies shared by the WeChat and FleaMarket modules. The WebView request
+// Complete local replies shared by the WeChat, FleaMarket and Bilibili modules. The WebView request
 // bridge avoids Shadowrocket build 3445 dropping Map Local bodies over HTTP/2.
 // Only module rules select these replies; this is not a filter for arbitrary JSON.
 // FCBox's no-ad schemas: qDonl/loon-plugin, c8d3a63653fb2163e6b811eb2f262eb08d071ec4.
 const replies = {
   dict: [200, {}],
+  "bili-resource": [200, {}],
   reject: [404, null],
   "idle-scene": [200, {
     api: "mtop.idle.idleadv.scene.restore",
@@ -44,6 +45,9 @@ if (Object.prototype.hasOwnProperty.call(replies, mode)) {
     char => "\\u" + char.charCodeAt(0).toString(16).padStart(4, "0"));
   if (mode === "idle-scene" || mode === "idle-splash") {
     console.log("FleaMarket startup: version=20261016.2 mode=" + mode);
+  }
+  if (mode === "bili-resource") {
+    console.log("Bilibili resource: version=20261017.3 returning-empty-response");
   }
   $done({response: {
     status,

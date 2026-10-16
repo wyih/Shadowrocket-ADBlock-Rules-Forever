@@ -21,7 +21,7 @@
 
 ## 更新哔哩哔哩与闲鱼，另装一份传输兼容模块
 
-- **哔哩哔哩**：更新现有模块至 `20261017.2`。在列表清空之外，将 `preload` 显式置空，并按原类型重置品牌字段 `forcibly`、`rule`、`has_new_splash_set`；新增响应字段类型、素材域名及最多三个素材地址样本的日志，样本去除查询参数和片段。保留 `brand/config` 空配置及置顶商品链接标题、应用名称过滤，`purifyComment` 默认开启。旧版 `20261017.1` 已在手机热启动复发，新版品牌处理仍待用户实测。
+- **哔哩哔哩**：更新现有模块至 `20261017.3`。补上 `peak/download`、`mengqi/v1/resource` 的请求阶段空响应；按广告目录拦截 `sycp`、`sycp_brand` 图片及标记为 `SPLASH`、`SiteTool_1080` 的视频下载，并为对应 CDN 主机增加 HTTPS 解密。正常封面、头像和普通视频路径继续通过。保留原开屏列表、品牌字段处理和来源日志。`20261017.2` 两次冷启动均执行，但第一次仍有广告，新版下载拦截待用户实测。
 - **闲鱼**：用[仓库版 FleaMarket.sgmodule](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)替换现有 Script Hub 订阅来源。它以用户现有“闲鱼去广告”为基线，完整保留 17 条首页、搜索、商品与个人页 jq 规则，将 7 条本地映射换为完整脚本响应，覆盖旧开屏接口；`20261016.2` 补上新日志实际出现的广告场景恢复接口，并覆盖异步开屏接口。不要同时启用两份闲鱼模块。
 - **共用传输层**：另外导入并启用[去广告传输兼容](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule)。只需一份，可供现有各 App 模块共用。它设置 `block-quic = all`，阻止 UDP/443 绕过 HTTPS 改写；不修改 DNS、证书或其他 UDP 端口。
 
@@ -31,7 +31,7 @@
 
 本地检查：`node tests/test_startup_ads.cjs`、`node tests/test_module_repairs.cjs`。哔哩哔哩响应脚本最初参考 [kokoryh/Sparkle 的固定版本](https://github.com/kokoryh/Sparkle/blob/290bcbdd2f158cdd8f7db9c996e90fe63490e16f/src/script/bilibili/json/handler.ts)，按 GPL-3.0 发布，许可证见 [`bilibili-splash-response.LICENSE`](../scripts/bilibili-splash-response.LICENSE)。旧请求脚本地址保留原行为，供尚未更新模块的订阅使用。
 
-评论检查：`node tests/test_bilibili_comments.cjs` 下载原作者固定版本的请求和响应包，验证两种处理路径、压缩响应、正常评论保留及关闭过滤。也可把两个包的本地路径依次作为参数传入，避免重复下载。开屏脚本地址带 `v=20261017.2`，未改动的评论兼容层保持 `v=20261017.1`，更新模块即可刷新，无须另装脚本。回滚本次处理可使用提交 `7ee7311` 的模块及开屏脚本。
+评论检查：`node tests/test_bilibili_comments.cjs` 下载原作者固定版本的请求和响应包，验证两种处理路径、压缩响应、正常评论保留及关闭过滤。也可把两个包的本地路径依次作为参数传入，避免重复下载。开屏和资源响应脚本地址均带 `v=20261017.3`，未改动的评论兼容层保持 `v=20261017.1`，更新模块即可刷新，无须另装脚本。资源命中输出 `Bilibili resource: version=20261017.3 returning-empty-response`，素材下载命中可在日志中检查 `URL-REGEX` 拒绝记录。回滚本次处理可恢复提交 `1c87c7b` 的模块、开屏脚本和共享响应脚本。
 
 ## 2026-10-15 转换兼容修复
 

@@ -8,6 +8,7 @@ const read = name => fs.readFileSync(path.join(root, name), 'utf8');
 const compile = pattern => new RegExp(pattern.replace(/^\(\?i\)/, ''), 'i');
 const bili = read('modules/Bilibili.sgmodule');
 const script = read('scripts/bilibili-splash-response.js');
+const localReply = read('scripts/wechat-ad-response.js');
 const rule = bili.split('\n').find(l => l.startsWith('开屏素材失效 ='));
 const pattern = compile(rule.split('pattern=')[1].split(', script-path=')[0]);
 function rewrite(url, body, withResponse = true) {
@@ -47,7 +48,7 @@ for (const endpoint of ['list', 'show', 'event/list2', 'brand/list']) {
     Object.assign(expected.data, { max_time: 0, min_interval: 31536000, pull_interval: 31536000 });
     assert.deepEqual(JSON.parse(result.body), expected);
     assert.equal(logs.length, 2);
-    assert.match(logs[1], /version=20261017\.2.*list=4->0 keep=1->0$/);
+    assert.match(logs[1], /version=20261017\.3.*list=4->0 keep=1->0$/);
     assert(!logs.join('').includes('private-fixture'));
     assert(!logs.join('').includes('12345678901234567'));
     assert.deepEqual(rewrite(url, result.body).result, result);
@@ -59,7 +60,7 @@ for (const query of ['', '?access_key=private-fixture']) {
   assert(pattern.test(url));
   const { result, logs } = rewrite(url, input);
   assert.deepEqual(JSON.parse(result.body), { ...fixture, data: {} });
-  assert.match(logs[1], /version=20261017\.2 path=\/x\/v2\/splash\/brand\/config config=empty$/);
+  assert.match(logs[1], /version=20261017\.3 path=\/x\/v2\/splash\/brand\/config config=empty$/);
   assert(!logs.join('').includes('private-fixture'));
   assert.deepEqual(rewrite(url, result.body).result, result);
   assert.deepEqual(rewrite(url, '{"code":-400,"data":{}}').result, {});
@@ -123,6 +124,73 @@ assert.equal(JSON.parse(largeResult).data.text, JSON.parse(largeIds).data.text);
 const escapedPrefix = '{"code":0,"data":{"id":12345678901234567,"text":"\\u005f_bili_integer_0"}}';
 assert.equal(JSON.parse(rewrite('https://app.bilibili.com/x/v2/splash/list', escapedPrefix).result.body).data.text, '__bili_integer_0');
 
+// Intercept the separate resource APIs before downloading their real response.
+const resourceRule = bili.split('\n').find(line => line.startsWith('开屏资源拦截 ='));
+const resourcePattern = compile(resourceRule.split('pattern=')[1].split(', script-path=')[0]);
+assert.match(resourceRule, /type=http-request/);
+assert.match(resourceRule, /engine=webview/);
+assert.match(resourceRule, /wechat-ad-response\.js\?v=20261017\.3,/);
+const resourceMode = resourceRule.split('argument=')[1];
+for (const endpoint of [
+  'https://app.bilibili.com/x/resource/peak/download',
+  'https://api.bilibili.com/x/mengqi/v1/resource'
+]) {
+  for (const query of ['', '?access_key=private-fixture&sign=private-sign']) {
+    const url = endpoint + query;
+    assert(resourcePattern.test(url));
+    let reply;
+    const logs = [];
+    vm.runInNewContext(localReply, {
+      $argument: resourceMode, $request: { url }, console: { log: value => logs.push(value) },
+      $done: value => { reply = JSON.parse(JSON.stringify(value.response)); }
+    });
+    assert.equal(reply.status, 200);
+    assert.equal(reply.body, '{}');
+    assert.equal(Number(reply.headers['Content-Length']), Buffer.byteLength(reply.body));
+    assert.equal(reply.headers['Content-Type'], 'application/json');
+    assert.equal(reply.headers['Cache-Control'], 'no-store');
+    assert.deepEqual(logs, ['Bilibili resource: version=20261017.3 returning-empty-response']);
+  }
+}
+for (const url of [
+  'https://app.bilibili.com/x/resource/peak/downloadExtra',
+  'https://api.bilibili.com/x/mengqi/v1/resources',
+  'https://api.bilibili.com/x/resource/peak/download',
+  'https://app.bilibili.com/x/mengqi/v1/resource',
+  'https://app.bilibili.com/x/v2/splash/list',
+  'https://app.bilibili.com/x/resource/show/skin',
+  'https://app.bilibili.com/x/v2/feed/index'
+]) assert(!resourcePattern.test(url), url);
+
+// Match the observed ad directories and marked video files, preserving ordinary CDN media.
+const assetPatterns = bili.split('\n').filter(line => line.startsWith('URL-REGEX,'))
+  .map(line => compile(line.match(/^URL-REGEX,"(.+)",REJECT$/)[1]));
+assert.equal(assetPatterns.length, 3);
+const blockedAssets = [
+  'https://i0.hdslb.com/bfs/sycp_brand/img/202610/2bb7ff5c3542c673e3c8cd5d3496cce8.webp',
+  'https://i1.hdslb.com/bfs/sycp/creative_img/202402/374d96172a555415f2dcabbc437299fd.json',
+  'http://i2.hdslb.com/bfs/sycp/creative_img/ad.jpg?width=1080',
+  'http://upos-sz-static.bilivideo.com/ssaxcode/ye/y9/n260930tx2p7jhtmdmxk15iwz4doy9ye-1-SPLASH.mp4',
+  'https://upos-sz-static.bilivideo.com/ssaxcode/j9/7z/n261015tx1uj97y27ely4r1i5nzo7zj9-1-SiteTool_1080.mp4?token=fixture',
+  'https://upos-sz-staticcos.bilivideo.com/ssaxcode/ye/y9/n260930tx2p7jhtmdmxk15iwz4doy9ye-1-SPLASH.mp4',
+  'http://192.0.2.1:8000/v1/resource/n260930tx2p7jhtmdmxk15iwz4doy9ye-1-SPLASH.mp4?test=1'
+];
+const mitmHosts = bili.match(/^hostname = %APPEND% (.+)$/m)[1].split(', ');
+for (const url of blockedAssets) {
+  assert.equal(assetPatterns.filter(pattern => pattern.test(url)).length, 1, url);
+  if (url.startsWith('https:')) assert(mitmHosts.includes(new URL(url).hostname), url);
+}
+for (const url of [
+  'https://i0.hdslb.com/bfs/archive/normal-cover.jpg',
+  'https://i1.hdslb.com/bfs/face/avatar.jpg',
+  'https://i2.hdslb.com/bfs/feed-admin/normal.webp',
+  'https://i0.hdslb.com/bfs/sycp_brand_extra/normal.jpg',
+  'https://i0.hdslb.com.example.com/bfs/sycp/ad.jpg',
+  'https://upos-sz-static.bilivideo.com/ssaxcode/ye/y9/n260930tx2p7jhtmdmxk15iwz4doy9ye-1-100194.mp4',
+  'https://upos-sz-static.bilivideo.com/ssaxcode/ye/y9/n260930tx2p7jhtmdmxk15iwz4doy9ye-1-SPLASH.mp4.extra',
+  'http://192.0.2.1:8000/v1/resource/upgcxcode/88/46/42593224688/42593224688-1-100194.m4s'
+]) assert(!assetPatterns.some(pattern => pattern.test(url)), url);
+
 const flea = read('modules/FleaMarket.sgmodule');
 assert.match(flea, /^#!url=https:\/\/raw\.githubusercontent\.com\/wyih\/Shadowrocket-ADBlock-Rules-Forever\/tailscale\/modules\/FleaMarket\.sgmodule/m);
 assert.doesNotMatch(flea, /script\.hub|\[Map Local\]/);
@@ -134,7 +202,6 @@ for (const { line } of mocks) {
   assert.match(line, /type=http-request/);
   assert.match(line, /engine=webview/);
 }
-const localReply = read('scripts/wechat-ad-response.js');
 const mockUrls = [
   'mtop.taobao.idlecommerce.splash.ads', 'mtop.taobao.idle.user.strategy.list',
   'mtop.taobao.idle.item.recommend.list', 'mtop.taobao.idle.local.near.by.corner.info',

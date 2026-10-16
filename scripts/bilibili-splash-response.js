@@ -25,7 +25,7 @@
     });
     message = JSON.parse(protectedBody);
   } catch (_) {
-    console.log("Bilibili splash: version=20261017.2 path=" + path + " invalid-json");
+    console.log("Bilibili splash: version=20261017.3 path=" + path + " invalid-json");
     $done({});
     return;
   }
@@ -51,13 +51,13 @@
   }
   const fields = Object.keys(data).filter(key => /^[a-z][a-z0-9_]{0,63}$/i.test(key)).slice(0, 24)
     .map(key => key + ":" + (Array.isArray(data[key]) ? data[key].length : typeof data[key]));
-  console.log("Bilibili splash source: version=20261017.2 path=" + path +
+  console.log("Bilibili splash source: version=20261017.3 path=" + path +
     " fields=" + JSON.stringify(fields) + " hosts=" + JSON.stringify([...hosts]) +
     " samples=" + JSON.stringify([...samples]));
   if (path.toLowerCase() === "/x/v2/splash/brand/config") {
     // This dedicated splash endpoint's live schema is unknown; return an empty config.
     message.data = {};
-    console.log("Bilibili splash: version=20261017.2 path=" + path + " config=empty");
+    console.log("Bilibili splash: version=20261017.3 path=" + path + " config=empty");
   } else {
     const beforeList = Array.isArray(data.list) ? data.list.length : data.list == null ? 0 : -1;
     const beforeKeep = Array.isArray(data.keep_ids) ? data.keep_ids.length : data.keep_ids == null ? 0 : -1;
@@ -75,7 +75,7 @@
       if (Object.prototype.hasOwnProperty.call(data, field)) data[field] = value;
     }
     const event = /[?&]open_event=(hot|cold|background)(?:&|$)/i.exec(url);
-    console.log("Bilibili splash: version=20261017.2 path=" + path +
+    console.log("Bilibili splash: version=20261017.3 path=" + path +
       " event=" + (event ? event[1].toLowerCase() : "other") +
       " list=" + beforeList + "->0 keep=" + beforeKeep + "->0");
   }

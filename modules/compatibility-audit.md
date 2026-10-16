@@ -74,6 +74,18 @@
 
 `test_startup_ads.cjs` 验证显式预加载清空、布尔/字符串/数字控制字段、缺省品牌结构、嵌套素材来源及日志数量上限、查询参数和账户字段不泄漏，并保留五接口、大整数、异常放行和幂等检查；`test_module_repairs.cjs` 验证模块脚本版本及既有兼容行为。手机是否消除热启动广告由用户复测；本次处理可回滚至提交 `7ee7311`。
 
+### 资源下发与素材下载（2026-10-17，版本 20261017.3 待用户实测）
+
+`20261017.2` 的两次冷启动均运行新版：01:00:46.559 清空 82 条素材，01:01:00.797 清空 81 条；用户确认第一次仍有全屏广告，第二次没有。首轮广告监测早于主列表清空，第二轮无该组监测，未见脚本或解密错误。列表改写仍不足以稳定阻止展示。
+
+对照 [Thelongdark 的资源与视频拦截规则](https://github.com/Thelongdarkorg/loon-plugins/blob/84f82bb8b1b67a23fc02d49a94aea768173e9ce8/bilibili_splash_ad_block.plugin#L18-L38)，补 `app.bilibili.com/x/resource/peak/download` 和 `api.bilibili.com/x/mengqi/v1/resource`。前者在用户日志 00:43:30.562、01:01:28.924 确实出现，后者尚未观察到。复用共享 WebView 请求响应脚本的 `bili-resource` 模式，返回 HTTP 200、JSON `{}`、准确正文长度及 no-store，并输出固定版本命中日志。该方式保留上游 reject-dict 的语义，避开此设备已遇到的 HTTP/2 Map Local 正文问题；这两个资源接口的响应结构及具体素材来源关系仍未取得。
+
+新增三条原生 `URL-REGEX`：i0/i1/i2.hdslb.com 的 `/bfs/sycp/` 和 `/bfs/sycp_brand/` 目录；upos-sz-static 与 upos-sz-staticcos.bilivideo.com 的两级 ssaxcode 目录中、32 字符标识后带 `-1-SPLASH.mp4` 或 `-1-SiteTool_1080.mp4` 的文件；HTTP IP:8000 的对应 SPLASH 文件。图片目录和 SiteTool 标记来自本次真实开屏响应的素材字段；样本不等于已展示的广告。视频规则使用 Shadowrocket 现有 `REJECT` 策略，不照搬 Loon 的 `REJECT-VIDEO-NO-DROP`。
+
+对应五个 CDN 主机加入 MITM，以便匹配 HTTPS 路径。规则不按整个 CDN 域名拒绝；测试确认 archive 封面、face 头像、feed-admin 图片和普通 MP4/M4S 路径不匹配。开屏响应算法保留 `.2` 行为，仅将运行版本更新为 `.3`；评论兼容层保持 `.1`。共享响应脚本的微信、闲鱼模式保留原结果。
+
+本地检查：`test_startup_ads.cjs` 覆盖两接口精确边界、请求阶段空响应与版本日志、实际素材 URL 匹配、相似路径放行、HTTPS 域名均已配置 MITM，并保留原开屏与闲鱼检查；`test_module_repairs.cjs` 通过；共享脚本改动另由 `test_wechat_modules.cjs` 验证微信路径和响应无回归。这层阻止匹配的后续下载，不能直接删除 App 已保存的文件；实际冷启动、热启动及正常浏览效果仍由用户复测。回滚点为 `1c87c7b`。
+
 ## 闲鱼启动广告与共用传输层（2026-10-16，闲鱼 20261016.2 待用户实测）
 
 `PacketTunnel-20261016154038.log` 覆盖 15:40:38–15:45:37。实际使用 ASUS 场景的 `sr_direct_banad_tailscale.db`，解密名单已包含闲鱼域名。15:45:15、15:45:17、15:45:24 的 UDP TLS 嗅探识别出 `acs.m.goofish.com` 和 `g-acs.m.goofish.com`，随后连接仍以 IP:443 命中 FINAL,DIRECT 并建立 UDP 直连。该段没有进入可改写的闲鱼广告 HTTP 接口。这里有明确的传输绕过证据，不将其归为哔哩哔哩的缓存问题。
