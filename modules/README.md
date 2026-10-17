@@ -22,7 +22,7 @@
 ## 更新哔哩哔哩与闲鱼，另装一份传输兼容模块
 
 - **哔哩哔哩**：更新现有模块至 `20261017.4`。新增动态商品附加卡、正文商品链接及转发原文的识别，移除包含这些内容的整条带货动态，保留普通动态、普通转发与预约卡。保留 `.3` 的开屏资源与素材下载拦截；手机日志已确认资源拦截和 CDN 解密执行，但用户仍见同一张全屏广告，尚未确认完成 App 内缓存清理。
-- **闲鱼**：用[仓库版 FleaMarket.sgmodule](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)替换现有 Script Hub 订阅来源。它以用户现有“闲鱼去广告”为基线，完整保留 17 条首页、搜索、商品与个人页 jq 规则，将 7 条本地映射换为完整脚本响应，覆盖旧开屏接口；`20261016.2` 补上新日志实际出现的广告场景恢复接口，并覆盖异步开屏接口。不要同时启用两份闲鱼模块。
+- **闲鱼**：沿用[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)，更新至 `20261017.1`。10 月 17 日首次启动的日志已确认广告场景脚本执行，但 `ipm.atm.youku.com`、`px.ucweb.com` 仍成功直连；本版增加这两个域名的精确拒绝。保留原有 17 条 jq 规则、完整本地响应及场景恢复、异步开屏处理。该改动封住已发现的域名漏点，冷启动广告是否消失待用户实测；不将第二次启动无广告视为修复完成。不要同时启用两份闲鱼模块。
 - **共用传输层**：另外导入并启用[去广告传输兼容](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule)。只需一份，可供现有各 App 模块共用。它设置 `block-quic = all`，阻止 UDP/443 绕过 HTTPS 改写；不修改 DNS、证书或其他 UDP 端口。
 
 传输模块会影响所有 UDP/443 连接，包括日志中豆包输入法使用的 QUIC 连接。支持回退的功能改走 TCP；只支持该传输的功能可能不可用。若语音等功能异常，关闭**去广告传输兼容**即可恢复，保留各 App 模块。
