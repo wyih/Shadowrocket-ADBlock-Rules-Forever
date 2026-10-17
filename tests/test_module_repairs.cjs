@@ -51,6 +51,19 @@ const scalePattern = new RegExp(scaleRule.match(/pattern=\(\?i\)(.*?), script-pa
 assert(scalePattern.test('https://weatherkit.apple.com/api/v1/airQualityScale/zh-Hans-US/EU.EAQI.2414'));
 assert(!scalePattern.test('https://weatherkit.apple.com/api/v2/weather/zh-Hans-CN/0/0'));
 assert.doesNotMatch(weather, /\/v3\.1\.0\//);
+// Rewrite-only weather modules also receive Apple's cached, versioned scale names.
+const nativeScaleLine = weather.split('\n').find(line => line.startsWith('(?i)^(https?'));
+const [nativeScalePattern, nativeScaleReplacement, nativeScaleType] = nativeScaleLine.split(' ');
+const nativeScale = new RegExp(nativeScalePattern.slice(4), 'i');
+assert.equal(nativeScaleType, 'header');
+for (const [source, expected] of [
+  ['EU.EAQI.2414', 'EU.EAQI'], ['EPA_NowCast.1', 'EPA_NowCast'],
+  ['EU.EAQI.2414?test=1', 'EU.EAQI?test=1'], ['EU.EAQI', 'EU.EAQI']
+]) {
+  const prefix = 'https://weatherkit.apple.com/api/v1/airQualityScale/zh-Hans-US/';
+  assert.equal((prefix + source).replace(nativeScale, nativeScaleReplacement), prefix + expected);
+}
+assert(!nativeScale.test('https://weatherkit.apple.com/api/v2/weather/zh-Hans-CN/31.368/121.453'));
 const bili = read('modules/Bilibili.sgmodule');
 // Reject the observed ad endpoint before TLS; do not block shared playback/image hosts.
 const biliDomainRejects = bili.split('\n').filter(line => /^DOMAIN(?:-SUFFIX)?,.*?,REJECT$/.test(line));

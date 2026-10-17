@@ -35,11 +35,11 @@
 
 ## Apple 天气
 
-`AppleWeather.sgmodule` 版本 `20261017.1` 固定使用 iRingo WeatherKit `v3.3.2` 的请求与响应脚本，保留 WebView 引擎及原有参数。新版修复彩云令牌留空时的默认值回退，并补齐空气质量标尺请求处理，将旧的 `EU.EAQI.2414` 等地址转换为 Apple 使用的无版本标识。处理范围保持为空气质量、当前天气、每日预报、每小时预报和未来一小时降水，其余数据保持原样。
+`AppleWeather.sgmodule` 版本 `20261017.2` 固定使用 iRingo WeatherKit `v3.3.2` 的请求与响应脚本，保留 WebView 引擎及原有参数。修复彩云令牌留空时的默认值回退，并补齐空气质量标尺请求处理，将旧的 `EU.EAQI.2414` 等地址转换为 Apple 使用的无版本标识。`.2` 将标尺地址转换同时加入原生 URL 重写，覆盖旧天气缓存及使用上游 Rewrite 时没有请求脚本的情况。处理范围保持为空气质量、当前天气、每日预报、每小时预报和未来一小时降水，其余数据保持原样。
 
-本地已用发布包检查空令牌回退、标尺 URL 改写、可用性列表保留及天气/AQ 二进制响应写回；彩云实时、逐小时、逐日和分钟降水四类接口均返回正常数据。`node tests/test_module_repairs.cjs` 检查规则入口与现有模块兼容要求。手机和手表效果待更新后确认。回滚可恢复提交 `fd7838f` 中的 `AppleWeather.sgmodule`。
+本地已用发布包检查空令牌回退、标尺 URL 改写、可用性列表保留及天气/AQ 二进制响应写回；彩云实时、逐小时、逐日和分钟降水四类接口均返回正常数据。2026-10-17 手机日志中，12:02:35 的宝山小组件请求已调用彩云并在约 2 秒内完成；12:09:44 的天气 App 请求已改走上游 Rewrite，同时仍请求旧标尺地址。`node tests/test_module_repairs.cjs` 检查原生标尺重写、脚本入口与现有模块兼容要求。`.2` 的手机卡片及手表效果需实际确认。回滚本次原生重写可恢复 `49f3923` 的模块；回滚整个升级可恢复 `fd7838f`。
 
-Apple Watch 需安装当前生效配置所用的同一张解密证书；若两套配置各用一张 CA，手表也需分别安装两张。用户当前手机的证书页显示“系统已信任”，只有证书详情、删除、导出和生成新 CA，没有安装按钮，手表安装入口仍待按实际界面核实。2026-10-17 手机日志确认 Safari 访问 `http://ce.rt` 时得到 DNS 无结果并连接失败，不能将该地址作为当前手机可用的安装路径；此前本机实现检查及官方 Apple TV 教程不足以证明这个手机入口可用。[上游证书要求](https://nsringo.github.io/guide/Weather/weather-kit)、[Apple 的手表证书安装说明](https://developer.apple.com/library/archive/qa/qa1948/_index.html)。
+Apple Watch 需安装当前生效配置所用的同一张解密证书；若两套配置各用一张 CA，手表也需分别安装两张。已信任 CA 页面可从“导出 CA 证书”选择公钥证书格式（当前截图按钮显示 `CTR`），将该证书包装为 `.mobileconfig`：根证书负载为 `com.apple.security.root`，顶层 `TargetDeviceType = 2` 明确指定 Apple Watch，再通过配对 iPhone 下载并完成安装。描述文件只需现有 CA 的公钥证书，勿用 PKCS12 私钥包，也无需生成新 CA。当前尚未取得用户导出的公钥证书，安装文件及手表实机验收待完成。`http://ce.rt` 实测 DNS 失败，且经手机 HTTP 代理复测返回 503，不能作为当前可用的证书下载入口。[上游证书要求](https://nsringo.github.io/guide/Weather/weather-kit)、[Apple 根证书负载](https://developer.apple.com/documentation/devicemanagement/certificateroot)、[Apple 目标设备类型](https://developer.apple.com/documentation/devicemanagement/toplevel)。
 
 ## 2026-10-15 转换兼容修复
 
