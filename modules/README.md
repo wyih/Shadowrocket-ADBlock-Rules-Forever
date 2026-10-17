@@ -6,7 +6,7 @@
 | --- | --- |
 | 小红书（RedNote）修复版 | [`RedNote.sgmodule`](RedNote.sgmodule) |
 | 去广告传输兼容（QUIC 回退） | [`AdBlock-Transport.sgmodule`](AdBlock-Transport.sgmodule) |
-| HTTPDNS 拦截器（共用解析拦截） | [`HTTPDNS.sgmodule`](HTTPDNS.sgmodule) |
+| 通用广告拦截器（HTTPDNS、广告平台、可莉通用过滤） | [`HTTPDNS.sgmodule`](HTTPDNS.sgmodule) |
 | 闲鱼修复版 | [`FleaMarket.sgmodule`](FleaMarket.sgmodule) |
 | 米家去广告 | [`MiHome.sgmodule`](MiHome.sgmodule) |
 | 哔哩哔哩修复版 | [`Bilibili.sgmodule`](Bilibili.sgmodule) |
@@ -31,9 +31,9 @@
 
 ## 更新哔哩哔哩与闲鱼，配套共用模块
 
-- **共用 HTTPDNS**：以[仓库版 HTTPDNS 拦截器](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/HTTPDNS.sgmodule) `20261017.3` 替换原 Script Hub 转换模块，保留一份启用。基于用户提供的模块，统一维护各 App 的解析入口，包含闲鱼 AMDC 规则及两个已验证的阿里 HTTPS 解析 IP；脚本随模块加载，无须另装。
-- **哔哩哔哩**：配合上述共用模块，B 站模块使用 `20261017.7`；已是该版本时无须重新更新。B 站模块负责素材、开屏响应、评论和动态过滤，素材、开屏和动态脚本分别为 `.5`、`.3`、`.4`。本次只更新共用 HTTPDNS 至 `.3`，补拦两个 HTTPS 解析入口；开屏效果需手机复测。
-- **闲鱼**：先启用上述共用 HTTPDNS `20261017.3`，再沿[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)更新至 `20261017.3`。已在手机验证的 AMDC 原生拒绝规则原样迁入共用模块，闲鱼模块移除重复条目，保留两个广告域名拦截、17 条 jq、10 条请求脚本及备用网关解密。不要同时启用两份闲鱼模块。
+- **共用拦截**：沿[原 HTTPDNS 订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/HTTPDNS.sgmodule)更新至 `20261018.1`，显示名称改为“通用广告拦截器”。更新并启用后，停用原“广告平台拦截器”和“可莉广告过滤器”，本模块保持置顶。解析拦截、闲鱼 AMDC 规则、两个阿里 HTTPS 解析 IP 及广告平台/通用过滤在同一模块维护；脚本随模块加载，无须另装。
+- **哔哩哔哩**：配合上述共用模块，B 站模块使用 `20261017.7`；已是该版本时无须重新更新。B 站模块负责素材、开屏响应、评论和动态过滤，素材、开屏和动态脚本分别为 `.5`、`.3`、`.4`。共用模块合并完成后的开屏效果仍需手机复测。
+- **闲鱼**：先启用上述共用拦截器 `20261018.1`，再沿[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)更新至 `20261017.3`。已在手机验证的 AMDC 原生拒绝规则原样迁入共用模块，闲鱼模块移除重复条目，保留两个广告域名拦截、17 条 jq、10 条请求脚本及备用网关解密。不要同时启用两份闲鱼模块。
 - **共用传输层**：另外导入并启用[去广告传输兼容](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule)。只需一份，可供现有各 App 模块共用。它设置 `block-quic = all`，阻止 UDP/443 绕过 HTTPS 改写；不修改 DNS、证书或其他 UDP 端口。
 
 传输模块会影响所有 UDP/443 连接，包括日志中豆包输入法使用的 QUIC 连接。支持回退的功能改走 TCP；只支持该传输的功能可能不可用。若语音等功能异常，关闭**去广告传输兼容**即可恢复，保留各 App 模块。
@@ -149,7 +149,19 @@ ca-p12 = {{{证书内容}}}
 
 两份 `_tailscale.conf` 的默认 `dns-server` 是 `dns.alidns.com` 和 `doh.pub`，该模块启用后使用模块中的设置。它没有 Script Hub 更新地址，也没有转换脚本；Script Hub Beta 不参与这个模块的加载。
 
-## HTTPDNS 拦截器
+## 通用广告拦截器
+
+[`HTTPDNS.sgmodule`](HTTPDNS.sgmodule) `20261018.1` 合并用户现用的“广告平台拦截器”和“可莉广告过滤器”（可莉、2026-10-02 转换版）。原始入口分别为 [BlockAdvertisers.lpx](https://kelee.one/Tool/Loon/Lpx/BlockAdvertisers.lpx) 和 [Remove_ads_by_keli.lpx](https://kelee.one/Tool/Loon/Lpx/Remove_ads_by_keli.lpx)。以用户现有文件为合并基线，后续规则修订由本仓库维护。
+
+合并后包含 476 条原生规则、13 条既有 HTTPDNS 请求规则、86 条广告请求规则和 2 条正文改写。原生规则删除 19 条完全重复项，保留原有顺序、嘀嗒例外、短信验证放行及字节配置放行。虎牙重复 HTTPDNS 路径由既有脚本覆盖；快递100的两条带引号 URL 拒绝规则改用请求脚本返回空 JSON。
+
+两份模块的 84 条本地响应改用共享 `wechat-ad-response.js?v=20261018.1`，保留状态码及空正文、JSON、透明 GIF、中国联通启动字段，避开已验证的 H2 Map Local 正文丢失问题。透明图片使用已有的 `body-base64` 桥接方式。同步修正催眠接口 XML 通配符被错误转义，以及广告弹窗规则 `http?` 漏掉 HTTPS 的写法。63 个解密主机名按 `%APPEND%` 合并，使用现有证书和 HTTP/2 设置。
+
+更新现有 HTTPDNS 模块后，其名称变为“通用广告拦截器”；保持置顶并停用原“广告平台拦截器”和“可莉广告过滤器”。各 App 专用模块、去广告传输兼容、DNS 和 MITM Keep Enabled 继续启用，无须为本次合并重新排列。回滚时恢复 `83e5a8c` 的 `modules/HTTPDNS.sgmodule` 并重新启用原两份模块；共享响应脚本新增模式兼容旧调用方，无须回退。
+
+本地检查：`node tests/test_common_adblock.cjs`、`node tests/test_httpdns.cjs`、`node tests/test_startup_ads.cjs`、`node tests/test_wechat_modules.cjs`、`node tests/test_module_repairs.cjs`。检查覆盖合并优先级、原解析例外、响应状态与字节长度、GIF 桥接、正文改写及正常 B 站/闲鱼/米家请求保留。手机实际加载和效果由用户更新后验证。
+
+### HTTPDNS 基础能力与历史
 
 [`HTTPDNS.sgmodule`](HTTPDNS.sgmodule) 版本 `20261017.3` 以用户提供的「HTTPDNS拦截器」为基线。作者为 `wyih`，更新地址、项目主页和请求脚本地址均指向本仓库。原模块末尾的截断文字 `DOM` 未采入；其余 85 条域名、IP、客户端及嘀嗒直连规则均保留，去掉转换文件在规则值外附加的引号。10 条 URL 拒绝规则合并为 6 类请求脚本，再补齐 7 类解析入口。
 

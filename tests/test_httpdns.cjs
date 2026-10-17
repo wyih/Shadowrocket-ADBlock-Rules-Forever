@@ -7,7 +7,7 @@ const root = path.join(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const moduleText = read('modules/HTTPDNS.sgmodule');
 const script = read('scripts/httpdns-response.js');
-const rules = moduleText.split('\n').filter(line => line.includes('type=http-request'));
+const rules = moduleText.split('\n').filter(line => line.includes('script-path=') && line.includes('/httpdns-response.js'));
 const patterns = rules.map(line => {
   assert.match(line, /engine=webview, timeout=5$/);
   assert.match(line, /script-path=https:\/\/raw\.githubusercontent\.com\/wyih\/Shadowrocket-ADBlock-Rules-Forever\/tailscale\/scripts\/httpdns-response\.js\?v=20261017\.1,/);
@@ -107,6 +107,7 @@ for (const line of moduleText.split('\n').filter(line => /^IP-CIDR6?,/.test(line
 assert.match(moduleText, /^#!author=wyih$/m);
 assert.match(moduleText, /^#!url=https:\/\/raw\.githubusercontent\.com\/wyih\//m);
 assert.doesNotMatch(moduleText, /^(?:URL-REGEX,|.*USER-AGENT,")/m);
-assert.doesNotMatch(moduleText, /^\[General\]|^\[MITM\]/m);
+assert.doesNotMatch(moduleText, /^\[General\]|^(?:enable|h2|ca-p12|ca-passphrase)\s*=/m);
+assert.match(moduleText, /^hostname = %APPEND% /m);
 assert.doesNotMatch(read('modules/Bilibili.sgmodule'), /^.*191607.*$/m);
 console.log(`HTTPDNS checks passed (${rules.length} interfaces, IPv4/IPv6, Dida exceptions, normal traffic).`);

@@ -1,4 +1,4 @@
-// Complete local replies shared by the WeChat, FleaMarket and Bilibili modules. The WebView request
+// Complete local replies shared by the app modules and the common ad blocker. The WebView request
 // bridge avoids Shadowrocket build 3445 dropping Map Local bodies over HTTP/2.
 // Only module rules select these replies; this is not a filter for arbitrary JSON.
 // FCBox's no-ad schemas: qDonl/loon-plugin, c8d3a63653fb2163e6b811eb2f262eb08d071ec4.
@@ -7,6 +7,12 @@ const replies = {
   "bili-resource": [200, {}],
   "bili-asset": [404, null],
   reject: [404, null],
+  empty: [200, null],
+  "unicom-startup": [200, {
+    imgIndex: "0",
+    adv: { startup_adv: { advCntList: [], buttonList: [] } },
+    respCode: "0000"
+  }],
   "idle-scene": [200, {
     api: "mtop.idle.idleadv.scene.restore",
     data: { trackParams: { stageMatch: "false" } },
@@ -38,7 +44,18 @@ const replies = {
   }]
 };
 const mode = typeof $argument === "string" ? $argument : "";
-if (Object.prototype.hasOwnProperty.call(replies, mode)) {
+if (mode === "tiny-gif") {
+  $done({response: {
+    status: 200,
+    headers: {
+      "Content-Type": "image/gif",
+      "Content-Length": "42",
+      "Cache-Control": "no-store"
+    },
+    body: "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+    "body-base64": true
+  }});
+} else if (Object.prototype.hasOwnProperty.call(replies, mode)) {
   const [status, value] = replies[mode];
   // Keep the wire body ASCII, including Chinese success text, for byte-accurate
   // Content-Length without requiring TextEncoder in the proxy's script engine.
