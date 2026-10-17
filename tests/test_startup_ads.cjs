@@ -162,14 +162,21 @@ for (const url of [
   'https://app.bilibili.com/x/v2/feed/index'
 ]) assert(!resourcePattern.test(url), url);
 
-// Match the observed ad directories and marked video files, preserving ordinary CDN media.
-const assetPatterns = bili.split('\n').filter(line => line.startsWith('URL-REGEX,'))
-  .map(line => compile(line.match(/^URL-REGEX,"(.+)",REJECT$/)[1]));
+// The phone routed the old URL-REGEX matches DIRECT; use complete request-stage replies.
+const assetRules = bili.split('\n').filter(line => line.endsWith('argument=bili-asset'));
+const assetPatterns = assetRules.map(line => compile(line.split('pattern=')[1].split(', script-path=')[0]));
+for (const line of assetRules) {
+  assert.match(line, /type=http-request/);
+  assert.match(line, /engine=webview/);
+  assert.match(line, /wechat-ad-response\.js\?v=20261017\.5,/);
+}
 assert.equal(assetPatterns.length, 3);
 const blockedAssets = [
   'https://i0.hdslb.com/bfs/sycp_brand/img/202610/2bb7ff5c3542c673e3c8cd5d3496cce8.webp',
   'https://i1.hdslb.com/bfs/sycp/creative_img/202402/374d96172a555415f2dcabbc437299fd.json',
   'http://i2.hdslb.com/bfs/sycp/creative_img/ad.jpg?width=1080',
+  'https://i2.hdslb.com/bfs/sycp/mgk/material/png/202610/be1a76d2d2231851a0c3f215a4c8266c.png@360w_202h_1e_1c_85q.avif',
+  'https://i2.hdslb.com/bfs/sycp/mng/202505/a00775285c61820792b15c377b90715e.png@48w_43h_1e_1c_85q.avif',
   'http://upos-sz-static.bilivideo.com/ssaxcode/ye/y9/n260930tx2p7jhtmdmxk15iwz4doy9ye-1-SPLASH.mp4',
   'https://upos-sz-static.bilivideo.com/ssaxcode/j9/7z/n261015tx1uj97y27ely4r1i5nzo7zj9-1-SiteTool_1080.mp4?token=fixture',
   'https://upos-sz-staticcos.bilivideo.com/ssaxcode/ye/y9/n260930tx2p7jhtmdmxk15iwz4doy9ye-1-SPLASH.mp4',
@@ -179,6 +186,20 @@ const mitmHosts = bili.match(/^hostname = %APPEND% (.+)$/m)[1].split(', ');
 for (const url of blockedAssets) {
   assert.equal(assetPatterns.filter(pattern => pattern.test(url)).length, 1, url);
   if (url.startsWith('https:')) assert(mitmHosts.includes(new URL(url).hostname), url);
+  const selected = assetRules.find(line => compile(line.split('pattern=')[1].split(', script-path=')[0]).test(url));
+  let response;
+  const logs = [];
+  vm.runInNewContext(localReply, {
+    $argument: selected.split('argument=')[1], $request: { url },
+    console: { log: value => logs.push(value) },
+    $done: value => { response = JSON.parse(JSON.stringify(value.response)); }
+  });
+  assert.equal(response.status, 404);
+  assert.equal(response.body, '');
+  assert.equal(response.headers['Content-Length'], '0');
+  assert.equal(response.headers['Content-Type'], 'text/plain');
+  assert.equal(response.headers['Cache-Control'], 'no-store');
+  assert.deepEqual(logs, ['Bilibili asset: version=20261017.5 returning-empty-response']);
 }
 for (const url of [
   'https://i0.hdslb.com/bfs/archive/normal-cover.jpg',

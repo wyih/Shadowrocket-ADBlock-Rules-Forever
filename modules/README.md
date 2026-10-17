@@ -21,7 +21,7 @@
 
 ## 更新哔哩哔哩与闲鱼，另装一份传输兼容模块
 
-- **哔哩哔哩**：更新现有模块至 `20261017.4`。新增动态商品附加卡、正文商品链接及转发原文的识别，移除包含这些内容的整条带货动态，保留普通动态、普通转发与预约卡。保留 `.3` 的开屏资源与素材下载拦截；手机日志已确认资源拦截和 CDN 解密执行，但用户仍见同一张全屏广告，尚未确认完成 App 内缓存清理。
+- **哔哩哔哩**：更新现有模块至 `20261017.5`。手机日志确认两条广告目录图片仍以 `FINAL,DIRECT` 放行，原三条素材路由规则改为请求脚本直接返回 HTTP 404 空正文；只匹配广告图片目录和带开屏标记的视频路径，普通封面、头像和视频保留。命中日志为 `Bilibili asset: version=20261017.5 returning-empty-response`，实际全屏效果待复测。用户已多次清缓存仍见同一张广告并跳转微信，不再以清缓存作为解决办法。保留 `.4` 动态过滤和 `.3` 开屏响应处理。
 - **闲鱼**：沿用[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)，更新至 `20261017.2`。`.1` 的两个域名拦截已在手机生效，但冷启动仍出现不同广告。新日志还有 7 条闲鱼 AMDC 调度请求放行，以及未解密的 `rhdc-acs.m.taobao.com` 连接；本版按闲鱼应用标识与调度路径拦截前者，并把现有三条开屏规则及解密范围扩至该备用网关。保留 17 条 jq、原本地响应及 `.1` 的域名拦截。手机冷启动与正常浏览效果待用户复测。不要同时启用两份闲鱼模块。
 - **共用传输层**：另外导入并启用[去广告传输兼容](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule)。只需一份，可供现有各 App 模块共用。它设置 `block-quic = all`，阻止 UDP/443 绕过 HTTPS 改写；不修改 DNS、证书或其他 UDP 端口。
 
@@ -31,7 +31,7 @@
 
 本地检查：`node tests/test_startup_ads.cjs`、`node tests/test_module_repairs.cjs`。哔哩哔哩响应脚本最初参考 [kokoryh/Sparkle 的固定版本](https://github.com/kokoryh/Sparkle/blob/290bcbdd2f158cdd8f7db9c996e90fe63490e16f/src/script/bilibili/json/handler.ts)，按 GPL-3.0 发布，许可证见 [`bilibili-splash-response.LICENSE`](../scripts/bilibili-splash-response.LICENSE)。旧请求脚本地址保留原行为，供尚未更新模块的订阅使用。
 
-评论与动态检查：`node tests/test_bilibili_comments.cjs` 下载原作者固定版本的请求和响应包，验证评论的两种处理路径，以及动态商品卡、商品链接、多层转发、压缩响应、正常内容和未知字段保留。也可把两个包的本地路径依次作为参数传入，避免重复下载。兼容层地址更新为 `v=20261017.4`；动态过滤命中输出 `Bilibili dynamic: version=20261017.4 removed-commerce=1`。开屏和资源脚本继续使用 `.3`。更新模块即可刷新，无须另装脚本；动态效果待用户实机复测。回滚本次动态处理可恢复提交 `871036b` 的模块和 protobuf 兼容脚本。
+评论与动态检查：`node tests/test_bilibili_comments.cjs` 下载原作者固定版本的请求和响应包，验证评论的两种处理路径，以及动态商品卡、商品链接、多层转发、压缩响应、正常内容和未知字段保留。也可把两个包的本地路径依次作为参数传入，避免重复下载。兼容层地址更新为 `v=20261017.4`；动态过滤命中输出 `Bilibili dynamic: version=20261017.4 removed-commerce=1`。开屏和资源脚本继续使用 `.3`，新增素材请求脚本使用 `.5`。动态过滤已由手机两次各删除 3 条的日志确认。沿用原订阅入口更新模块，无须另装脚本；回滚本次素材处理可恢复提交 `654ddcf` 的 B 站模块和共享响应脚本。
 
 ## Apple 天气
 

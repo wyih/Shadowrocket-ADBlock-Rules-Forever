@@ -5,6 +5,7 @@
 const replies = {
   dict: [200, {}],
   "bili-resource": [200, {}],
+  "bili-asset": [404, null],
   reject: [404, null],
   "idle-scene": [200, {
     api: "mtop.idle.idleadv.scene.restore",
@@ -48,6 +49,9 @@ if (Object.prototype.hasOwnProperty.call(replies, mode)) {
   }
   if (mode === "bili-resource") {
     console.log("Bilibili resource: version=20261017.3 returning-empty-response");
+  }
+  if (mode === "bili-asset") {
+    console.log("Bilibili asset: version=20261017.5 returning-empty-response");
   }
   $done({response: {
     status,
