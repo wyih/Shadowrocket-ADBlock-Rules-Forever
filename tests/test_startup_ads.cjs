@@ -209,6 +209,7 @@ const mockUrls = [
   'mtop.taobao.idle.playboy.recommend'
 ].map(api => `https://acs.m.goofish.com/gw/${api}/1.0/?test=1`);
 mockUrls.push('https://acs.m.taobao.com/gw/mtop.taobao.idlecommerce.splash.ads/1.0/?test=1');
+mockUrls.push('https://rhdc-acs.m.taobao.com/gw/mtop.taobao.idlecommerce.splash.ads/1.0/?test=1');
 for (const url of mockUrls) {
   const matches = mocks.filter(r => r.pattern.test(url));
   assert.equal(matches.length, 1);
@@ -219,12 +220,12 @@ for (const url of mockUrls) {
   assert.equal(Number(reply.headers['Content-Length']), Buffer.byteLength(reply.body));
 }
 assert.equal(mocks.filter(r => r.pattern.test('https://acs.m.taobao.com/gw/mtop.taobao.idle.home.welcome/1.0/'))[0].mode, 'reject');
-for (const host of ['goofish', 'taobao']) {
+for (const host of ['acs.m.goofish.com', 'acs.m.taobao.com', 'rhdc-acs.m.taobao.com']) {
   for (const [api, mode, data] of [
     ['mtop.idle.idleadv.scene.restore', 'idle-scene', { trackParams: { stageMatch: 'false' } }],
     ['mtop.taobao.idlecommerce.splash.async.ads', 'idle-splash', { adMap: {} }]
   ]) {
-    const url = `https://acs.m.${host}.com/gw/${api}/1.0?private=fixture`;
+    const url = `https://${host}/gw/${api}/1.0?private=fixture`;
     const matching = mocks.filter(r => r.pattern.test(url));
     assert.equal(matching.length, 1);
     assert.equal(matching[0].mode, mode);
@@ -242,6 +243,18 @@ for (const host of ['goofish', 'taobao']) {
 }
 for (const endpoint of ['mtop.taobao.idle.item.detail', 'mtop.taobao.idle.trade.create', 'mtop.taobao.idlecommerce.splash.ads.extra', 'mtop.idle.idleadv.scene.restore.extra', 'mtop.taobao.idlecommerce.splash.async.ads.extra']) {
   assert.equal(mocks.filter(r => r.pattern.test(`https://acs.m.goofish.com/gw/${endpoint}/1.0/`)).length, 0);
+  assert.equal(mocks.filter(r => r.pattern.test(`https://rhdc-acs.m.taobao.com/gw/${endpoint}/1.0/`)).length, 0);
+}
+assert.match(flea, /^hostname = %APPEND% .*\brhdc-acs\.m\.taobao\.com$/m);
+// AMDC can use an IP Host header; keep its rejection limited to the observed app UA and path.
+const dispatchLine = flea.split('\n').find(line => line.startsWith('AND,((URL-REGEX,'));
+assert.match(dispatchLine, /,\(USER-AGENT,%E9%97%B2%E9%B1%BC\*\)\),REJECT$/);
+const dispatchPattern = compile(dispatchLine.match(/^AND,\(\(URL-REGEX,(.*)\),\(USER-AGENT,/)[1]);
+for (const host of ['59.82.113.219', '59.82.14.1:80', '59.82.113.10', 'amdc.m.taobao.com', '47.246.103.9', '59.82.14.161:80', '59.82.14.162:80']) {
+  for (const query of ['', '?private=fixture']) assert(dispatchPattern.test(`http://${host}/amdc/mobileDispatch${query}`));
+}
+for (const url of ['http://59.82.113.219/amdc/mobileDispatch.extra', 'http://59.82.113.219/item/detail', 'http://example.com/amdc/mobileDispatch', 'https://acs.m.goofish.com/gw/mtop.taobao.idle.item.detail/1.0']) {
+  assert(!dispatchPattern.test(url), url);
 }
 // Compile all preserved native jq expressions and exercise the existing ad-card filter.
 const jqLines = flea.split('\n').filter(l => l.startsWith('http-response-jq '));
