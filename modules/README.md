@@ -6,6 +6,7 @@
 | --- | --- |
 | 小红书（RedNote）修复版 | [`RedNote.sgmodule`](RedNote.sgmodule) |
 | 去广告传输兼容（QUIC 回退） | [`AdBlock-Transport.sgmodule`](AdBlock-Transport.sgmodule) |
+| HTTPDNS 拦截器（共用解析拦截） | [`HTTPDNS.sgmodule`](HTTPDNS.sgmodule) |
 | 闲鱼修复版 | [`FleaMarket.sgmodule`](FleaMarket.sgmodule) |
 | 哔哩哔哩修复版 | [`Bilibili.sgmodule`](Bilibili.sgmodule) |
 | 高德地图修复版 | [`Amap.sgmodule`](Amap.sgmodule) |
@@ -19,9 +20,10 @@
 | MITM Keep Enabled 通用参数模板 | [`MITM-Keep-Enabled.sgmodule`](MITM-Keep-Enabled.sgmodule) |
 | Script Hub Beta | 官方仓库，见下方依赖说明 |
 
-## 更新哔哩哔哩与闲鱼，另装一份传输兼容模块
+## 更新哔哩哔哩与闲鱼，配套共用模块
 
-- **哔哩哔哩**：沿原地址更新现有模块至 `20261017.6`。本版补拦实机放行的 `/191607/resolve` HTTPDNS，联合匹配 B 站客户端、账户路径和所查询的 B 站域名，促使其回退到系统解析。已复现同一娇韵诗视频按域名建连返回 404、按 CDN IPv4 建连却能完整下载；真实日志也有 `app.bilibili.com` 裸 IP 连接后补识别域名而未进入解密。保留 `.5` 素材请求拦截、`.4` 动态过滤和 `.3` 开屏响应处理，素材命中日志仍为 `.5`。本版手机开屏与正常浏览待复测；不再以清缓存作为解决办法。
+- **共用 HTTPDNS**：以[仓库版 HTTPDNS 拦截器](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/HTTPDNS.sgmodule) `20261017.1` 替换原 Script Hub 转换模块，保留一份启用。基于用户提供的模块，统一维护各 App 的解析入口；脚本随模块加载，无须另装。
+- **哔哩哔哩**：先启用上述共用模块，再沿原地址更新现有 B 站模块至 `20261017.7`。HTTPDNS 规则移至共用模块，B 站模块继续负责素材、开屏响应、评论和动态过滤。`.6` 一次启动无广告后又在 15:55 复发，日志仍有 6 条裸 IP HTTPDNS 查询直连；本次改为共用请求脚本返回空 404。素材、开屏和动态脚本分别保留 `.5`、`.3`、`.4`，手机效果待用户更新复测。
 - **闲鱼**：沿用[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)，更新至 `20261017.2`。`.1` 的两个域名拦截已在手机生效，但冷启动仍出现不同广告。新日志还有 7 条闲鱼 AMDC 调度请求放行，以及未解密的 `rhdc-acs.m.taobao.com` 连接；本版按闲鱼应用标识与调度路径拦截前者，并把现有三条开屏规则及解密范围扩至该备用网关。保留 17 条 jq、原本地响应及 `.1` 的域名拦截。手机冷启动与正常浏览效果待用户复测。不要同时启用两份闲鱼模块。
 - **共用传输层**：另外导入并启用[去广告传输兼容](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule)。只需一份，可供现有各 App 模块共用。它设置 `block-quic = all`，阻止 UDP/443 绕过 HTTPS 改写；不修改 DNS、证书或其他 UDP 端口。
 
@@ -30,6 +32,8 @@
 这一共用层解决的是传输绕过。广告响应结构仍由各 App 的专用模块处理；它不能直接清理 App 沙盒内已有的素材文件。两个修复版均已做本地检查，手机上的冷启动、切回前台和闲鱼正常浏览效果待用户更新后复测。
 
 本地检查：`node tests/test_startup_ads.cjs`、`node tests/test_module_repairs.cjs`。哔哩哔哩响应脚本最初参考 [kokoryh/Sparkle 的固定版本](https://github.com/kokoryh/Sparkle/blob/290bcbdd2f158cdd8f7db9c996e90fe63490e16f/src/script/bilibili/json/handler.ts)，按 GPL-3.0 发布，许可证见 [`bilibili-splash-response.LICENSE`](../scripts/bilibili-splash-response.LICENSE)。旧请求脚本地址保留原行为，供尚未更新模块的订阅使用。
+
+HTTPDNS 检查：`node tests/test_httpdns.cjs`。覆盖 IPv4/IPv6、端口、轮换解析地址、不同账户、AMDC 调度、原有嘀嗒例外及正常业务请求。详情见下方 HTTPDNS 说明。
 
 评论与动态检查：`node tests/test_bilibili_comments.cjs` 下载原作者固定版本的请求和响应包，验证评论的两种处理路径，以及动态商品卡、商品链接、多层转发、压缩响应、正常内容和未知字段保留。也可把两个包的本地路径依次作为参数传入，避免重复下载。兼容层地址更新为 `v=20261017.4`；动态过滤命中输出 `Bilibili dynamic: version=20261017.4 removed-commerce=1`。开屏和资源脚本继续使用 `.3`，新增素材请求脚本使用 `.5`。动态过滤已由手机两次各删除 3 条的日志确认。沿用原订阅入口更新模块，无须另装脚本；回滚本次素材处理可恢复提交 `654ddcf` 的 B 站模块和共享响应脚本。
 
@@ -135,6 +139,18 @@ ca-p12 = {{{证书内容}}}
 [`DNS.sgmodule`](DNS.sgmodule) 保存用户现有模块，全部设置值保持原样。它覆盖 `[General]` 参数，包括三个带 `#proxy` 的 DoH 地址、备用 DNS、DNS 劫持条目，以及 IPv6、ICMP 和重写拒绝选项。
 
 两份 `_tailscale.conf` 的默认 `dns-server` 是 `dns.alidns.com` 和 `doh.pub`，该模块启用后使用模块中的设置。它没有 Script Hub 更新地址，也没有转换脚本；Script Hub Beta 不参与这个模块的加载。
+
+## HTTPDNS 拦截器
+
+[`HTTPDNS.sgmodule`](HTTPDNS.sgmodule) 版本 `20261017.1` 以用户提供的「HTTPDNS拦截器」为基线。作者为 `wyih`，更新地址、项目主页和请求脚本地址均指向本仓库。原模块末尾的截断文字 `DOM` 未采入；其余 85 条域名、IP、客户端及嘀嗒直连规则均保留，去掉转换文件在规则值外附加的引号。10 条 URL 拒绝规则合并为 6 类请求脚本，再补齐 7 类解析入口。
+
+通用 IPv4/IPv6 解析、带数字账户或版本的 `resolve`、`sign_d`、`ss4` 等接口，以及 AMDC 调度均按路径返回空 404。它覆盖日志中的五个 `203.119.*` B 站解析地址，地址轮换后仍按接口匹配；嘀嗒出行对两台指定解析服务器的例外在脚本中保留。日志标记为 `HTTPDNS: version=20261017.1 action=block`，不输出解析参数和用户标识。闲鱼已验证的应用专属 AMDC 规则本次保留，共用模块补齐其他地址和客户端的覆盖。
+
+对照 [VirgilClyne 的固定版本](https://github.com/VirgilClyne/GetSomeFries/blob/b4aa767bcbc4d39bea5b549a3277a00517891d1e/sgmodule/HTTPDNS.Block.sgmodule) 与 [blackmatrix7 的模块](https://github.com/blackmatrix7/ios_rule_script/blob/master/rewrite/Shadowrocket/BlockHTTPDNS/BlockHTTPDNS.sgmodule)，补充专用解析地址及京东、微博、爱奇艺等域名，共 40 条原生规则；补充美团、知乎、微博配置、字节配置、微信 CDN 解析及支付宝 IPv4/IPv6 解析六类入口，另将原 AMDC 的固定地址合并为接口匹配。上游出现的 `182.256.116.116` 是无效 IPv4，未复制；IPv6 URL 使用方括号。基线来自用户提供的可莉、VirgilClyne 模块，原入口为 `kelee.one/Tool/Loon/Lpx/Block_HTTPDNS.lpx`。
+
+共用模块的脚本处理明文 HTTP 解析接口，专用解析域名与 IP 的原生拒绝也覆盖加密连接；共享业务域名上的 HTTPS 路径仍取决于是否已解密。本模块不增加解密域名。`DNS.sgmodule` 继续配置系统 DoH，Google、Cloudflare 的现有 DoH 地址保持原样。
+
+本地与日志 URL 回放通过后，再由用户更新模块核对手机拦截日志和实际画面。回滚时停用仓库版 HTTPDNS、恢复原模块，并将 B 站模块恢复为提交 `411e04e` 的 `.6`；其余模块保持当前版本。
 
 ## Script Hub Beta：官方依赖
 
