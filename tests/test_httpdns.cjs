@@ -33,6 +33,21 @@ function blocked(url) {
   assert.equal(response.headers['Content-Length'], '0');
   assert.equal(response.headers['Cache-Control'], 'no-store');
 }
+// The verified FleaMarket native rejection moves here unchanged; generic AMDC stays covered.
+const dispatchLine = moduleText.split('\n').find(line => line.includes('(USER-AGENT,%E9%97%B2%E9%B1%BC*'));
+assert.match(dispatchLine, /,\(USER-AGENT,%E9%97%B2%E9%B1%BC\*\)\),REJECT$/);
+const dispatchPattern = new RegExp(dispatchLine.match(/^AND,\(\(URL-REGEX,(.*)\),\(USER-AGENT,/)[1]);
+for (const host of ['59.82.113.219', '59.82.14.1:80', '59.82.113.10', 'amdc.m.taobao.com', '47.246.103.9', '59.82.14.161:80', '59.82.14.162:80']) {
+  for (const query of ['', '?private=fixture']) {
+    const url = `http://${host}/amdc/mobileDispatch${query}`;
+    assert(dispatchPattern.test(url));
+    blocked(url);
+  }
+}
+for (const url of ['http://59.82.113.219/amdc/mobileDispatch.extra', 'http://59.82.113.219/item/detail', 'http://example.com/amdc/mobileDispatch', 'https://acs.m.goofish.com/gw/mtop.taobao.idle.item.detail/1.0']) {
+  assert(!dispatchPattern.test(url), url);
+  assert.deepEqual(reply(url), {}, url);
+}
 // Actual Bilibili resolver pools, rotating addresses, query order and all accounts.
 for (const address of ['203.119.238.240', '203.119.206.8', '203.119.204.80', '203.119.206.9', '203.119.238.194', '203.107.1.65:80', '[2400:3200::1]', '[::ffff:203.119.206.8]:80']) {
   for (const host of ['app.bilibili.com', 'api.bilibili.com', 'i1.hdslb.com', 'upos-sz-static.bilivideo.com', 'example.com']) {

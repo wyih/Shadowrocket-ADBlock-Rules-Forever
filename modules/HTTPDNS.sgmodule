@@ -5,7 +5,7 @@
 #!homepage=https://github.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tree/tailscale/modules
 #!category=去广告, 依赖
 #!date=2026-10-17
-#!version=20261017.1
+#!version=20261017.2
 
 # Based on the user's Kelee/VirgilClyne module; upstream references are in modules/README.md.
 [Rule]
@@ -17,6 +17,8 @@ USER-AGENT,Httpdns*,REJECT
 USER-AGENT,Httpsdns*,REJECT
 AND,((URL-REGEX,^http:\/\/119\.29\.29\.90\/d\?),(USER-AGENT,%E5%98%80%E5%97%92%E5%87%BA%E8%A1%8C*)),DIRECT
 AND,((URL-REGEX,^http:\/\/119\.28\.28\.90\/d\?),(USER-AGENT,%E5%98%80%E5%97%92%E5%87%BA%E8%A1%8C*)),DIRECT
+# Preserve the on-device verified FleaMarket AMDC rejection in this shared layer.
+AND,((URL-REGEX,^http:\/\/(?:amdc\.m\.taobao\.com|(?:[0-9]+\.){3}[0-9]+)(?::80)?\/amdc\/mobileDispatch(?:\?|$)),(USER-AGENT,%E9%97%B2%E9%B1%BC*)),REJECT
 DOMAIN,yyapp-httpdns.gslb.yy.com,REJECT
 DOMAIN,union-httpdns.gslb.yy.com,REJECT
 DOMAIN,yuyin-httpdns.gslb.yy.com,REJECT

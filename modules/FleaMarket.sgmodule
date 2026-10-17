@@ -1,6 +1,6 @@
 #!url=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule
 #!name=闲鱼去广告
-#!desc=移除开屏广告、商品信息流广告、关注推荐、搜索栏填充词、首页签到入口及悬浮广告，精简我的页面。
+#!desc=移除开屏广告、商品信息流广告、关注推荐、搜索栏填充词、首页签到入口及悬浮广告，精简我的页面。需配套启用共用 HTTPDNS 拦截器。
 #!author=可莉🅥[https://github.com/luestr/ProxyResource/blob/main/README.md]
 #!icon=https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/FleaMarket.png
 #!openUrl=https://apps.apple.com/app/id510909506
@@ -8,12 +8,11 @@
 #!loon_version=3.5.1(998)
 #!homepage=https://hub.kelee.one
 #!date=2026-10-17
-#!version=20261017.2
+#!version=20261017.3
 
 [Rule]
 DOMAIN,ipm.atm.youku.com,REJECT
 DOMAIN,px.ucweb.com,REJECT
-AND,((URL-REGEX,^http:\/\/(?:amdc\.m\.taobao\.com|(?:[0-9]+\.){3}[0-9]+)(?::80)?\/amdc\/mobileDispatch(?:\?|$)),(USER-AGENT,%E9%97%B2%E9%B1%BC*)),REJECT
 
 [Body Rewrite]
 http-response-jq (?i)^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.home\.nextfresh\/ '.data.homeTopList |= map(select(.sectionType == "kingkongDo")) | .data.sections |= map(select(.data.clickParam.args.cardType as $ct | $ct != "homeMultiBanner" and $ct != "mamaAD")) | .data.sections |= map(select((.template.name|type=="string")and(.template.name=="idlefish_home_new_commodity_card"or(.template.name|contains("fish_home_tags_item_card")))))'

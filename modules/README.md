@@ -22,9 +22,9 @@
 
 ## 更新哔哩哔哩与闲鱼，配套共用模块
 
-- **共用 HTTPDNS**：以[仓库版 HTTPDNS 拦截器](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/HTTPDNS.sgmodule) `20261017.1` 替换原 Script Hub 转换模块，保留一份启用。基于用户提供的模块，统一维护各 App 的解析入口；脚本随模块加载，无须另装。
+- **共用 HTTPDNS**：以[仓库版 HTTPDNS 拦截器](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/HTTPDNS.sgmodule) `20261017.2` 替换原 Script Hub 转换模块，保留一份启用。基于用户提供的模块，统一维护各 App 的解析入口，包含从闲鱼模块迁入的已验证 AMDC 规则；脚本随模块加载，无须另装。
 - **哔哩哔哩**：先启用上述共用模块，再沿原地址更新现有 B 站模块至 `20261017.7`。HTTPDNS 规则移至共用模块，B 站模块继续负责素材、开屏响应、评论和动态过滤。`.6` 一次启动无广告后又在 15:55 复发，日志仍有 6 条裸 IP HTTPDNS 查询直连；本次改为共用请求脚本返回空 404。素材、开屏和动态脚本分别保留 `.5`、`.3`、`.4`，手机效果待用户更新复测。
-- **闲鱼**：沿用[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)，更新至 `20261017.2`。`.1` 的两个域名拦截已在手机生效，但冷启动仍出现不同广告。新日志还有 7 条闲鱼 AMDC 调度请求放行，以及未解密的 `rhdc-acs.m.taobao.com` 连接；本版按闲鱼应用标识与调度路径拦截前者，并把现有三条开屏规则及解密范围扩至该备用网关。保留 17 条 jq、原本地响应及 `.1` 的域名拦截。手机冷启动与正常浏览效果待用户复测。不要同时启用两份闲鱼模块。
+- **闲鱼**：先启用上述共用 HTTPDNS `20261017.2`，再沿[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)更新至 `20261017.3`。已在手机验证的 AMDC 原生拒绝规则原样迁入共用模块，闲鱼模块移除重复条目，保留两个广告域名拦截、17 条 jq、10 条请求脚本及备用网关解密。不要同时启用两份闲鱼模块。
 - **共用传输层**：另外导入并启用[去广告传输兼容](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule)。只需一份，可供现有各 App 模块共用。它设置 `block-quic = all`，阻止 UDP/443 绕过 HTTPS 改写；不修改 DNS、证书或其他 UDP 端口。
 
 传输模块会影响所有 UDP/443 连接，包括日志中豆包输入法使用的 QUIC 连接。支持回退的功能改走 TCP；只支持该传输的功能可能不可用。若语音等功能异常，关闭**去广告传输兼容**即可恢复，保留各 App 模块。
@@ -142,15 +142,15 @@ ca-p12 = {{{证书内容}}}
 
 ## HTTPDNS 拦截器
 
-[`HTTPDNS.sgmodule`](HTTPDNS.sgmodule) 版本 `20261017.1` 以用户提供的「HTTPDNS拦截器」为基线。作者为 `wyih`，更新地址、项目主页和请求脚本地址均指向本仓库。原模块末尾的截断文字 `DOM` 未采入；其余 85 条域名、IP、客户端及嘀嗒直连规则均保留，去掉转换文件在规则值外附加的引号。10 条 URL 拒绝规则合并为 6 类请求脚本，再补齐 7 类解析入口。
+[`HTTPDNS.sgmodule`](HTTPDNS.sgmodule) 版本 `20261017.2` 以用户提供的「HTTPDNS拦截器」为基线。作者为 `wyih`，更新地址、项目主页和请求脚本地址均指向本仓库。原模块末尾的截断文字 `DOM` 未采入；其余 85 条域名、IP、客户端及嘀嗒直连规则均保留，去掉转换文件在规则值外附加的引号。10 条 URL 拒绝规则合并为 6 类请求脚本，再补齐 7 类解析入口。
 
-通用 IPv4/IPv6 解析、带数字账户或版本的 `resolve`、`sign_d`、`ss4` 等接口，以及 AMDC 调度均按路径返回空 404。它覆盖日志中的五个 `203.119.*` B 站解析地址，地址轮换后仍按接口匹配；嘀嗒出行对两台指定解析服务器的例外在脚本中保留。日志标记为 `HTTPDNS: version=20261017.1 action=block`，不输出解析参数和用户标识。闲鱼已验证的应用专属 AMDC 规则本次保留，共用模块补齐其他地址和客户端的覆盖。
+通用 IPv4/IPv6 解析、带数字账户或版本的 `resolve`、`sign_d`、`ss4` 等接口，以及 AMDC 调度均按路径返回空 404。它覆盖日志中的五个 `203.119.*` B 站解析地址，地址轮换后仍按接口匹配；嘀嗒出行对两台指定解析服务器的例外在脚本中保留。`.2` 将闲鱼已验证的应用专属 AMDC 原生拒绝规则原样迁入本模块，通用脚本继续覆盖其他地址和客户端；闲鱼模块不再维护这条解析规则。脚本代码及地址未变，日志标记仍为 `HTTPDNS: version=20261017.1 action=block`，不输出解析参数和用户标识。
 
 对照 [VirgilClyne 的固定版本](https://github.com/VirgilClyne/GetSomeFries/blob/b4aa767bcbc4d39bea5b549a3277a00517891d1e/sgmodule/HTTPDNS.Block.sgmodule) 与 [blackmatrix7 的模块](https://github.com/blackmatrix7/ios_rule_script/blob/master/rewrite/Shadowrocket/BlockHTTPDNS/BlockHTTPDNS.sgmodule)，补充专用解析地址及京东、微博、爱奇艺等域名，共 40 条原生规则；补充美团、知乎、微博配置、字节配置、微信 CDN 解析及支付宝 IPv4/IPv6 解析六类入口，另将原 AMDC 的固定地址合并为接口匹配。上游出现的 `182.256.116.116` 是无效 IPv4，未复制；IPv6 URL 使用方括号。基线来自用户提供的可莉、VirgilClyne 模块，原入口为 `kelee.one/Tool/Loon/Lpx/Block_HTTPDNS.lpx`。
 
 共用模块的脚本处理明文 HTTP 解析接口，专用解析域名与 IP 的原生拒绝也覆盖加密连接；共享业务域名上的 HTTPS 路径仍取决于是否已解密。本模块不增加解密域名。`DNS.sgmodule` 继续配置系统 DoH，Google、Cloudflare 的现有 DoH 地址保持原样。
 
-本地与日志 URL 回放通过后，再由用户更新模块核对手机拦截日志和实际画面。回滚时停用仓库版 HTTPDNS、恢复原模块，并将 B 站模块恢复为提交 `411e04e` 的 `.6`；其余模块保持当前版本。
+`.1` 已由手机原生 22 次提前响应及经手机代理复测的 HTTP 404、零正文确认生效。`.2` 只迁移闲鱼 AMDC 原生规则，本地检查覆盖原七种调度 URL、路径边界及通用脚本，迁移后的手机加载由用户更新确认。回滚本次迁移可只恢复提交 `c4dfd31` 的 `HTTPDNS.sgmodule` 与 `FleaMarket.sgmodule`。
 
 ## Script Hub Beta：官方依赖
 
