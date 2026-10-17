@@ -49,8 +49,10 @@ for (const endpoint of ['list', 'show', 'event/list2', 'brand/list']) {
     if (endpoint === 'brand/list') Object.assign(expected.data, { forcibly: false, rule: '', has_new_splash_set: 0 });
     Object.assign(expected.data, { max_time: 0, min_interval: 31536000, pull_interval: 31536000 });
     assert.deepEqual(JSON.parse(result.body), expected);
-    assert.equal(logs.length, 2);
-    assert.match(logs[1], /version=20261017\.3.*list=4->0 keep=1->0$/);
+    assert.equal(logs.length, 4);
+    assert.match(logs[0], new RegExp(`^Bilibili splash begin: .* chars=${input.length}$`));
+    assert.match(logs[2], /version=20261018\.1.*list=4->0 keep=1->0$/);
+    assert.match(logs[3], /^Bilibili splash ready: .* chars=\d+ elapsed-ms=\d+$/);
     assert(!logs.join('').includes('private-fixture'));
     assert(!logs.join('').includes('12345678901234567'));
     assert.deepEqual(rewrite(url, result.body).result, result);
@@ -62,7 +64,7 @@ for (const query of ['', '?access_key=private-fixture']) {
   assert(pattern.test(url));
   const { result, logs } = rewrite(url, input);
   assert.deepEqual(JSON.parse(result.body), { ...fixture, data: {} });
-  assert.match(logs[1], /version=20261017\.3 path=\/x\/v2\/splash\/brand\/config config=empty$/);
+  assert.match(logs[2], /version=20261018\.1 path=\/x\/v2\/splash\/brand\/config config=empty$/);
   assert(!logs.join('').includes('private-fixture'));
   assert.deepEqual(rewrite(url, result.body).result, result);
   assert.deepEqual(rewrite(url, '{"code":-400,"data":{}}').result, {});
@@ -125,6 +127,14 @@ assert.match(largeResult, /"other_ids":\[-12345678901234567\]/);
 assert.equal(JSON.parse(largeResult).data.text, JSON.parse(largeIds).data.text);
 const escapedPrefix = '{"code":0,"data":{"id":12345678901234567,"text":"\\u005f_bili_integer_0"}}';
 assert.equal(JSON.parse(rewrite('https://app.bilibili.com/x/v2/splash/list', escapedPrefix).result.body).data.text, '__bili_integer_0');
+// Prefix collisions may precede or follow the numbers being protected.
+const collisions = '{"code":0,"root_id":12345678901234567,"data":{"text":"__bili_integer_0","escaped":"\\u005f_bili_integer__0","other_ids":[-12345678901234567,12345678901234569],"list":[{"id":12345678901234571}]}}';
+const collisionResult = rewrite('https://app.bilibili.com/x/v2/splash/list', collisions).result.body;
+assert.match(collisionResult, /"root_id":12345678901234567/);
+assert.match(collisionResult, /"other_ids":\[-12345678901234567,12345678901234569\]/);
+assert.equal(JSON.parse(collisionResult).data.text, '__bili_integer_0');
+assert.equal(JSON.parse(collisionResult).data.escaped, '__bili_integer__0');
+assert.deepEqual(JSON.parse(collisionResult).data.list, []);
 
 // Intercept the separate resource APIs before downloading their real response.
 const resourceRule = bili.split('\n').find(line => line.startsWith('开屏资源拦截 ='));

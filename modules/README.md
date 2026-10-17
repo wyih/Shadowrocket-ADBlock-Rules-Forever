@@ -32,7 +32,7 @@
 ## 更新哔哩哔哩与闲鱼，配套共用模块
 
 - **共用拦截**：沿[原 HTTPDNS 订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/HTTPDNS.sgmodule)更新至 `20261018.1`，显示名称改为“通用广告拦截器”。更新并启用后，停用原“广告平台拦截器”和“可莉广告过滤器”，本模块保持置顶。解析拦截、闲鱼 AMDC 规则、两个阿里 HTTPS 解析 IP 及广告平台/通用过滤在同一模块维护；脚本随模块加载，无须另装。
-- **哔哩哔哩**：配合上述共用模块，B 站模块使用 `20261017.7`；已是该版本时无须重新更新。B 站模块负责素材、开屏响应、评论和动态过滤，素材、开屏和动态脚本分别为 `.5`、`.3`、`.4`。共用模块合并完成后的开屏效果仍需手机复测。
+- **哔哩哔哩**：配合上述共用模块，B 站模块更新至 `20261018.1`。02:39 的手机日志确认五次内存压力回收中断开屏响应；新版减少开屏脚本的临时字符串副本，新增输入长度与处理耗时日志。素材和动态脚本仍为 `20261017.5`、`20261017.4`；手机更新后的内存回收和开屏效果待复测。
 - **闲鱼**：先启用上述共用拦截器 `20261018.1`，再沿[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)更新至 `20261017.3`。已在手机验证的 AMDC 原生拒绝规则原样迁入共用模块，闲鱼模块移除重复条目，保留两个广告域名拦截、17 条 jq、10 条请求脚本及备用网关解密。不要同时启用两份闲鱼模块。
 - **共用传输层**：另外导入并启用[去广告传输兼容](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule)。只需一份，可供现有各 App 模块共用。它设置 `block-quic = all`，阻止 UDP/443 绕过 HTTPS 改写；不修改 DNS、证书或其他 UDP 端口。
 
