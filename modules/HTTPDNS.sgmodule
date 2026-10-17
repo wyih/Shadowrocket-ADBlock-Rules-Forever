@@ -5,7 +5,7 @@
 #!homepage=https://github.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tree/tailscale/modules
 #!category=去广告, 依赖
 #!date=2026-10-17
-#!version=20261017.2
+#!version=20261017.3
 
 # Based on the user's Kelee/VirgilClyne module; upstream references are in modules/README.md.
 [Rule]
@@ -78,6 +78,9 @@ DOMAIN,httpdns.alicdn.com,REJECT
 DOMAIN,httpdns-api.aliyuncs.com,REJECT
 DOMAIN,httpdns-sc.aliyuncs.com,REJECT
 IP-CIDR,203.107.1.0/24,REJECT,no-resolve
+# Verified Ali HTTPDNS IP certificates; block HTTPS resolution before SNI or URL parsing.
+IP-CIDR,203.119.238.194/32,REJECT,no-resolve
+IP-CIDR,203.119.238.240/32,REJECT,no-resolve
 DOMAIN,amdc.alipay.com,REJECT
 DOMAIN,ucdc.upaas.quark.cn,REJECT
 DOMAIN,httpdns.danuoyi.tbcache.com,REJECT
