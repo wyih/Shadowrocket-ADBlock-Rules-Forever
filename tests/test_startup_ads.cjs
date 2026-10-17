@@ -9,6 +9,28 @@ const compile = pattern => new RegExp(pattern.replace(/^\(\?i\)/, ''), 'i');
 const bili = read('modules/Bilibili.sgmodule');
 const script = read('scripts/bilibili-splash-response.js');
 const localReply = read('scripts/wechat-ad-response.js');
+// Bilibili's own HTTPDNS returns CDN IPs even when system IPv6 DNS is disabled.
+// Match the account, app client and queried domain, not the shared resolver IP.
+const biliDnsRule = bili.split('\n').find(line => line.startsWith('AND,((URL-REGEX,'));
+assert.match(biliDnsRule, /,\(USER-AGENT,nghttp2\*\)\),REJECT$/);
+const biliDnsPattern = compile(biliDnsRule.match(/^AND,\(\(URL-REGEX,(.*)\),\(USER-AGENT,/)[1]);
+for (const resolver of ['203.119.238.240', '203.119.206.8', '203.119.204.80', '203.119.206.9', '203.119.238.194', '203.107.1.65:80']) {
+  for (const host of ['app.bilibili.com', 'api.bilibili.com', 'grpc.biliapi.net', 'dataflow.biliapi.com', 'i1.hdslb.com', 'upos-sz-static.bilivideo.com', 'upos-sz-staticcos.bilivideo.com']) {
+    assert(biliDnsPattern.test(`http://${resolver}/191607/resolve?host=${host}&query=4,6`));
+    assert(biliDnsPattern.test(`http://${resolver}/191607/resolve?query=4,6&host=${host}`));
+  }
+}
+for (const url of [
+  'http://203.119.206.9/191607/resolve?host=example.com&query=4,6',
+  'http://203.119.206.9/191607/resolve?host=app.bilibili.com.example.com',
+  'http://203.119.206.9/191607/resolve?host=notbilibili.com',
+  'http://203.119.206.9/191607/resolve.extra?host=app.bilibili.com',
+  'http://203.119.206.9/191608/resolve?host=app.bilibili.com',
+  'http://203.119.206.9/191607/resolve?other=host=app.bilibili.com',
+  'http://203.119.206.9/item/detail?host=app.bilibili.com',
+  'http://example.com/191607/resolve?host=app.bilibili.com'
+]) assert(!biliDnsPattern.test(url), url);
+assert.match(bili, /^DOMAIN,httpdns\.bilivideo\.com,REJECT$/m);
 const rule = bili.split('\n').find(l => l.startsWith('开屏素材失效 ='));
 const pattern = compile(rule.split('pattern=')[1].split(', script-path=')[0]);
 function rewrite(url, body, withResponse = true) {

@@ -104,6 +104,20 @@
 
 `test_startup_ads.cjs` 覆盖两条真实漏放 URL、既有三类素材匹配、完整请求响应、日志隐私及普通媒体不匹配；共享脚本的微信、闲鱼模式继续做回归检查。此修改解决已发现的素材拦截路径缺口，全屏展示及微信跳转是否消失仍需手机复测。回滚只恢复 `654ddcf` 的 B 站模块与共享响应脚本。
 
+### HTTPDNS 与裸 IP 解密绕过（2026-10-17，版本 20261017.6）
+
+用户重新下载 App 后出现京东及首次看到的娇韵诗全屏广告。`.5` 已在手机运行；通过 2.4 的 HTTP 代理按域名访问广告素材，三条地址及 16 次并发 Range 请求均返回 404、零字节。用户在手机 Chrome 打开同一娇韵诗视频也未看到视频，得到文本下载。上述结果验证了域名入口的拦截。
+
+进一步用同一代理、同一视频 URL、同一 TLS SNI，仅把 CONNECT 目标固定为日志中的 CDN IPv4 `112.86.135.139`，实际收到 HTTP 200、554082 字节；与已核对的娇韵诗 MP4 完全相同。此连接按 IP 走 `FINAL,DIRECT`，未解密。真实 App 日志 14:20:22.781 的 TCP stream 198 同样先按 `123.234.3.169:443` 直连，再识别 `app.bilibili.com`，此后维持连接约三分钟，未进入 MITM。与之相比，同段其他连接能正常进入 H2 解密。这确认存在域名入口之外的解密缺口；本次受控 CONNECT 下载不是用户屏幕展示的直接抓包。
+
+实机还持续放行 B 站 `nghttp2/1.58.90` 向多个阿里地址发出的 `/191607/resolve?host=...&query=4,6` 请求。重放其中一个素材域名查询，HTTP 200 返回真实 IPv4 地址；IPv6 结果为空。另测两个 CDN IPv6 地址经手机均为 `No route to host`，不能将当前事件归为已确认的 IPv6 下载。公网解析器在其他出口可获得 CDN 的 AAAA 记录，不代表手机本次实际使用它们。
+
+对照 [哔哩万象的开屏处理](https://github.com/Biliverse/ADBlock/blob/main/src/process/Response.mjs)、[Maasea 的开屏处理](https://github.com/Maasea/sgmodule/blob/master/Script/Bilibili/bilibili.helper.v2.js) 与 app2smile、blackmatrix7，现有开屏响应字段覆盖不缺这几者的主要清理项。另有 [B 站 HTTPDNS 的公开请求记录](https://github.com/SagerNet/sing-box/issues/1787)，其账户路径与本机一致。本次改在真实 IP 的获取入口补缺，避免继续重做已失败的清空列表方案。
+
+`.6` 增加 `httpdns.bilivideo.com` 拒绝，以及一个原生 AND 规则：联合匹配 `nghttp2*` 客户端、IPv4 HTTPDNS 的 `/191607/resolve` 路径、`host` 查询参数中的 B 站域名族。解析服务地址可变化，规则不封整个共享 IP；其他账户路径、其他域名查询和普通业务路径不匹配。保留现有脚本版本和所有动态、评论处理。该语法沿用已在闲鱼手机日志验证工作的 `URL-REGEX` 与 `USER-AGENT` 组合，不使用旧带引号的素材路由规则。
+
+本地检查覆盖五个实机解析地址、旧服务地址、查询参数顺序及旁路场景；从最新日志提取的 42 条 B 站 HTTPDNS 请求均匹配，其他域名查询不匹配。`test_startup_ads.cjs`、`test_module_repairs.cjs` 与 `git diff --check` 通过。发布后需用户沿原入口更新模块，再验证 HTTPDNS 的 REJECT、开屏及正常浏览；这次改动不能替代该验收。回滚仅恢复 `a4f1fcb` 的 `modules/Bilibili.sgmodule`。
+
 ## 闲鱼启动广告与共用传输层（2026-10-17，闲鱼 20261017.2 待用户实测）
 
 ### 12:53 复测：域名拦截已执行，冷启动仍有不同广告

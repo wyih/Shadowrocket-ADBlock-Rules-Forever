@@ -21,7 +21,7 @@
 
 ## 更新哔哩哔哩与闲鱼，另装一份传输兼容模块
 
-- **哔哩哔哩**：更新现有模块至 `20261017.5`。手机日志确认两条广告目录图片仍以 `FINAL,DIRECT` 放行，原三条素材路由规则改为请求脚本直接返回 HTTP 404 空正文；只匹配广告图片目录和带开屏标记的视频路径，普通封面、头像和视频保留。命中日志为 `Bilibili asset: version=20261017.5 returning-empty-response`，实际全屏效果待复测。用户已多次清缓存仍见同一张广告并跳转微信，不再以清缓存作为解决办法。保留 `.4` 动态过滤和 `.3` 开屏响应处理。
+- **哔哩哔哩**：沿原地址更新现有模块至 `20261017.6`。本版补拦实机放行的 `/191607/resolve` HTTPDNS，联合匹配 B 站客户端、账户路径和所查询的 B 站域名，促使其回退到系统解析。已复现同一娇韵诗视频按域名建连返回 404、按 CDN IPv4 建连却能完整下载；真实日志也有 `app.bilibili.com` 裸 IP 连接后补识别域名而未进入解密。保留 `.5` 素材请求拦截、`.4` 动态过滤和 `.3` 开屏响应处理，素材命中日志仍为 `.5`。本版手机开屏与正常浏览待复测；不再以清缓存作为解决办法。
 - **闲鱼**：沿用[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)，更新至 `20261017.2`。`.1` 的两个域名拦截已在手机生效，但冷启动仍出现不同广告。新日志还有 7 条闲鱼 AMDC 调度请求放行，以及未解密的 `rhdc-acs.m.taobao.com` 连接；本版按闲鱼应用标识与调度路径拦截前者，并把现有三条开屏规则及解密范围扩至该备用网关。保留 17 条 jq、原本地响应及 `.1` 的域名拦截。手机冷启动与正常浏览效果待用户复测。不要同时启用两份闲鱼模块。
 - **共用传输层**：另外导入并启用[去广告传输兼容](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule)。只需一份，可供现有各 App 模块共用。它设置 `block-quic = all`，阻止 UDP/443 绕过 HTTPS 改写；不修改 DNS、证书或其他 UDP 端口。
 
