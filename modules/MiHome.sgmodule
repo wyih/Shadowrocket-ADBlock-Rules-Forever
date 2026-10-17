@@ -1,0 +1,15 @@
+#!url=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/MiHome.sgmodule
+#!name=米家去广告
+#!desc=移除米家开屏广告、设备页顶部广告和我的页面轮播广告。
+#!author=wyih[https://github.com/wyih], luoxx[https://github.com/luoxmc/loon]
+#!homepage=https://github.com/wyih/Shadowrocket-ADBlock-Rules-Forever
+#!category=去广告
+#!date=2026-10-17
+#!version=20261017.1
+
+[Body Rewrite]
+http-response-jq ^https:\/\/home\.mi\.com\/cgi-op\/api\/v1\/(?:recommendation\/(?:openingBanner|carousel\/banners|model\/banner)|resource\/realtime\/openingBanner)\/?(?:\?|$) 'if type != "object" then . elif (.data | type) != "object" then . elif (.data.list | type) == "array" then .data.list = [] else . end'
+http-response-jq ^https:\/\/home\.mi\.com\/cgi-op\/api\/v1\/recommendation\/myTab\/?(?:\?|$) 'if type != "object" then . elif (.data | type) != "object" then . elif (.data.banners | type) == "array" then .data.banners = [] else . end'
+
+[MITM]
+hostname = %APPEND% home.mi.com

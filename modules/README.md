@@ -8,6 +8,7 @@
 | 去广告传输兼容（QUIC 回退） | [`AdBlock-Transport.sgmodule`](AdBlock-Transport.sgmodule) |
 | HTTPDNS 拦截器（共用解析拦截） | [`HTTPDNS.sgmodule`](HTTPDNS.sgmodule) |
 | 闲鱼修复版 | [`FleaMarket.sgmodule`](FleaMarket.sgmodule) |
+| 米家去广告 | [`MiHome.sgmodule`](MiHome.sgmodule) |
 | 哔哩哔哩修复版 | [`Bilibili.sgmodule`](Bilibili.sgmodule) |
 | 高德地图修复版 | [`Amap.sgmodule`](Amap.sgmodule) |
 | Apple 天气增强修复版 | [`AppleWeather.sgmodule`](AppleWeather.sgmodule) |
@@ -19,6 +20,14 @@
 | 自己的 DNS 模块 | [`DNS.sgmodule`](DNS.sgmodule) |
 | MITM Keep Enabled 通用参数模板 | [`MITM-Keep-Enabled.sgmodule`](MITM-Keep-Enabled.sgmodule) |
 | Script Hub Beta | 官方仓库，见下方依赖说明 |
+
+## 米家去广告
+
+导入[米家模块](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/MiHome.sgmodule)，版本 `20261017.1`。使用手机已有的 HTTPS 解密证书，模块只追加 `home.mi.com`。
+
+2026-10-17 17:28:56、17:28:57 的手机日志中，`/cgi-op/api/v1/recommendation/openingBanner` 两次完成 H2 解密后走 `FINAL,DIRECT` 并连接上游，没有广告响应处理；现有主配置的小米广告域名规则未覆盖这个业务接口。参考 [luoxx 的米家模块](https://github.com/luoxmc/loon/blob/main/surge/Plugins/MiJia.sgmoudle)，清空两个开屏接口、设备页顶部及轮播接口的 `data.list`，我的页面只清空 `data.banners`，保留其他响应字段。
+
+本地 `node tests/test_mihome.cjs` 验证五个广告接口、路径边界、空列表及其他 JSON 字段保留。手机更新后的广告展示效果待实测。回滚只需停用或删除米家模块。
 
 ## 更新哔哩哔哩与闲鱼，配套共用模块
 
