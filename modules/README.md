@@ -39,7 +39,7 @@
 
 本地已用发布包检查空令牌回退、标尺 URL 改写、可用性列表保留及天气/AQ 二进制响应写回；彩云实时、逐小时、逐日和分钟降水四类接口均返回正常数据。`node tests/test_module_repairs.cjs` 检查规则入口与现有模块兼容要求。手机和手表效果待更新后确认。回滚可恢复提交 `fd7838f` 中的 `AppleWeather.sgmodule`。
 
-Apple Watch 需安装当前生效配置所用的同一张解密证书。手机证书页显示“系统已信任”时，可能没有“安装证书”按钮；不能把首次安装路径直接用于这个界面。保持 Shadowrocket VPN 连接，在 iPhone 的 Safari 地址栏输入 `http://ce.rt`，下载当前配置的 CA；系统出现安装设备选项时选择 Apple Watch，再按 Watch App 的提示完成安装。`ce.rt` 为 Shadowrocket 内置证书下载入口，已核对本机 2.2.92 build 3445 的实现，手机及手表安装结果待用户确认。若两套配置各用一张 CA，手表也需分别安装两张。[上游证书要求](https://nsringo.github.io/guide/Weather/weather-kit)、[Shadowrocket 官方证书下载入口说明](https://t.me/s/shadowrocketnews?after=468)、[Apple 的手表证书安装说明](https://developer.apple.com/library/archive/qa/qa1948/_index.html)。
+Apple Watch 需安装当前生效配置所用的同一张解密证书；若两套配置各用一张 CA，手表也需分别安装两张。用户当前手机的证书页显示“系统已信任”，只有证书详情、删除、导出和生成新 CA，没有安装按钮，手表安装入口仍待按实际界面核实。2026-10-17 手机日志确认 Safari 访问 `http://ce.rt` 时得到 DNS 无结果并连接失败，不能将该地址作为当前手机可用的安装路径；此前本机实现检查及官方 Apple TV 教程不足以证明这个手机入口可用。[上游证书要求](https://nsringo.github.io/guide/Weather/weather-kit)、[Apple 的手表证书安装说明](https://developer.apple.com/library/archive/qa/qa1948/_index.html)。
 
 ## 2026-10-15 转换兼容修复
 
