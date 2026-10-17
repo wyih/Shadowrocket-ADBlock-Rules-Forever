@@ -42,6 +42,15 @@ for (const module of ['Bilibili', 'AppleWeather', 'NeteaseCloudMusic']) {
     assert.match(line, /engine=webview/);
   }
 }
+// The calculated AQ scale must have its numeric version removed before Apple's lookup.
+const weather = read('modules/AppleWeather.sgmodule');
+const scaleRule = weather.split('\n').find(line => line.startsWith('天气空气质量标尺请求 ='));
+assert.match(scaleRule, /type=http-request/);
+assert.match(scaleRule, /\/v3\.3\.2\/request\.bundle\.js/);
+const scalePattern = new RegExp(scaleRule.match(/pattern=\(\?i\)(.*?), script-path=/)[1], 'i');
+assert(scalePattern.test('https://weatherkit.apple.com/api/v1/airQualityScale/zh-Hans-US/EU.EAQI.2414'));
+assert(!scalePattern.test('https://weatherkit.apple.com/api/v2/weather/zh-Hans-CN/0/0'));
+assert.doesNotMatch(weather, /\/v3\.1\.0\//);
 const bili = read('modules/Bilibili.sgmodule');
 // Reject the observed ad endpoint before TLS; do not block shared playback/image hosts.
 const biliDomainRejects = bili.split('\n').filter(line => /^DOMAIN(?:-SUFFIX)?,.*?,REJECT$/.test(line));

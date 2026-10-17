@@ -33,6 +33,14 @@
 
 评论与动态检查：`node tests/test_bilibili_comments.cjs` 下载原作者固定版本的请求和响应包，验证评论的两种处理路径，以及动态商品卡、商品链接、多层转发、压缩响应、正常内容和未知字段保留。也可把两个包的本地路径依次作为参数传入，避免重复下载。兼容层地址更新为 `v=20261017.4`；动态过滤命中输出 `Bilibili dynamic: version=20261017.4 removed-commerce=1`。开屏和资源脚本继续使用 `.3`。更新模块即可刷新，无须另装脚本；动态效果待用户实机复测。回滚本次动态处理可恢复提交 `871036b` 的模块和 protobuf 兼容脚本。
 
+## Apple 天气
+
+`AppleWeather.sgmodule` 版本 `20261017.1` 固定使用 iRingo WeatherKit `v3.3.2` 的请求与响应脚本，保留 WebView 引擎及原有参数。新版修复彩云令牌留空时的默认值回退，并补齐空气质量标尺请求处理，将旧的 `EU.EAQI.2414` 等地址转换为 Apple 使用的无版本标识。处理范围保持为空气质量、当前天气、每日预报、每小时预报和未来一小时降水，其余数据保持原样。
+
+本地已用发布包检查空令牌回退、标尺 URL 改写、可用性列表保留及天气/AQ 二进制响应写回；彩云实时、逐小时、逐日和分钟降水四类接口均返回正常数据。`node tests/test_module_repairs.cjs` 检查规则入口与现有模块兼容要求。手机和手表效果待更新后确认。回滚可恢复提交 `fd7838f` 中的 `AppleWeather.sgmodule`。
+
+Apple Watch 需安装当前生效配置所用的同一张解密证书：在 iPhone 的 Shadowrocket 中进入该配置的“HTTPS 解密 → 证书 → 安装证书”，用 Safari 打开安装页，系统选择安装设备时选 Apple Watch，再按 Watch App 的提示完成安装。若两套配置各用一张 CA，手表也需分别安装两张。[上游说明](https://nsringo.github.io/guide/Weather/weather-kit)、[上游已确认的手表安装路径](https://github.com/orgs/NSRingo/discussions/6)。
+
 ## 2026-10-15 转换兼容修复
 
 上述六个修复版保留原作者署名与现有规则，只修复本次调试发现的问题。它们的 `#!url` 更新头指向本仓库的 raw URL，正常更新会拉取本仓库版本。下载地址为 `https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/<文件名>`。
