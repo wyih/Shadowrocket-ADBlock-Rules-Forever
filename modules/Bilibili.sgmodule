@@ -63,7 +63,7 @@ http-response-jq (?i)^https:\/\/app\.bilibili\.com\/x\/v2\/account\/myinfo\? '.d
 
 开屏资源拦截 = type=http-request, pattern=(?i)^https:\/\/(?:api\.bilibili\.com\/x\/mengqi\/v1\/resource|app\.bilibili\.com\/x\/resource\/peak\/download)(?:\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261017.3, engine=webview, timeout=5, argument=bili-resource
 
-开屏素材失效 = type=http-response, pattern=(?i)^https:\/\/app\.bilibili\.com\/x\/v2\/splash\/(?:list|show|event\/list2|brand\/(?:list|config))(?:\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/bilibili-splash-response.js?v=20261018.2, requires-body=true, engine=webview, max-size=-1, timeout=5
+开屏素材失效 = type=http-response, pattern=(?i)^https:\/\/app\.bilibili\.com\/x\/v2\/splash\/(?:list|show|event\/list2|brand\/(?:list|config))(?:\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/01180f5/scripts/bilibili-splash-response.js?v=20261018.2, requires-body=true, engine=webview, max-size=-1, timeout=5
 
 {{{sponsorBlock}}}空降助手 = type=http-request, pattern=(?i)^https:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.community\.service\.dm\.v1\.DM\/DmSegMobile$, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/bilibili-protobuf-compat.js?v=20261017.4, requires-body=true, engine=webview, max-size=-1, binary-body-mode=true, timeout=15, argument=logLevel={{{logLevel}}}&_biliPhase=request
 
