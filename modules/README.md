@@ -32,7 +32,7 @@
 ## 更新哔哩哔哩与闲鱼，配套共用模块
 
 - **共用拦截**：沿[原 HTTPDNS 订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/HTTPDNS.sgmodule)更新至 `20261018.2`，显示名称恢复“HTTPDNS拦截器”，规则恢复为合并前 `83e5a8c` 的版本。重新启用原“广告平台拦截器”和“可莉广告过滤器”，恢复原有 Map Local 处理。本模块继续置顶，保留解析拦截、闲鱼 AMDC 规则及两个阿里 HTTPS 解析 IP。
-- **哔哩哔哩**：更新至 `20261018.3`。开屏 JSON 响应改用默认 JSCore，避开大正文进入 WebView 的序列化和跨进程传递；沿用固定版本 `20261018.2` 的过滤代码。共用模块回退后，手机仍有五次开屏回调被内存压力取消，约 2.4 MB 的真实响应也已在手机代理复现中断。本次针对这条处理路径，手机更新后的交付与广告展示仍需实测。
+- **哔哩哔哩**：更新至 `20261018.3`。开屏 JSON 响应改用默认 JSCore，避开大正文进入 WebView 的序列化和跨进程传递；沿用固定版本 `20261018.2` 的过滤代码。共用模块回退后，手机仍有五次开屏回调被内存压力取消，约 2.4 MB 的真实响应也已在手机代理复现中断。10 月 18 日 09:44 同参数实测已收到 220 字节的干净 JSON，五类广告列表为空，本次未触发内存回收；09:37 原生 App 启动仍曾触发一次全连接回收，实际开屏展示继续核对。
 - **闲鱼**：先启用上述共用拦截器 `20261018.2`，再沿[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)更新至 `20261017.3`。已在手机验证的 AMDC 原生拒绝规则原样迁入共用模块，闲鱼模块移除重复条目，保留两个广告域名拦截、17 条 jq、10 条请求脚本及备用网关解密。不要同时启用两份闲鱼模块。
 - **共用传输层**：另外导入并启用[去广告传输兼容](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule)。只需一份，可供现有各 App 模块共用。它设置 `block-quic = all`，阻止 UDP/443 绕过 HTTPS 改写；不修改 DNS、证书或其他 UDP 端口。
 
@@ -108,15 +108,17 @@ https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailsc
 
 后续修改以本文件为基线，改动后复测上述保存与更新流程。保留作者署名，并同步记录依赖版本和验证结果。
 
-### 保留 HTTP/2 的候选修复
+### 保留 HTTP/2 的修复
 
 [`experimental/RedNote-H2.sgmodule`](experimental/RedNote-H2.sgmodule) 保留 `h2 = true`，将静态水印素材从 `[Map Local]` 改为一个精确匹配的请求脚本。[`scripts/rednote-watermark-response.js`](../scripts/rednote-watermark-response.js) 通过 `engine=webview` 返回 PNG 的 Base64 字符串，并设置响应的 `body-base64 = true`，让 Shadowrocket 解码为二进制响应。它内嵌同一张已验证的 PNG，无需请求其他图片服务器。
 
 同 build 3445 的本机引擎静态核对显示：WebView 响应桥的 `setWebResponse:` 识别 `body-base64`；脚本提前响应的 `earlyResponseForRequest:scriptResult:` 复制 `bodyData`；HTTP/2 的脚本回调调用 `sendResponseToClient:`，发送图片 DATA 帧。它绕开了出错的 Map Local 状态码响应路径。
 
-这是待手机验证的候选版本。脚本地址指向本仓库，发布脚本后才能从手机加载。手机测试时用候选模块替换原 RedNote 模块，复测清缓存后的静态图和实况图保存，以及模块更新、配置更新和 VPN 重连，并确认日志实际协商为 H2。正式版本仍是上面已经验证通过的 HTTP/1.1 模块。
+2026-10-12 00:49 用户确认此 H2 版本的静态图与实况保存均可去水印，00:46 日志确认静态素材请求协商为 H2。手机目前使用此版本；保留原路径和名称，避免重复安装。静态图片素材的 WebView 请求脚本与评论实况的默认 JSCore 响应脚本各自处理不同请求。
 
-本地检查：`node tests/test_rednote_watermark.cjs`。检查覆盖响应正文与 PNG 一致、Base64 响应标记、仅匹配水印素材地址以及模块使用 H2 和 WebView。该检查不替代手机的 H2 保存验证。
+2026-10-18 09:36 评论实况样本中，脚本成功匹配缓存，App 保存时实际请求了替换后的 URL；该 URL 也在保存前被请求过。直接下载的视频文件自身含有水印，不能将脚本的“匹配到无水印链接”日志作为画面无水印的验证。本次尚未取得该评论的完整候选流列表，未改变已正常的静态图规则或实况选流逻辑。
+
+本地检查：`node tests/test_rednote_watermark.cjs`。检查覆盖响应正文与 PNG 一致、Base64 响应标记、仅匹配水印素材地址以及模块使用 H2 和 WebView。
 
 ## MITM Keep Enabled
 

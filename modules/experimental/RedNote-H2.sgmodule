@@ -1,5 +1,5 @@
 #!name=小红书去广告（RedNote H2 测试）
-#!desc=保留HTTP/2，通过WebView请求脚本返回内嵌PNG，绕过静态水印的Map Local空响应；待手机验证。
+#!desc=保留HTTP/2，通过WebView请求脚本返回内嵌PNG，绕过静态水印的Map Local空响应；静态图与实况保存已实测。
 #!author=RuCu6[https://github.com/RuCu6], fmz200[https://github.com/fmz200]
 #!icon=https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/RedPaper.png
 #!openUrl=https://apps.apple.com/app/id741292507
