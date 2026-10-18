@@ -118,7 +118,9 @@ https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailsc
 
 2026-10-18 09:36 评论实况样本中，脚本成功匹配缓存，App 保存时实际请求了替换后的 URL；该 URL 也在保存前被请求过。直接下载的视频文件自身含有水印，不能将脚本的“匹配到无水印链接”日志作为画面无水印的验证。本次尚未取得该评论的完整候选流列表，未改变已正常的静态图规则或实况选流逻辑。
 
-本地检查：`node tests/test_rednote_watermark.cjs`。检查覆盖响应正文与 PNG 一致、Base64 响应标记、仅匹配水印素材地址以及模块使用 H2 和 WebView。
+H2 模块 `20261018.1` 为候选链接记录版：仅将评论规则接入 [`rednote-comment-diagnostics.js`](../scripts/rednote-comment-diagnostics.js)，加载并缓存同一固定版本的 fmz200 脚本，在读取 `picture.video_info` 时记录视频 ID、字段名、各编码流及原始媒体相关字段。记录留在手机日志中，不发送给分析服务；不记录评论正文、用户对象或请求头。原脚本的缓存、选流和下载地址替换保持原样，脚本规则数量仍为 13。这是用于查清水印来源的诊断更新，尚未改变选流策略；手机更新后需重新进入对应评论并保存一次，已有缓存不会补出候选链接。
+
+本地检查：`node tests/test_rednote_watermark.cjs` 与 `node tests/test_rednote_comments.cjs [固定上游脚本本地路径]`。前者检查 PNG、Base64、URL 匹配及 H2/WebView；后者与实际固定上游逐项对比评论响应、缓存和下载替换结果，验证主评论、子评论的两种编码候选均被记录，静态图行为不变，缓存命中不重复下载脚本。回退诊断版可恢复提交 `1fb1140` 的 H2 模块。
 
 ## MITM Keep Enabled
 

@@ -1,12 +1,13 @@
 #!name=小红书去广告（RedNote H2 测试）
-#!desc=保留HTTP/2，通过WebView请求脚本返回内嵌PNG，绕过静态水印的Map Local空响应；静态图与实况保存已实测。
+#!desc=保留HTTP/2与已验证的静态图处理；记录评论实况的候选视频链接，用于核对带水印的视频来源。
 #!author=RuCu6[https://github.com/RuCu6], fmz200[https://github.com/fmz200]
 #!icon=https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/RedPaper.png
 #!openUrl=https://apps.apple.com/app/id741292507
 #!category=去广告
 #!loon_version=3.5.1(998)
 #!homepage=https://hub.kelee.one
-#!date=2026-10-12
+#!date=2026-10-18
+#!version=20261018.1
 
 [Rule]
 AND,((PROTOCOL,QUIC),(DOMAIN-SUFFIX,xiaohongshu.com)),REJECT
@@ -45,7 +46,7 @@ http-response-jq (?i)^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/v4\/search\/t
 
 移除详情页感兴趣的人 = type=http-response, pattern=(?i)^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/v5\/recommend\/user\/follow_recommend\?, script-path=https://kelee.one/Resource/JavaScript/RedPaper/RedPaper_remove_ads.js, requires-body=true
 
-移除评论区实况照片水印 = type=http-response, pattern=(?i)^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/(?:v1\/interaction\/comment\/video\/download|v5\/note\/comment\/list|v3\/note\/comment\/sub_comments), script-path=https://raw.githubusercontent.com/fmz200/wool_scripts/5d5f63fcf98bc69d5f8f1b1bae6f86a01ee4bb97/Scripts/xiaohongshu/xiaohongshu.js, requires-body=true
+移除评论区实况照片水印 = type=http-response, pattern=(?i)^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/(?:v1\/interaction\/comment\/video\/download|v5\/note\/comment\/list|v3\/note\/comment\/sub_comments), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/rednote-comment-diagnostics.js?v=20261018.1, requires-body=true
 
 移除图片和视频水印 = type=http-response, pattern=(?i)^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/(?:v2\/note\/feed|v3\/note\/videofeed), script-path=https://kelee.one/Resource/JavaScript/RedPaper/RedPaper_remove_ads.js, requires-body=true
 
