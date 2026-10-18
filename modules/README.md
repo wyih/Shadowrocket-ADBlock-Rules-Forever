@@ -32,7 +32,7 @@
 ## 更新哔哩哔哩与闲鱼，配套共用模块
 
 - **共用拦截**：沿[原 HTTPDNS 订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/HTTPDNS.sgmodule)更新至 `20261018.2`，显示名称恢复“HTTPDNS拦截器”，规则恢复为合并前 `83e5a8c` 的版本。重新启用原“广告平台拦截器”和“可莉广告过滤器”，恢复原有 Map Local 处理。本模块继续置顶，保留解析拦截、闲鱼 AMDC 规则及两个阿里 HTTPS 解析 IP。
-- **哔哩哔哩**：保持 `20261018.2` 回退验证版。2.4 手机 08:24 日志已确认该版执行，用户仍报告开屏广告；本次只回退共用模块，核对通用规则合并的影响。
+- **哔哩哔哩**：更新至 `20261018.3`。开屏 JSON 响应改用默认 JSCore，避开大正文进入 WebView 的序列化和跨进程传递；沿用固定版本 `20261018.2` 的过滤代码。共用模块回退后，手机仍有五次开屏回调被内存压力取消，约 2.4 MB 的真实响应也已在手机代理复现中断。本次针对这条处理路径，手机更新后的交付与广告展示仍需实测。
 - **闲鱼**：先启用上述共用拦截器 `20261018.2`，再沿[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)更新至 `20261017.3`。已在手机验证的 AMDC 原生拒绝规则原样迁入共用模块，闲鱼模块移除重复条目，保留两个广告域名拦截、17 条 jq、10 条请求脚本及备用网关解密。不要同时启用两份闲鱼模块。
 - **共用传输层**：另外导入并启用[去广告传输兼容](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule)。只需一份，可供现有各 App 模块共用。它设置 `block-quic = all`，阻止 UDP/443 绕过 HTTPS 改写；不修改 DNS、证书或其他 UDP 端口。
 
@@ -153,7 +153,7 @@ ca-p12 = {{{证书内容}}}
 
 [`HTTPDNS.sgmodule`](HTTPDNS.sgmodule) `20261018.2` 恢复合并前 `83e5a8c` 的全部规则，仅日期和版本标记更新。撤下合并增加的 86 条广告请求脚本（其中 84 条来自 Map Local）、广告平台规则、两条正文改写及追加解密主机；保留原 13 条 HTTPDNS 请求脚本。共享响应脚本保持兼容旧订阅，其他 App 模块不变。
 
-更新现有“通用广告拦截器”后，名称恢复为“HTTPDNS拦截器”。保持置顶，重新启用原“广告平台拦截器”和“可莉广告过滤器”，使用其中原有的 Map Local。原始入口分别为 [BlockAdvertisers.lpx](https://kelee.one/Tool/Loon/Lpx/BlockAdvertisers.lpx) 和 [Remove_ads_by_keli.lpx](https://kelee.one/Tool/Loon/Lpx/Remove_ads_by_keli.lpx)。B 站保持 `20261018.2`，其余模块和顺序保持现状，以便比较共用模块回退前后的表现。
+更新现有“通用广告拦截器”后，名称恢复为“HTTPDNS拦截器”。保持置顶，重新启用原“广告平台拦截器”和“可莉广告过滤器”，使用其中原有的 Map Local。原始入口分别为 [BlockAdvertisers.lpx](https://kelee.one/Tool/Loon/Lpx/BlockAdvertisers.lpx) 和 [Remove_ads_by_keli.lpx](https://kelee.one/Tool/Loon/Lpx/Remove_ads_by_keli.lpx)。B 站另按上方 `20261018.3` 更新开屏 JSON 引擎，其余模块和顺序保持现状。
 
 2.4 手机 08:24–08:25 日志确认 B 站 `.2` 已执行并清空开屏列表，本窗口没有内存 critical 或开屏脚本取消。新增的 86 条广告脚本未匹配日志中已解密请求；用户仍报告开屏广告，因此本次回退用于检验通用模块合并的影响。合并历史及核查结果见 [兼容性记录](compatibility-audit.md)。需要恢复合并版时，可取 `15a2fd7` 的 `modules/HTTPDNS.sgmodule`。
 

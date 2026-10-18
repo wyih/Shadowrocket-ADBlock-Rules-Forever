@@ -39,6 +39,7 @@ assert.deepEqual(rewrite(undefined), {});
 for (const module of ['Bilibili', 'AppleWeather', 'NeteaseCloudMusic']) {
   const text = read(`modules/${module}.sgmodule`);
   for (const line of text.split('\n').filter(l => l.includes('script-path='))) {
+    if (module === 'Bilibili' && line.startsWith('开屏素材失效 =')) continue;
     assert.match(line, /engine=webview/);
   }
 }
@@ -92,6 +93,7 @@ const splashRule = bili.split('\n').find(l => l.startsWith('开屏素材失效 =
 assert.match(splashRule, /type=http-response/);
 assert.match(splashRule, /requires-body=true/);
 assert.match(splashRule, /bilibili-splash-response\.js\?v=20261018\.2,/);
+assert.doesNotMatch(splashRule, /engine=webview/);
 assert(!bili.split('\n').some(l => l.includes('splash') && (l.includes('data-type=') || l.includes('type=http-request'))));
 const compatScript = read('scripts/bilibili-protobuf-compat.js');
 function runCompat(argument, cache = new Map(), status = 200) {
