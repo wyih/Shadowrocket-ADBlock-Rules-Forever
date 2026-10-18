@@ -107,7 +107,6 @@ for (const line of moduleText.split('\n').filter(line => /^IP-CIDR6?,/.test(line
 assert.match(moduleText, /^#!author=wyih$/m);
 assert.match(moduleText, /^#!url=https:\/\/raw\.githubusercontent\.com\/wyih\//m);
 assert.doesNotMatch(moduleText, /^(?:URL-REGEX,|.*USER-AGENT,")/m);
-assert.doesNotMatch(moduleText, /^\[General\]|^(?:enable|h2|ca-p12|ca-passphrase)\s*=/m);
-assert.match(moduleText, /^hostname = %APPEND% /m);
+assert.doesNotMatch(moduleText, /^\[(?:General|MITM)\]|^(?:enable|h2|ca-p12|ca-passphrase)\s*=/m);
 assert.doesNotMatch(read('modules/Bilibili.sgmodule'), /^.*191607.*$/m);
 console.log(`HTTPDNS checks passed (${rules.length} interfaces, IPv4/IPv6, Dida exceptions, normal traffic).`);

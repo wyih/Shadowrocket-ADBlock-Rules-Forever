@@ -1,19 +1,14 @@
 #!url=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/HTTPDNS.sgmodule
-#!name=通用广告拦截器
-#!desc=合并 HTTPDNS 拦截、广告平台拦截器及可莉广告过滤器。保留嘀嗒和短信验证例外；各 App 专用模块继续启用。本模块置顶，更新后停用原广告平台拦截器和可莉广告过滤器。
+#!name=HTTPDNS拦截器
+#!desc=拦截 App 自带的 HTTPDNS 解析，供各去广告模块共用。保留嘀嗒出行例外；解析接口使用请求脚本返回空 404，使支持回退的客户端改用系统 DNS。
 #!author=wyih
 #!homepage=https://github.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tree/tailscale/modules
 #!category=去广告, 依赖
 #!date=2026-10-18
-#!version=20261018.1
+#!version=20261018.2
 
-# HTTPDNS baseline: 可莉、VirgilClyne; advertising rules: 可莉 (2026-10-02 user-installed versions).
-# Sources and migration notes: modules/README.md. Keep this subscription URL for updates.
-
+# Based on the user's Kelee/VirgilClyne module; upstream references are in modules/README.md.
 [Rule]
-
-# HTTPDNS — preserve allow rules before broader rejections.
-
 DOMAIN-KEYWORD,httpdns,REJECT
 DOMAIN-KEYWORD,httpsdns,REJECT
 USER-AGENT,httpdns*,REJECT
@@ -22,6 +17,7 @@ USER-AGENT,Httpdns*,REJECT
 USER-AGENT,Httpsdns*,REJECT
 AND,((URL-REGEX,^http:\/\/119\.29\.29\.90\/d\?),(USER-AGENT,%E5%98%80%E5%97%92%E5%87%BA%E8%A1%8C*)),DIRECT
 AND,((URL-REGEX,^http:\/\/119\.28\.28\.90\/d\?),(USER-AGENT,%E5%98%80%E5%97%92%E5%87%BA%E8%A1%8C*)),DIRECT
+# Preserve the on-device verified FleaMarket AMDC rejection in this shared layer.
 AND,((URL-REGEX,^http:\/\/(?:amdc\.m\.taobao\.com|(?:[0-9]+\.){3}[0-9]+)(?::80)?\/amdc\/mobileDispatch(?:\?|$)),(USER-AGENT,%E9%97%B2%E9%B1%BC*)),REJECT
 DOMAIN,yyapp-httpdns.gslb.yy.com,REJECT
 DOMAIN,union-httpdns.gslb.yy.com,REJECT
@@ -82,6 +78,7 @@ DOMAIN,httpdns.alicdn.com,REJECT
 DOMAIN,httpdns-api.aliyuncs.com,REJECT
 DOMAIN,httpdns-sc.aliyuncs.com,REJECT
 IP-CIDR,203.107.1.0/24,REJECT,no-resolve
+# Verified Ali HTTPDNS IP certificates; block HTTPS resolution before SNI or URL parsing.
 IP-CIDR,203.119.238.194/32,REJECT,no-resolve
 IP-CIDR,203.119.238.240/32,REJECT,no-resolve
 DOMAIN,amdc.alipay.com,REJECT
@@ -102,6 +99,8 @@ DOMAIN,doh.ptqy.gitv.tv,REJECT
 DOMAIN,httpdns.baidu.com,REJECT
 DOMAIN,httpsdns.baidu.com,REJECT
 DOMAIN,httpdns.bcelive.com,REJECT
+
+# Additional dedicated HTTPDNS services from VirgilClyne/GetSomeFries b4aa767.
 IP-CIDR,180.76.76.112/32,REJECT,no-resolve
 IP-CIDR,180.76.76.200/32,REJECT,no-resolve
 IP-CIDR,180.76.76.220/32,REJECT,no-resolve
@@ -143,367 +142,7 @@ DOMAIN,dns.weibo.cn,REJECT
 DOMAIN,doh.iqiyi.com,REJECT
 DOMAIN,amdc-sibling.alipay.com.cn,REJECT
 
-# 广告平台拦截器 — preserve allow rules before broader rejections.
-
-DOMAIN-KEYWORD,adstrategy,REJECT
-AND,((DOMAIN-KEYWORD,tnc),(OR,((DOMAIN-SUFFIX,capcutapi.com),(DOMAIN-SUFFIX,zijieapi.com),(DOMAIN-SUFFIX,isnssdk.com),(DOMAIN-SUFFIX,toutiaoapi.com),(DOMAIN-SUFFIX,bytedance.com),(DOMAIN-SUFFIX,snssdk.com),(DOMAIN-SUFFIX,sgsnssdk.com)))),DIRECT
-AND,((DOMAIN-KEYWORD,-ad-),(DOMAIN-SUFFIX,byteimg.com)),REJECT
-AND,((DOMAIN-KEYWORD,ads),(DOMAIN-KEYWORD,-normal.zijieapi.com)),REJECT
-DOMAIN,lf-ad-ies.bytecdn.cn,REJECT
-DOMAIN,dig.bdurl.net,REJECT
-DOMAIN,extlog.snssdk.com,REJECT
-DOMAIN,mcs.snssdk.com,REJECT
-DOMAIN-SUFFIX,bds.snssdk.com,REJECT
-DOMAIN-SUFFIX,byteadverts.com,REJECT
-DOMAIN-SUFFIX,ctobsnssdk.com,REJECT
-DOMAIN-SUFFIX,pangle.io,REJECT
-DOMAIN-KEYWORD,pangolin,REJECT
-DOMAIN-KEYWORD,pglstatp,REJECT
-DOMAIN-KEYWORD,panplayable-toutiao,REJECT
-DOMAIN-KEYWORD,-ad-sign.byteimg.com,REJECT
-DOMAIN-KEYWORD,-ad.byteoversea.com,REJECT
-DOMAIN-KEYWORD,asiad.byteactivity,REJECT
-DOMAIN-KEYWORD,iflyad.bj.openstorage.cn,REJECT
-DOMAIN-KEYWORD,bjimp.voiceads.cn,REJECT
-DOMAIN-SUFFIX,1rtb.net,REJECT
-DOMAIN-SUFFIX,1rtb.com,REJECT
-DOMAIN-SUFFIX,yfanads.com,REJECT
-DOMAIN-SUFFIX,halomobi.com,REJECT
-DOMAIN-SUFFIX,hubcloud.com.cn,REJECT
-DOMAIN-SUFFIX,inmobi.cn,REJECT
-DOMAIN-SUFFIX,uyunad.com,REJECT
-DOMAIN-SUFFIX,puata.info,REJECT
-DOMAIN,gdfp.gifshow.com,REJECT
-DOMAIN,open.e.kuaishou.com,REJECT
-DOMAIN,open.e.kuaishou.cn,REJECT
-DOMAIN,adtrack.e.kuaishou.com,REJECT
-DOMAIN-SUFFIX,partner.gifshow.com,REJECT
-DOMAIN-SUFFIX,adukwai.com,REJECT
-DOMAIN-SUFFIX,adkwai.com,REJECT
-DOMAIN-SUFFIX,supersonicads.com,REJECT
-DOMAIN-SUFFIX,appsad.cn,REJECT
-DOMAIN-SUFFIX,beizi.biz,REJECT
-DOMAIN-SUFFIX,ad-scope.com.cn,REJECT
-DOMAIN-SUFFIX,adn-plus.com.cn,REJECT
-DOMAIN-SUFFIX,adhub.com.cn,REJECT
-DOMAIN-SUFFIX,adnplus.com.cn,REJECT
-DOMAIN-SUFFIX,adscope.com.cn,REJECT
-DOMAIN-SUFFIX,adscope.cn,REJECT
-DOMAIN-SUFFIX,adscope.xyz,REJECT
-DOMAIN-SUFFIX,beizi.info,REJECT
-DOMAIN-SUFFIX,beizi.online,REJECT
-DOMAIN-SUFFIX,miaozhen.com,REJECT
-DOMAIN-SUFFIX,admobile.top,REJECT
-DOMAIN-SUFFIX,tianmu.mobi,REJECT
-DOMAIN-SUFFIX,admobile.mobi,REJECT
-DOMAIN-SUFFIX,admobile.net.cn,REJECT
-DOMAIN-SUFFIX,popadshop.com,REJECT
-DOMAIN-SUFFIX,admobile.vip,REJECT
-DOMAIN-SUFFIX,yksdks.com,REJECT
-DOMAIN-SUFFIX,dutils.com,REJECT
-DOMAIN,init.sms.mob.com,DIRECT
-DOMAIN,sdkapi.sms.mob.com,DIRECT
-DOMAIN,code.sms.mob.com,DIRECT
-DOMAIN-SUFFIX,mob.com,REJECT
-DOMAIN,smartop-sdkapi.jiguang.cn,DIRECT
-DOMAIN,sdk.verification.jiguang.cn,DIRECT
-DOMAIN-SUFFIX,jiguang.cn,REJECT
-DOMAIN-SUFFIX,jpush.cn,REJECT
-DOMAIN-SUFFIX,jpush.io,REJECT
-DOMAIN,afd.baidu.com,REJECT
-DOMAIN,als.baidu.com,REJECT
-DOMAIN,bgg.baidu.com,REJECT
-DOMAIN,cpro.baidustatic.com,REJECT
-DOMAIN,feed-image.baidu.com,REJECT
-DOMAIN,click-bes.baidu.com,REJECT
-DOMAIN,eclick.baidu.com,REJECT
-DOMAIN,mobads-logs.baidu.com,REJECT
-DOMAIN,mobads-pre-config.cdn.bcebos.com,REJECT
-DOMAIN,mobads.baidu.com,REJECT
-DOMAIN,nadvideo2.baidu.com,REJECT
-DOMAIN,wn.pos.baidu.com,REJECT
-DOMAIN,miniapp-ad.cdn.bcebos.com,REJECT
-DOMAIN,hm.baidu.com,REJECT
-DOMAIN,dlswbr.baidu.com,REJECT
-DOMAIN,miao.baidu.com,REJECT
-DOMAIN-SUFFIX,union.baidu.cn,REJECT
-DOMAIN-SUFFIX,union.baidu.com,REJECT
-DOMAIN,tdid.m.qq.com,REJECT
-DOMAIN,adsmind.gdtimg.com,REJECT
-DOMAIN,adsmind.ugdtimg.com,REJECT
-DOMAIN,ads.privacy.qq.com,REJECT
-DOMAIN,huatuocode.huatuo.qq.com,REJECT
-DOMAIN,info4.video.qq.com,REJECT
-DOMAIN,info6.video.qq.com,REJECT
-DOMAIN,ios.bugly.qq.com,REJECT
-DOMAIN,pro.bugly.qq.com,REJECT
-DOMAIN,ios.video.mpush.qq.com,REJECT
-DOMAIN,otheve.beacon.qq.com,REJECT
-DOMAIN,pgdt.gtimg.cn,REJECT
-DOMAIN,pgdt.ugdtimg.com,REJECT
-DOMAIN,qzs.gdtimg.com,REJECT
-DOMAIN,qzs.qq.com,REJECT
-DOMAIN,rmonitor.qq.com,REJECT
-DOMAIN,sdkconfig.video.qq.com,REJECT
-DOMAIN,tmead.y.qq.com,REJECT
-DOMAIN,tmeadbak.y.qq.com,REJECT
-DOMAIN,tmeadcomm.y.qq.com,REJECT
-DOMAIN,tpns.qq.com,REJECT
-DOMAIN,wup.imtt.qq.com,REJECT
-DOMAIN,tpstelemetry.tencent.com,REJECT
-DOMAIN,stat.y.qq.com,REJECT
-DOMAIN,stat6.y.qq.com,REJECT
-DOMAIN,oth.str.mdt.qq.com,REJECT
-DOMAIN,h.trace.qq.com,REJECT
-DOMAIN,sdk.e.qq.com,REJECT
-DOMAIN,tangram.e.qq.com,REJECT
-DOMAIN-KEYWORD,trace.qq.com,REJECT
-DOMAIN-KEYWORD,trace.video.qq.com,REJECT
-DOMAIN-KEYWORD,ad.hunyuan.tencent.com,REJECT
-DOMAIN-SUFFIX,gdt.qq.com,REJECT
-DOMAIN-SUFFIX,l.qq.com,REJECT
-DOMAIN-SUFFIX,imtmp.net,REJECT
-DOMAIN-SUFFIX,gdtimg.com,REJECT
-DOMAIN-SUFFIX,ugdtimg.com,REJECT
-IP-CIDR,47.110.187.87/32,REJECT,no-resolve
-DOMAIN-SUFFIX,opadlink.com,REJECT
-DOMAIN-SUFFIX,staevent.work,REJECT
-DOMAIN-SUFFIX,openinstall.online,REJECT
-DOMAIN-SUFFIX,statchannel.store,REJECT
-DOMAIN-SUFFIX,oplinking.com,REJECT
-DOMAIN-SUFFIX,deepinstall.com,REJECT
-DOMAIN-SUFFIX,openinstall.com,REJECT
-DOMAIN-SUFFIX,installtongji.top,REJECT
-DOMAIN-SUFFIX,openlink.cc,REJECT
-DOMAIN-SUFFIX,opstatistics.com,REJECT
-DOMAIN-SUFFIX,installtongji.online,REJECT
-DOMAIN-SUFFIX,statschannel.xyz,REJECT
-DOMAIN-SUFFIX,staevent.xyz,REJECT
-DOMAIN-SUFFIX,opstatistics.cn,REJECT
-DOMAIN-SUFFIX,openinstall.top,REJECT
-DOMAIN-SUFFIX,openinstall.io,REJECT
-DOMAIN-SUFFIX,statsinstall.xyz,REJECT
-DOMAIN-SUFFIX,statchannel.top,REJECT
-DOMAIN-SUFFIX,getui.com,REJECT
-DOMAIN-SUFFIX,getui.net,REJECT
-DOMAIN-SUFFIX,igexin.com,REJECT
-DOMAIN-SUFFIX,umtrack.com,REJECT
-DOMAIN-SUFFIX,umeng.com,REJECT
-DOMAIN-SUFFIX,umsns.com,REJECT
-DOMAIN-SUFFIX,lydass.net,REJECT
-DOMAIN-SUFFIX,lydass.com.cn,REJECT
-DOMAIN-SUFFIX,lydaas.net,REJECT
-DOMAIN-SUFFIX,lydass.cn,REJECT
-DOMAIN-SUFFIX,lydaas.cn,REJECT
-DOMAIN-SUFFIX,lydaas.com.cn,REJECT
-DOMAIN-SUFFIX,fwosapp.com,REJECT
-DOMAIN-SUFFIX,rhinokeen.com,REJECT
-DOMAIN-SUFFIX,lydaas.com,REJECT
-DOMAIN-SUFFIX,xixikf.com,REJECT
-DOMAIN-SUFFIX,wrating.com,REJECT
-DOMAIN-SUFFIX,mobmore.com,REJECT
-DOMAIN-SUFFIX,um0.cn,REJECT
-DOMAIN-SUFFIX,umv0.com,REJECT
-DOMAIN-SUFFIX,umtrack1.com,REJECT
-DOMAIN-SUFFIX,eshiqi.com,REJECT
-DOMAIN-SUFFIX,umv5.com,REJECT
-DOMAIN-SUFFIX,dratio.com,REJECT
-DOMAIN-SUFFIX,umtrack0.com,REJECT
-DOMAIN-SUFFIX,whalecloud.com,REJECT
-DOMAIN-SUFFIX,umtrack2.com,REJECT
-DOMAIN-SUFFIX,umengcloud.com,REJECT
-DOMAIN-SUFFIX,um1.cn,REJECT
-DOMAIN-SUFFIX,adfunlink.com,REJECT
-DOMAIN-SUFFIX,ubixioe.com,REJECT
-DOMAIN,ossgw.alicdn.com,REJECT
-DOMAIN,ems.youku.com,REJECT
-DOMAIN,hudong.alicdn.com,REJECT
-DOMAIN,et.tanx.com,REJECT
-DOMAIN,df.tanx.com,REJECT
-DOMAIN,opehs.tanx.com,REJECT
-DOMAIN,beacon-api.aliyuncs.com,REJECT
-DOMAIN,adash.man.aliyuncs.com,REJECT
-DOMAIN,adashx.m.taobao.com,REJECT
-DOMAIN,applog.uc.cn,REJECT
-DOMAIN,atoken.m.taobao.com,REJECT
-AND,((DOMAIN-KEYWORD,adash),(DOMAIN-SUFFIX,ut.taobao.com)),REJECT
-DOMAIN,baichuan-sdk.alicdn.com,REJECT
-DOMAIN,acs4baichuan.m.taobao.com,REJECT
-DOMAIN,nbsdk-baichuan.alicdn.com,REJECT
-DOMAIN,api.sm.cn,REJECT
-DOMAIN,c.sm.cn,REJECT
-DOMAIN,content-understand-strategy.sm.cn,REJECT
-DOMAIN,hc-ssp.sm.cn,REJECT
-DOMAIN,sdk-log.partner.sm.cn,REJECT
-DOMAIN,partner.uc.cn,REJECT
-DOMAIN,cpc-service-square.aiclk.com,REJECT
-DOMAIN,logrcv.aiclk.com,REJECT
-DOMAIN,acjs.aliyun.com,REJECT
-DOMAIN,retcode.alicdn.com,REJECT
-DOMAIN,arms-retcode.aliyuncs.com,REJECT
-DOMAIN-SUFFIX,iytcdn.com,REJECT
-DOMAIN,huichuan.sm.cn,REJECT
-DOMAIN,huichuan-mc.sm.cn,REJECT
-DOMAIN,nex.163.com,REJECT
-DOMAIN,iad.g.163.com,REJECT
-DOMAIN,gorgon.youdao.com,REJECT
-DOMAIN-SUFFIX,ad.xiaomi.com,REJECT
-DOMAIN,al-log.d.meituan.net,REJECT
-DOMAIN,babel-statistics-android.d.meituan.net,REJECT
-DOMAIN,maplocatesdksnapshot.d.meituan.net,REJECT
-DOMAIN,metrics-picture.d.meituan.net,REJECT
-DOMAIN,route-stats.d.meituan.net,REJECT
-DOMAIN,dsp-x.jd.com,REJECT
-DOMAIN,im-x.jd.com,REJECT
-DOMAIN,xlog.jd.com,REJECT
-DOMAIN,janapi.jd.com,REJECT
-DOMAIN-SUFFIX,toponadss.com,REJECT
-DOMAIN-SUFFIX,toponad.com,REJECT
-DOMAIN-SUFFIX,motowoo.com,REJECT
-DOMAIN,guide2.bianxianmao.com,REJECT
-DOMAIN,sdk.zhangyuyidong.cn,REJECT
-DOMAIN,sdklog.zhangyuyidong.cn,REJECT
-DOMAIN-SUFFIX,adintl.cn,REJECT
-DOMAIN-SUFFIX,adtaipo.com,REJECT
-DOMAIN-SUFFIX,adx.yixin.im,REJECT
-DOMAIN-SUFFIX,kuaiyiad.com,REJECT
-DOMAIN-SUFFIX,adtianmai.com,REJECT
-DOMAIN-SUFFIX,readgps.com,REJECT
-DOMAIN-SUFFIX,fanglinad.com,REJECT
-DOMAIN-SUFFIX,17admob.com,REJECT
-DOMAIN-SUFFIX,slyxmobi.com,REJECT
-DOMAIN-SUFFIX,mobrtb.com,REJECT
-DOMAIN-SUFFIX,maplehaze.cn,REJECT
-DOMAIN-SUFFIX,lnk0.com,REJECT
-DOMAIN-SUFFIX,bridgeoos.com,REJECT
-DOMAIN-SUFFIX,anythinktech.com,REJECT
-DOMAIN-SUFFIX,birdgesdk.com,REJECT
-DOMAIN-SUFFIX,anyrtb.com,REJECT
-DOMAIN-SUFFIX,combocn.com,REJECT
-DOMAIN-SUFFIX,beanxin.com,REJECT
-DOMAIN-SUFFIX,letway.cn,REJECT
-DOMAIN-SUFFIX,newitai.com,REJECT
-DOMAIN-SUFFIX,fireluck.cn,REJECT
-DOMAIN-SUFFIX,setway.cn,REJECT
-DOMAIN-SUFFIX,artcto.com,REJECT
-DOMAIN-SUFFIX,wayio.cn,REJECT
-DOMAIN-SUFFIX,iaddata.com,REJECT
-DOMAIN,ad-evods.tianya.tv,REJECT
-DOMAIN-SUFFIX,tuia.cn,REJECT
-DOMAIN-SUFFIX,66mobi.com,REJECT
-DOMAIN-SUFFIX,xdplt.com,REJECT
-DOMAIN,ads.cup.com.cn,REJECT
-DOMAIN-SUFFIX,adjust.com,REJECT
-DOMAIN-SUFFIX,adjust.io,REJECT
-DOMAIN-SUFFIX,adjust.net.in,REJECT
-DOMAIN,app-analytics-services.com,REJECT
-DOMAIN,odm.app-ads-services.com,REJECT
-DOMAIN,firebaselogging-pa.googleapis.com,REJECT
-DOMAIN,firebaseinappmessaging.googleapis.com,REJECT
-DOMAIN,fundingchoicesmessages.google.com,REJECT
-DOMAIN-SUFFIX,doubleclick.net,REJECT
-DOMAIN-SUFFIX,doubleclick-cn.net,REJECT
-DOMAIN-SUFFIX,googlesyndication.com,REJECT
-DOMAIN-SUFFIX,googlesyndication-cn.com,REJECT
-DOMAIN-SUFFIX,xinduoad.com,REJECT
-DOMAIN,statis.miwuad.com,REJECT
-DOMAIN-SUFFIX,sigmob.cn,REJECT
-DOMAIN-SUFFIX,richmob.cn,REJECT
-DOMAIN,ad.shunchangzhixing.com,REJECT
-DOMAIN,redirect.shunchangzhixing.com,REJECT
-DOMAIN,api.touch-moblie.com,REJECT
-DOMAIN-SUFFIX,api.touch-moblie.com,REJECT
-DOMAIN,mercury-gateway.ixiaochuan.cn,REJECT
-DOMAIN,adapi.izuiyou.com,REJECT
-DOMAIN-SUFFIX,domob.cn,REJECT
-DOMAIN-SUFFIX,adwangmai.com,REJECT
-DOMAIN-SUFFIX,bxsnews.com,REJECT
-DOMAIN-SUFFIX,ranfenghd.com,REJECT
-DOMAIN-SUFFIX,qchannel01.cn,REJECT
-DOMAIN-SUFFIX,ad.xelements.cn,REJECT
-DOMAIN-SUFFIX,adsrvr.cn,REJECT
-DOMAIN-SUFFIX,adsrvr.org,REJECT
-DOMAIN-SUFFIX,fancydsp.com,REJECT
-DOMAIN-SUFFIX,xcultur.com,REJECT
-DOMAIN-SUFFIX,bayescom.com,REJECT
-DOMAIN-SUFFIX,etoolads.cn,REJECT
-DOMAIN,ad.aggrxinc.com,REJECT
-DOMAIN-SUFFIX,mentamob.com,REJECT
-DOMAIN-SUFFIX,advlion.com,REJECT
-DOMAIN-SUFFIX,shanghailingye.cn,REJECT
-DOMAIN-SUFFIX,shenshiads.com,REJECT
-DOMAIN-SUFFIX,adshenshi.com,REJECT
-DOMAIN-SUFFIX,qidianad.com,REJECT
-DOMAIN-SUFFIX,kuaichuanad.com,REJECT
-DOMAIN-SUFFIX,statisticslinks.com,REJECT
-DOMAIN,adx.zuoyebang.com,REJECT
-DOMAIN-SUFFIX,cxwlad.com,REJECT
-DOMAIN-SUFFIX,ad.gameley.com,REJECT
-DOMAIN-SUFFIX,yiweiads.com,REJECT
-DOMAIN-SUFFIX,adx.52qumao.com,REJECT
-DOMAIN-SUFFIX,hzjizhun.cn,REJECT
-DOMAIN-SUFFIX,hzjizhun.com,REJECT
-DOMAIN-SUFFIX,sogaha.cn,REJECT
-DOMAIN,zxid-m.mobileservice.cn,REJECT
-DOMAIN,xadsmartget.adgain.cn,REJECT
-DOMAIN-SUFFIX,tradplusad.com,REJECT
-DOMAIN-SUFFIX,fancyapi.com,REJECT
-DOMAIN-SUFFIX,medproad.com,REJECT
-DOMAIN-SUFFIX,applovin.com,REJECT
-DOMAIN-SUFFIX,iads.unity3d.com,REJECT
-DOMAIN-SUFFIX,unityads.unity3d.com,REJECT
-DOMAIN-SUFFIX,unityads.unitychina.cn,REJECT
-DOMAIN-SUFFIX,tapjoy.com,REJECT
-DOMAIN-SUFFIX,vungle.com,REJECT
-DOMAIN-SUFFIX,adsmoloco.com,REJECT
-DOMAIN-SUFFIX,smadex.com,REJECT
-DOMAIN-SUFFIX,tapad.com,REJECT
-DOMAIN-SUFFIX,adsappier.com,REJECT
-DOMAIN-SUFFIX,inmobi.com,REJECT
-DOMAIN-SUFFIX,inmobicdn.net,REJECT
-DOMAIN-SUFFIX,appsflyersdk.com,REJECT
-DOMAIN-SUFFIX,applvn.com,REJECT
-DOMAIN-SUFFIX,moloco.com,REJECT
-DOMAIN-SUFFIX,rayjump.com,REJECT
-DOMAIN-SUFFIX,rixengine.com,REJECT
-DOMAIN-SUFFIX,amazon-adsystem.com,REJECT
-DOMAIN-SUFFIX,skarb.club,REJECT
-DOMAIN-SUFFIX,skarb.work,REJECT
-DOMAIN-SUFFIX,amplitude.com,REJECT
-DOMAIN-SUFFIX,fivecdm.com,REJECT
-DOMAIN-SUFFIX,doubleverify.com,REJECT
-DOMAIN-SUFFIX,tobidad.cn,REJECT
-DOMAIN-SUFFIX,tobidad.com,REJECT
-DOMAIN,ep7.facebook.com,REJECT
-
-# 可莉广告过滤器 — preserve allow rules before broader rejections.
-
-DOMAIN,acdn.adnxs.com,REJECT
-DOMAIN,mediation.adnxs.com,REJECT
-DOMAIN,sin3-ib.adnxs.com,REJECT
-DOMAIN,sdkconfig.ad.xiaomi.com,REJECT
-DOMAIN,data.mistat.xiaomi.com,REJECT
-DOMAIN,tracking.intl.miui.com,REJECT
-DOMAIN,business.msstatic.com,REJECT
-DOMAIN-SUFFIX,v1d.szbdyd.com,REJECT
-DOMAIN-SUFFIX,m1.ad.10010.com,REJECT
-DOMAIN,ad.21cn.com,REJECT
-DOMAIN,ad.k.21cn.com,REJECT
-DOMAIN,admarket.21cn.com,REJECT
-DOMAIN,adshows.21cn.com,REJECT
-IP-CIDR,122.229.8.47/32,REJECT,no-resolve
-IP-CIDR,122.229.29.89/32,REJECT,no-resolve
-DOMAIN,mall-dsp2.qinlinkeji.com,REJECT
-DOMAIN,mallapi2.qinlinkeji.com,REJECT
-DOMAIN,open-pixon.ads-pixiv.net,REJECT
-
-[Body Rewrite]
-
-http-response (?i)^https?:\/\/cmds\.omesoft\.com\/HypnotistWS\.asmx "<GetADResult>[\\s\\S]*?</GetADResult>" "<GetADResult>{\"ret\":0,\"msg\":\"正常\",\"err_code\":0,\"data\":{\"ad\":[]}}</GetADResult>"
-http-response-jq (?i)^https?:\/\/api\.fenxianglife\.com\/njia\/index\/popup\/v2 '.data.list=[]'
-
 [Script]
-
 HTTPDNS IPv4解析 = type=http-request, pattern=^http:\/\/(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?::80)?(?:\/v?[0-9]+)?\/(?:sign_)?(?:(?:d|ss)[46]?|resolve)(?:\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/httpdns-response.js?v=20261017.1, engine=webview, timeout=5
 HTTPDNS IPv6解析 = type=http-request, pattern=^http:\/\/\[[0-9a-fA-F:.]+\](?::80)?(?:\/v?[0-9]+)?\/(?:sign_)?(?:(?:d|ss)[46]?|resolve)(?:\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/httpdns-response.js?v=20261017.1, engine=webview, timeout=5
 HTTPDNS AMDC调度 = type=http-request, pattern=^http:\/\/(?:amdc\.m\.taobao\.com|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|\[[0-9a-fA-F:.]+\])(?::80)?\/amdc\/mobileDispatch(?:\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/httpdns-response.js?v=20261017.1, engine=webview, timeout=5
@@ -517,96 +156,3 @@ HTTPDNS 字节配置 = type=http-request, pattern=^http:\/\/(?:[a-z0-9-]+\.)+zij
 HTTPDNS 微信CDN解析 = type=http-request, pattern=^http:\/\/(?:short|hkextshort)\.weixin\.qq\.com(?::80)?\/cgi-bin\/micromsg-bin\/getcdndns(?:\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/httpdns-response.js?v=20261017.1, engine=webview, timeout=5
 HTTPDNS 支付宝IPv4解析 = type=http-request, pattern=^http:\/\/(?:110\.76\.8\.150|203\.209\.(?:230\.39|245\.(?:102|158)|247\.95|250\.(?:41|114)|251\.147))(?::80)?\/squery(?:\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/httpdns-response.js?v=20261017.1, engine=webview, timeout=5
 HTTPDNS 支付宝IPv6解析 = type=http-request, pattern=(?i)^http:\/\/\[2400:(?:b180:6001::18f|b200:(?:1005:3000::(?:155|1d3)|5000:b000::c8))\](?::80)?\/squery(?:\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/httpdns-response.js?v=20261017.1, engine=webview, timeout=5
-
-# Complete WebView replies preserve status and body over HTTP/2.
-
-广告平台素材 01 = type=http-request, pattern=(?i)^https:\/\/video-dsp\.pddpic\.com\/market-dsp-video\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-广告平台素材 02 = type=http-request, pattern=(?i)^https:\/\/t-dsp\.pinduoduo\.com\/dspcb\/i\/mrk_, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-广告平台素材 03 = type=http-request, pattern=(?i)^https:\/\/images\.pinduoduo\.com\/mrk\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-广告平台素材 04 = type=http-request, pattern=(?i)^https:\/\/images\.pinduoduo\.com\/marketing_api\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 01 = type=http-request, pattern=(?i)^https?:\/\/api-access\.pangolin-sdk-toutiao\.com\/api\/ad\/union\/sdk, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 02 = type=http-request, pattern=(?i)^https:\/\/cdn\.web\.chelaile\.net\.cn\/info-flow\/index\.html, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 03 = type=http-request, pattern=(?i)^http:\/\/mercury-gateway\.ixiaochuan\.cn\/mercury\/v1\/ad\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 04 = type=http-request, pattern=(?i)^https?:\/\/api\.m\.mi\.com\/v\d\/app\/start, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=empty
-通用广告响应 05 = type=http-request, pattern=(?i)^https?:\/\/api\.jr\.mi\.com\/v\d\/adv\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=empty
-通用广告响应 06 = type=http-request, pattern=(?i)^https?:\/\/api\.jr\.mi\.com\/jr\/api\/playScreen, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=empty
-通用广告响应 07 = type=http-request, pattern=(?i)^https?:\/\/api-mifit.+?\.huami\.com\/discovery\/mi\/discovery\/.+?_ad\?, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=empty
-通用广告响应 08 = type=http-request, pattern=(?i)^https?:\/\/home\.mi\.com\/cgi-op\/api\/v\d\/recommendation\/banner, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 09 = type=http-request, pattern=(?i)^https?:\/\/(api-mifit|api-mifit-\w+)\.huami\.com\/discovery\/mi\/discovery\/\w+_ad\?, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 10 = type=http-request, pattern=(?i)^https?:\/\/api-mifit\.huami\.com\/discovery\/mi\/discovery\/homepage_ad\?, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=tiny-gif
-通用广告响应 11 = type=http-request, pattern=(?i)^https?:\/\/api-mifit\.huami\.com\/discovery\/mi\/discovery\/sleep_ad\?, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=tiny-gif
-通用广告响应 12 = type=http-request, pattern=(?i)^https?:\/\/api-mifit\.huami\.com\/discovery\/mi\/discovery\/sport_summary_ad\?, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=tiny-gif
-通用广告响应 13 = type=http-request, pattern=(?i)^https?:\/\/api-mifit\.huami\.com\/discovery\/mi\/discovery\/sport_training_ad\?, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=tiny-gif
-通用广告响应 14 = type=http-request, pattern=(?i)^https?:\/\/api-mifit\.huami\.com\/discovery\/mi\/discovery\/step_detail_ad\?, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=tiny-gif
-通用广告响应 15 = type=http-request, pattern=(?i)^https?:\/\/api-mifit\.huami\.com\/discovery\/mi\/discovery\/training_video_ad\?, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=tiny-gif
-通用广告响应 16 = type=http-request, pattern=(?i)^https:\/\/shopapi\.io\.mi\.com\/mtop\/mf\/resource\/homePage\/pageConfig, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=empty
-通用广告响应 17 = type=http-request, pattern=(?i)^https:\/\/api-mifit-cn2\.huami\.com\/discovery\/mi\/cards\/startpage_ad, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 18 = type=http-request, pattern=(?i)^https:\/\/apiwz\.midukanshu\.com\/advert\/getPopup$, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 19 = type=http-request, pattern=(?i)^https:\/\/apiwz\.midukanshu\.com\/advert\/treasureInfo$, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 20 = type=http-request, pattern=(?i)^https:\/\/apiwz\.midukanshu\.com\/config\/getAds$, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 21 = type=http-request, pattern=(?i)^http:\/\/img\.dailmo\.com\/img\/61\/23c7125bfe6166d69f3bff5b0ca4d31e\.jpg, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 22 = type=http-request, pattern=(?i)^http:\/\/img\.dailmo\.com\/img\/50\/edb40c6392f848df37f9c31d8a6f90f6\.jpg, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 23 = type=http-request, pattern=(?i)^http:\/\/img\.dailmo\.com\/img\/6\/90585d9e96c73dd49644af57d8501624\.jpg, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 24 = type=http-request, pattern=(?i)^http:\/\/img\.dailmo\.com\/img\/5\/6cb2aa237ce1f65944aa1ecb29fbdeef\.jpg, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 25 = type=http-request, pattern=(?i)^http:\/\/img\.allahall\.com\/img\/61\/23c7125bfe6166d69f3bff5b0ca4d31e\.jpg, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 26 = type=http-request, pattern=(?i)^http:\/\/img\.allahall\.com\/img\/50\/edb40c6392f848df37f9c31d8a6f90f6\.jpg, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 27 = type=http-request, pattern=(?i)^http:\/\/img\.allahall\.com\/img\/6\/90585d9e96c73dd49644af57d8501624\.jpg, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 28 = type=http-request, pattern=(?i)^http:\/\/img\.allahall\.com\/img\/5\/6cb2aa237ce1f65944aa1ecb29fbdeef\.jpg, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 29 = type=http-request, pattern=(?i)^http:\/\/img\.allahall\.com\/img\/59\/6a13a75dfe46ebfdac96bd27ef098885\.jpg, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 30 = type=http-request, pattern=(?i)^http:\/\/app\.zhoudamozi\.com\/ad\/.+, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=empty
-通用广告响应 31 = type=http-request, pattern=(?i)^https:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/cappuccino\/splash, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 32 = type=http-request, pattern=(?i)^https:\/\/gw\.alicdn\.com\/mt\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 33 = type=http-request, pattern=(?i)^https:\/\/gw\.alicdn\.com\/tfs\/.+\d{3,4}-\d{4}, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 34 = type=http-request, pattern=(?i)^https:\/\/gw\.alicdn\.com\/tps\/.+\d{3,4}-\d{4}, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 35 = type=http-request, pattern=(?i)^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.taobao\.idle\.home\.welcome, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 36 = type=http-request, pattern=(?i)^https:\/\/m\.qianbao\.qq\.com\/services\/walletHome\/getQQshopData\?, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 37 = type=http-request, pattern=(?i)^https:\/\/m\.qianbao\.qq\.com\/services\/walletHome\/getGameData\?, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 38 = type=http-request, pattern=(?i)^https:\/\/m\.qianbao\.qq\.com\/services\/walletHome\/getFootData\?, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 39 = type=http-request, pattern=(?i)^https:\/\/hfapp-service\.qweather\.net\/v2\.0\/app\/ad\/list\?, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 40 = type=http-request, pattern=(?i)^http:\/\/home\.umetrip\.com\/gateway\/api\/umetrip\/native, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 41 = type=http-request, pattern=(?i)^http:\/\/umerp\.umetrip\.com\/gateway\/api\/umetrip\/native, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 42 = type=http-request, pattern=(?i)^https?:\/\/us\.l\.qq\.com\/exapp, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=empty
-通用广告响应 43 = type=http-request, pattern=(?i)^https:\/\/client\.app\.coc\.10086\.cn\/biz-orange\/DN\/init\/startInit$, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 44 = type=http-request, pattern=(?i)^https:\/\/dict\.youdao\.com\/course\/tab\/translateTab, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 45 = type=http-request, pattern=(?i)^https:\/\/dict\.youdao\.com\/homepage\/tile, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 46 = type=http-request, pattern=(?i)^https:\/\/api-overmind\.youdao\.com\/openapi\/get\/luna\/dict\/dict-mobile\/prod\/dictCommonConfig, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 47 = type=http-request, pattern=(?i)^https:\/\/cdke\.youdao\.com\/course3\/recommend\/dict\/startup, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 48 = type=http-request, pattern=(?i)^https:\/\/dict\.youdao\.com\/commonsearch, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 49 = type=http-request, pattern=(?i)^https:\/\/dict\.youdao\.com\/vip\/activity\/couponinfo, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 50 = type=http-request, pattern=(?i)^https:\/\/dict\.youdao\.com\/dictusertask\/system, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 51 = type=http-request, pattern=(?i)^https?:\/\/ecard\.shenzhentong\.com\/wxweb\/bwxppub2\/QryAdvertList\.do, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=empty
-通用广告响应 52 = type=http-request, pattern=(?i)^https?:\/\/mob\.mddcloud\.com\.cn\/adApi\/advert\/(first|third)part\/advertList, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 53 = type=http-request, pattern=(?i)^https?:\/\/t-dsp\.pinduoduo\.com, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=empty
-通用广告响应 54 = type=http-request, pattern=(?i)^https?:\/\/mobads-pre-config\.cdn\.bcebos\.com\/preload\.php, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=empty
-通用广告响应 55 = type=http-request, pattern=(?i)^https?:\/\/sfo\.mddcloud\.com\.cn\/api\/v2\/sfo\/popup_displays?, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 56 = type=http-request, pattern=(?i)^https?:\/\/tower\.ubixioe\.com\/mob\/mediation, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 57 = type=http-request, pattern=(?i)^https?:\/\/toblog\.ctobsnssdk\.com, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=empty
-通用广告响应 58 = type=http-request, pattern=(?i)^https?:\/\/conf-darwin\.xycdn\.com, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 59 = type=http-request, pattern=(?i)^https?:\/\/sdk1xyajs\.data\.kuiniuca\.com, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 60 = type=http-request, pattern=(?i)^https:\/\/gw\.chuangkit\.com\/team\/app\/common\/ad\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 61 = type=http-request, pattern=(?i)^https:\/\/qiye\.gaoding\.com\/api\/v3\/oc\/v2\/delivery-pits\/ios-splash\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 62 = type=http-request, pattern=(?i)^https:\/\/p0\.pipi\.cn\/(adAdmin|mediaplus\/maoyantong_ads_fe)\/\w+\.jpg\?imageMogr2\/quality\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 63 = type=http-request, pattern=(?i)^https:\/\/p0\.pipi\.cn\/(adAdmin|mediaplus\/maoyantong_ads_fe)\/\w+\.(jpg|png)\?imageMogr2\/thumbnail\/(860x0|!165x165|!1049x1169), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 64 = type=http-request, pattern=(?i)^https:\/\/api\.zcool\.com\.cn\/v\d\.\d\.\d\/common\/open-screen, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 65 = type=http-request, pattern=(?i)^https:\/\/shealthyapi\.senssun\.com\/v1\/app\/banner\/findByType\?type=bottom$, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 66 = type=http-request, pattern=(?i)^https:\/\/lanfanapp\.com\/api\/v1\/ads\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 67 = type=http-request, pattern=(?i)^https:\/\/client-api-v2\.oray\.com\/materials\/SLCC_IOS_STARTUP, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 68 = type=http-request, pattern=(?i)^https:\/\/client-api-v2\.oray\.com\/materials\/SLCC_IOS_DEVICE, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 69 = type=http-request, pattern=(?i)^https:\/\/client-api-v2\.oray\.com\/materials\/SUNLOGIN_CLIENT_IOS_PROMOTION, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 70 = type=http-request, pattern=(?i)^https:\/\/app\.10099\.com\.cn\/contact-web\/api\/version\/getFlashScreenPage, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=reject
-通用广告响应 71 = type=http-request, pattern=(?i)^https:\/\/api\.flydigi\.com\/android\/v2\/ad, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 72 = type=http-request, pattern=(?i)^https:\/\/api\.xiangji\.qq\.com\/splash$, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 73 = type=http-request, pattern=(?i)^https:\/\/cdn\.cmgadx\.com\/sdk\/pool\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 74 = type=http-request, pattern=(?i)^https:\/\/qadx\.qinlinad\.com\/ad\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 75 = type=http-request, pattern=(?i)^https:\/\/watch\.iot\.mi\.com\/cgi-op\/api\/v1\/watch\/health\/resource\?business=MI_WATCH_SPORT, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 76 = type=http-request, pattern=(?i)^https:\/\/watch\.iot\.mi\.com\/cgi-op\/api\/v1\/watch\/health\/resource\?business=MI_HEALTH_DEVICE_TAB_PAGE, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 77 = type=http-request, pattern=(?i)^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.film\.mtopadvertiseapi\.queryloadingbanner\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 78 = type=http-request, pattern=(?i)^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.film\.life\.popup\.get\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 79 = type=http-request, pattern=(?i)^https:\/\/d\.socdm\.com\/adsv\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-通用广告响应 80 = type=http-request, pattern=(?i)^https?:\/\/m\.client\.10010\.com\/mobileService\/customer\/accountListData\.htm, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=unicom-startup
-快递100广告 20 = type=http-request, pattern=^http:\/\/p\.kuaidi100\.com\/mobile\/mobileapi\.do, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-快递100广告 21 = type=http-request, pattern=^http:\/\/p\.kuaidi100\.com\/advertisement\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261018.1, engine=webview, timeout=5, argument=dict
-
-[MITM]
-
-hostname = %APPEND% video-dsp.pddpic.com, t-dsp.pinduoduo.com, images.pinduoduo.com, api.zcool.com.cn, acs.m.goofish.com, acs.m.taobao.com, api-access.pangolin-sdk-toutiao*.com, api-access.pangolin-sdk-toutiao.com, api-mifit*.huami.com, api-mifit-cn2.huami.com, api-mifit.huami.com, api-overmind.youdao.com, api.ahmobile.cn, api.angkeduo.com, api.jr.mi.com, api.m.mi.com, api.pinduoduo.com, api.wfdata.club, apiwz.midukanshu.com, app.zhoudamozi.com, cdke.youdao.com, conf-darwin.xycdn.com, dict.youdao.com, ecard.shenzhentong.com, ether-pack.pangolin-sdk-toutiao.com, gromore.pangolin-sdk-toutiao.com, gw.alicdn.com, gw.chuangkit.com, hfapp-service.qweather.net, home.mi.com, home.umetrip.com, img.allahall.com, img.dailmo.com, iyes.youku.com, lfd?-analytics.bytescm.com, lfd?-cdn-tos.bytescm.com, m.qianbao.qq.com, mercury-gateway.ixiaochuan.cn, mob.mddcloud.com.cn, mobads-pre-config.cdn.bcebos.com, p0.pipi.cn, qiye.gaoding.com, sdk1xyajs.data.kuiniuca.com, sfd?-fe-tos.pglstatp-toutiao.com, sfo.mddcloud.com.cn, shopapi.io.mi.com, shealthyapi.senssun.com, toblog.ctobsnssdk.com, tower.ubixioe.com, umerp.umetrip.com, us.l.qq.com, lanfanapp.com, api.xiachufang.com, api.xiangji.qq.com, client.app.coc.10086.cn, cdn.cmgadx.com, qadx.qinlinad.com, watch.iot.mi.com, cdn.web.chelaile.net.cn, d.socdm.com, m.client.10010.com, cmds.omesoft.com, api.fenxianglife.com

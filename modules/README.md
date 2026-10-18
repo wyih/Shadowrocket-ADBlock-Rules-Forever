@@ -6,7 +6,7 @@
 | --- | --- |
 | 小红书（RedNote）修复版 | [`RedNote.sgmodule`](RedNote.sgmodule) |
 | 去广告传输兼容（QUIC 回退） | [`AdBlock-Transport.sgmodule`](AdBlock-Transport.sgmodule) |
-| 通用广告拦截器（HTTPDNS、广告平台、可莉通用过滤） | [`HTTPDNS.sgmodule`](HTTPDNS.sgmodule) |
+| HTTPDNS 拦截器（已恢复合并前规则） | [`HTTPDNS.sgmodule`](HTTPDNS.sgmodule) |
 | 闲鱼修复版 | [`FleaMarket.sgmodule`](FleaMarket.sgmodule) |
 | 米家去广告 | [`MiHome.sgmodule`](MiHome.sgmodule) |
 | 哔哩哔哩修复版 | [`Bilibili.sgmodule`](Bilibili.sgmodule) |
@@ -31,9 +31,9 @@
 
 ## 更新哔哩哔哩与闲鱼，配套共用模块
 
-- **共用拦截**：沿[原 HTTPDNS 订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/HTTPDNS.sgmodule)更新至 `20261018.1`，显示名称改为“通用广告拦截器”。更新并启用后，停用原“广告平台拦截器”和“可莉广告过滤器”，本模块保持置顶。解析拦截、闲鱼 AMDC 规则、两个阿里 HTTPS 解析 IP 及广告平台/通用过滤在同一模块维护；脚本随模块加载，无须另装。
-- **哔哩哔哩**：`20261018.1` 实机复测失败，用户反馈开屏广告从偶发变为每次出现。`20261018.2` 是回退验证版：仅恢复内存优化前的开屏脚本执行方式，HTTPDNS、素材、动态和评论拦截保持现状。它用于核对这次退步是否随该修改消失，尚未确认修复开屏展示。
-- **闲鱼**：先启用上述共用拦截器 `20261018.1`，再沿[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)更新至 `20261017.3`。已在手机验证的 AMDC 原生拒绝规则原样迁入共用模块，闲鱼模块移除重复条目，保留两个广告域名拦截、17 条 jq、10 条请求脚本及备用网关解密。不要同时启用两份闲鱼模块。
+- **共用拦截**：沿[原 HTTPDNS 订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/HTTPDNS.sgmodule)更新至 `20261018.2`，显示名称恢复“HTTPDNS拦截器”，规则恢复为合并前 `83e5a8c` 的版本。重新启用原“广告平台拦截器”和“可莉广告过滤器”，恢复原有 Map Local 处理。本模块继续置顶，保留解析拦截、闲鱼 AMDC 规则及两个阿里 HTTPS 解析 IP。
+- **哔哩哔哩**：保持 `20261018.2` 回退验证版。2.4 手机 08:24 日志已确认该版执行，用户仍报告开屏广告；本次只回退共用模块，核对通用规则合并的影响。
+- **闲鱼**：先启用上述共用拦截器 `20261018.2`，再沿[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)更新至 `20261017.3`。已在手机验证的 AMDC 原生拒绝规则原样迁入共用模块，闲鱼模块移除重复条目，保留两个广告域名拦截、17 条 jq、10 条请求脚本及备用网关解密。不要同时启用两份闲鱼模块。
 - **共用传输层**：另外导入并启用[去广告传输兼容](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule)。只需一份，可供现有各 App 模块共用。它设置 `block-quic = all`，阻止 UDP/443 绕过 HTTPS 改写；不修改 DNS、证书或其他 UDP 端口。
 
 传输模块会影响所有 UDP/443 连接，包括日志中豆包输入法使用的 QUIC 连接。支持回退的功能改走 TCP；只支持该传输的功能可能不可用。若语音等功能异常，关闭**去广告传输兼容**即可恢复，保留各 App 模块。
@@ -149,17 +149,15 @@ ca-p12 = {{{证书内容}}}
 
 两份 `_tailscale.conf` 的默认 `dns-server` 是 `dns.alidns.com` 和 `doh.pub`，该模块启用后使用模块中的设置。它没有 Script Hub 更新地址，也没有转换脚本；Script Hub Beta 不参与这个模块的加载。
 
-## 通用广告拦截器
+## HTTPDNS 拦截器：通用合并回退
 
-[`HTTPDNS.sgmodule`](HTTPDNS.sgmodule) `20261018.1` 合并用户现用的“广告平台拦截器”和“可莉广告过滤器”（可莉、2026-10-02 转换版）。原始入口分别为 [BlockAdvertisers.lpx](https://kelee.one/Tool/Loon/Lpx/BlockAdvertisers.lpx) 和 [Remove_ads_by_keli.lpx](https://kelee.one/Tool/Loon/Lpx/Remove_ads_by_keli.lpx)。以用户现有文件为合并基线，后续规则修订由本仓库维护。
+[`HTTPDNS.sgmodule`](HTTPDNS.sgmodule) `20261018.2` 恢复合并前 `83e5a8c` 的全部规则，仅日期和版本标记更新。撤下合并增加的 86 条广告请求脚本（其中 84 条来自 Map Local）、广告平台规则、两条正文改写及追加解密主机；保留原 13 条 HTTPDNS 请求脚本。共享响应脚本保持兼容旧订阅，其他 App 模块不变。
 
-合并后包含 476 条原生规则、13 条既有 HTTPDNS 请求规则、86 条广告请求规则和 2 条正文改写。原生规则删除 19 条完全重复项，保留原有顺序、嘀嗒例外、短信验证放行及字节配置放行。虎牙重复 HTTPDNS 路径由既有脚本覆盖；快递100的两条带引号 URL 拒绝规则改用请求脚本返回空 JSON。
+更新现有“通用广告拦截器”后，名称恢复为“HTTPDNS拦截器”。保持置顶，重新启用原“广告平台拦截器”和“可莉广告过滤器”，使用其中原有的 Map Local。原始入口分别为 [BlockAdvertisers.lpx](https://kelee.one/Tool/Loon/Lpx/BlockAdvertisers.lpx) 和 [Remove_ads_by_keli.lpx](https://kelee.one/Tool/Loon/Lpx/Remove_ads_by_keli.lpx)。B 站保持 `20261018.2`，其余模块和顺序保持现状，以便比较共用模块回退前后的表现。
 
-两份模块的 84 条本地响应改用共享 `wechat-ad-response.js?v=20261018.1`，保留状态码及空正文、JSON、透明 GIF、中国联通启动字段，避开已验证的 H2 Map Local 正文丢失问题。透明图片使用已有的 `body-base64` 桥接方式。同步修正催眠接口 XML 通配符被错误转义，以及广告弹窗规则 `http?` 漏掉 HTTPS 的写法。63 个解密主机名按 `%APPEND%` 合并，使用现有证书和 HTTP/2 设置。
+2.4 手机 08:24–08:25 日志确认 B 站 `.2` 已执行并清空开屏列表，本窗口没有内存 critical 或开屏脚本取消。新增的 86 条广告脚本未匹配日志中已解密请求；用户仍报告开屏广告，因此本次回退用于检验通用模块合并的影响。合并历史及核查结果见 [兼容性记录](compatibility-audit.md)。需要恢复合并版时，可取 `15a2fd7` 的 `modules/HTTPDNS.sgmodule`。
 
-更新现有 HTTPDNS 模块后，其名称变为“通用广告拦截器”；保持置顶并停用原“广告平台拦截器”和“可莉广告过滤器”。各 App 专用模块、去广告传输兼容、DNS 和 MITM Keep Enabled 继续启用，无须为本次合并重新排列。回滚时恢复 `83e5a8c` 的 `modules/HTTPDNS.sgmodule` 并重新启用原两份模块；共享响应脚本新增模式兼容旧调用方，无须回退。
-
-本地检查：`node tests/test_common_adblock.cjs`、`node tests/test_httpdns.cjs`、`node tests/test_startup_ads.cjs`、`node tests/test_wechat_modules.cjs`、`node tests/test_module_repairs.cjs`。检查覆盖合并优先级、原解析例外、响应状态与字节长度、GIF 桥接、正文改写及正常 B 站/闲鱼/米家请求保留。手机实际加载和效果由用户更新后验证。
+本地检查：`node tests/test_httpdns.cjs`、`node tests/test_startup_ads.cjs`、`node tests/test_module_repairs.cjs`。恢复后的模块除日期和版本外应逐字节等同旧版；手机实际效果由更新后复测确认。
 
 ### HTTPDNS 基础能力与历史
 
