@@ -91,7 +91,7 @@ for (const endpoint of ['list', 'show', 'event/list2', 'brand/list']) {
 const splashRule = bili.split('\n').find(l => l.startsWith('开屏素材失效 ='));
 assert.match(splashRule, /type=http-response/);
 assert.match(splashRule, /requires-body=true/);
-assert.match(splashRule, /bilibili-splash-response\.js\?v=20261018\.1,/);
+assert.match(splashRule, /bilibili-splash-response\.js\?v=20261018\.2,/);
 assert(!bili.split('\n').some(l => l.includes('splash') && (l.includes('data-type=') || l.includes('type=http-request'))));
 const compatScript = read('scripts/bilibili-protobuf-compat.js');
 function runCompat(argument, cache = new Map(), status = 200) {

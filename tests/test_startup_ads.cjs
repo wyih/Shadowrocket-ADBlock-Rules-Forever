@@ -49,10 +49,8 @@ for (const endpoint of ['list', 'show', 'event/list2', 'brand/list']) {
     if (endpoint === 'brand/list') Object.assign(expected.data, { forcibly: false, rule: '', has_new_splash_set: 0 });
     Object.assign(expected.data, { max_time: 0, min_interval: 31536000, pull_interval: 31536000 });
     assert.deepEqual(JSON.parse(result.body), expected);
-    assert.equal(logs.length, 4);
-    assert.match(logs[0], new RegExp(`^Bilibili splash begin: .* chars=${input.length}$`));
-    assert.match(logs[2], /version=20261018\.1.*list=4->0 keep=1->0$/);
-    assert.match(logs[3], /^Bilibili splash ready: .* chars=\d+ elapsed-ms=\d+$/);
+    assert.equal(logs.length, 2);
+    assert.match(logs[1], /version=20261018\.2.*list=4->0 keep=1->0$/);
     assert(!logs.join('').includes('private-fixture'));
     assert(!logs.join('').includes('12345678901234567'));
     assert.deepEqual(rewrite(url, result.body).result, result);
@@ -64,7 +62,7 @@ for (const query of ['', '?access_key=private-fixture']) {
   assert(pattern.test(url));
   const { result, logs } = rewrite(url, input);
   assert.deepEqual(JSON.parse(result.body), { ...fixture, data: {} });
-  assert.match(logs[2], /version=20261018\.1 path=\/x\/v2\/splash\/brand\/config config=empty$/);
+  assert.match(logs[1], /version=20261018\.2 path=\/x\/v2\/splash\/brand\/config config=empty$/);
   assert(!logs.join('').includes('private-fixture'));
   assert.deepEqual(rewrite(url, result.body).result, result);
   assert.deepEqual(rewrite(url, '{"code":-400,"data":{}}').result, {});

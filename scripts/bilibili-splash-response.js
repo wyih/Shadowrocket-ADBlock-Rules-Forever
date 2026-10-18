@@ -11,41 +11,21 @@
   }
   // Creative IDs can exceed JS's exact integer range. Keep their wire literals.
   const source = $response.body;
-  const started = Date.now();
-  console.log("Bilibili splash begin: version=20261018.1 path=" + path + " chars=" + source.length);
   let prefix = "__bili_integer_";
   const integers = [];
   let message;
   try {
     const tokens = /"(?:\\.|[^"\\])*"|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/g;
-    // Scan one token at a time; do not retain or decode every creative's strings.
-    let match;
-    let collision;
-    let hasLargeInteger = false;
-    do {
-      collision = false;
-      tokens.lastIndex = 0;
-      while ((match = tokens.exec(source)) !== null) {
-        const token = match[0];
-        if (token[0] === '"') {
-          if ((token.includes(prefix) || token.includes("\\u")) && JSON.parse(token).includes(prefix)) {
-            prefix += "_";
-            collision = true;
-            break;
-          }
-        } else if (/^-?\d+$/.test(token) && !Number.isSafeInteger(Number(token))) {
-          hasLargeInteger = true;
-        }
-      }
-    } while (collision);
-    const protectedBody = hasLargeInteger ? source.replace(tokens, token => {
+    const strings = (source.match(tokens) || []).filter(token => token[0] === '"').map(token => JSON.parse(token));
+    while (strings.some(text => text.includes(prefix))) prefix += "_";
+    const protectedBody = source.replace(tokens, token => {
       if (!/^-?\d+$/.test(token) || Number.isSafeInteger(Number(token))) return token;
       integers.push(token);
       return JSON.stringify(prefix + (integers.length - 1));
-    }) : source;
+    });
     message = JSON.parse(protectedBody);
   } catch (_) {
-    console.log("Bilibili splash: version=20261018.1 path=" + path + " invalid-json");
+    console.log("Bilibili splash: version=20261018.2 path=" + path + " invalid-json");
     $done({});
     return;
   }
@@ -58,7 +38,7 @@
   const hosts = new Set();
   const samples = new Set();
   const pending = [data];
-  while (pending.length && (hosts.size < 8 || samples.size < 3)) {
+  while (pending.length) {
     for (const [key, value] of Object.entries(pending.pop())) {
       if (key === "account") continue;
       if (value && typeof value === "object") pending.push(value);
@@ -71,13 +51,13 @@
   }
   const fields = Object.keys(data).filter(key => /^[a-z][a-z0-9_]{0,63}$/i.test(key)).slice(0, 24)
     .map(key => key + ":" + (Array.isArray(data[key]) ? data[key].length : typeof data[key]));
-  console.log("Bilibili splash source: version=20261018.1 path=" + path +
+  console.log("Bilibili splash source: version=20261018.2 path=" + path +
     " fields=" + JSON.stringify(fields) + " hosts=" + JSON.stringify([...hosts]) +
     " samples=" + JSON.stringify([...samples]));
   if (path.toLowerCase() === "/x/v2/splash/brand/config") {
     // This dedicated splash endpoint's live schema is unknown; return an empty config.
     message.data = {};
-    console.log("Bilibili splash: version=20261018.1 path=" + path + " config=empty");
+    console.log("Bilibili splash: version=20261018.2 path=" + path + " config=empty");
   } else {
     const beforeList = Array.isArray(data.list) ? data.list.length : data.list == null ? 0 : -1;
     const beforeKeep = Array.isArray(data.keep_ids) ? data.keep_ids.length : data.keep_ids == null ? 0 : -1;
@@ -95,14 +75,13 @@
       if (Object.prototype.hasOwnProperty.call(data, field)) data[field] = value;
     }
     const event = /[?&]open_event=(hot|cold|background)(?:&|$)/i.exec(url);
-    console.log("Bilibili splash: version=20261018.1 path=" + path +
+    console.log("Bilibili splash: version=20261018.2 path=" + path +
       " event=" + (event ? event[1].toLowerCase() : "other") +
       " list=" + beforeList + "->0 keep=" + beforeKeep + "->0");
   }
   let body = JSON.stringify(message);
-  if (integers.length) body = body.replace(new RegExp('"' + prefix + '(\\d+)"', "g"),
-    (_, index) => integers[Number(index)]);
-  console.log("Bilibili splash ready: version=20261018.1 path=" + path + " chars=" + body.length +
-    " elapsed-ms=" + (Date.now() - started));
+  integers.forEach((literal, index) => {
+    body = body.split(JSON.stringify(prefix + index)).join(literal);
+  });
   $done({ body });
 })();
