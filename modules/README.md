@@ -32,7 +32,7 @@
 ## 更新哔哩哔哩与闲鱼，配套共用模块
 
 - **共用拦截**：沿[原 HTTPDNS 订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/HTTPDNS.sgmodule)更新至 `20261018.2`，显示名称恢复“HTTPDNS拦截器”，规则恢复为合并前 `83e5a8c` 的版本。重新启用原“广告平台拦截器”和“可莉广告过滤器”，恢复原有 Map Local 处理。本模块继续置顶，保留解析拦截、闲鱼 AMDC 规则及两个阿里 HTTPS 解析 IP。
-- **哔哩哔哩**：更新至 `20261018.3`。开屏 JSON 响应改用默认 JSCore，避开大正文进入 WebView 的序列化和跨进程传递；沿用固定版本 `20261018.2` 的过滤代码。共用模块回退后，手机仍有五次开屏回调被内存压力取消，约 2.4 MB 的真实响应也已在手机代理复现中断。10 月 18 日 09:44 同参数实测已收到 220 字节的干净 JSON，五类广告列表为空，本次未触发内存回收；09:37 原生 App 启动仍曾触发一次全连接回收，实际开屏展示继续核对。
+- **哔哩哔哩**：`20261019.1` 为开屏来源诊断版，保留 `20261018.3` 的全部过滤。10 月 19 日用户确认冷、热启动仍有广告；21:29 的冷启动清空 115 条广告时没有内存告警。新增对实际启动请求 `ColdStart/GetColdStartDeferredData` 的诊断，记录请求、响应的帧长度及公共素材路径；仅协商未压缩的 gRPC 响应，正文原样传递。它用于确认启动合并接口是否另行下发开屏内容，尚未确认该接口与广告展示的关系。沿原订阅更新即可，不需要新增模块。
 - **闲鱼**：先启用上述共用拦截器 `20261018.2`，再沿[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)更新至 `20261017.3`。已在手机验证的 AMDC 原生拒绝规则原样迁入共用模块，闲鱼模块移除重复条目，保留两个广告域名拦截、17 条 jq、10 条请求脚本及备用网关解密。不要同时启用两份闲鱼模块。
 - **共用传输层**：另外导入并启用[去广告传输兼容](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule)。只需一份，可供现有各 App 模块共用。它设置 `block-quic = all`，阻止 UDP/443 绕过 HTTPS 改写；不修改 DNS、证书或其他 UDP 端口。
 
@@ -40,7 +40,7 @@
 
 这一共用层解决的是传输绕过。广告响应结构仍由各 App 的专用模块处理；它不能直接清理 App 沙盒内已有的素材文件。两个修复版均已做本地检查，手机上的冷启动、切回前台和闲鱼正常浏览效果待用户更新后复测。
 
-本地检查：`node tests/test_startup_ads.cjs`、`node tests/test_module_repairs.cjs`。哔哩哔哩响应脚本最初参考 [kokoryh/Sparkle 的固定版本](https://github.com/kokoryh/Sparkle/blob/290bcbdd2f158cdd8f7db9c996e90fe63490e16f/src/script/bilibili/json/handler.ts)，按 GPL-3.0 发布，许可证见 [`bilibili-splash-response.LICENSE`](../scripts/bilibili-splash-response.LICENSE)。旧请求脚本地址保留原行为，供尚未更新模块的订阅使用。
+本地检查：`node tests/test_startup_ads.cjs`、`node tests/test_module_repairs.cjs`、`node tests/test_bilibili_startup_trace.cjs`。哔哩哔哩响应脚本最初参考 [kokoryh/Sparkle 的固定版本](https://github.com/kokoryh/Sparkle/blob/290bcbdd2f158cdd8f7db9c996e90fe63490e16f/src/script/bilibili/json/handler.ts)，按 GPL-3.0 发布，许可证见 [`bilibili-splash-response.LICENSE`](../scripts/bilibili-splash-response.LICENSE)。旧请求脚本地址保留原行为，供尚未更新模块的订阅使用。
 
 HTTPDNS 检查：`node tests/test_httpdns.cjs`。覆盖 IPv4/IPv6、端口、轮换解析地址、不同账户、AMDC 调度、原有嘀嗒例外及正常业务请求。详情见下方 HTTPDNS 说明。
 

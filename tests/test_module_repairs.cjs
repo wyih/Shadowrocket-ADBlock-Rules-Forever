@@ -39,7 +39,7 @@ assert.deepEqual(rewrite(undefined), {});
 for (const module of ['Bilibili', 'AppleWeather', 'NeteaseCloudMusic']) {
   const text = read(`modules/${module}.sgmodule`);
   for (const line of text.split('\n').filter(l => l.includes('script-path='))) {
-    if (module === 'Bilibili' && line.startsWith('开屏素材失效 =')) continue;
+    if (module === 'Bilibili' && (line.startsWith('开屏素材失效 =') || line.includes('/bilibili-startup-trace.js?'))) continue;
     assert.match(line, /engine=webview/);
   }
 }
