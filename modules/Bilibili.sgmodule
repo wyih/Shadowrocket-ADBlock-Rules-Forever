@@ -9,8 +9,8 @@
 #!system_version=15
 #!loon_version=3.5.1(998)
 #!homepage=https://hub.kelee.one
-#!date=2026-10-19
-#!version=20261019.1
+#!date=2026-10-20
+#!version=20261020.1
 #!arguments=displayUpList:"show",purifyComment:true,optimizeRequest:"",sponsorBlock:#,logLevel:"error"
 #!arguments-desc=displayUpList: [动态]中[最常访问]的显示方式\nauto：仅当列表中存在直播状态时显示；show：始终显示；hide：始终隐藏。\n可选值: show, hide, auto\n\npurifyComment: 移除评论区置顶广告\n移除评论区置顶广告\n可选值: true, false\n\noptimizeRequest: 优化评论区加载异常\n尝试解决评论区加载异常的问题\n可选值: 留空启用, # 禁用\n\nsponsorBlock: 空降助手\n用于跳过视频中的广告\n可选值: 留空启用, # 禁用\n\nlogLevel: 日志等级\n脚本的日志输出等级\n可选值: off, error, warn, info, debug
 
@@ -56,9 +56,9 @@ http-response-jq (?i)^https:\/\/app\.bilibili\.com\/x\/v2\/account\/myinfo\? '.d
 
 [Script]
 # Trace the startup RPC observed alongside failed cold launches; retain the current ad filters.
-启动合并请求诊断 = type=http-request, pattern=(?i)^https:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.app\.coldstart\.v1\.ColdStart\/GetColdStartDeferredData$, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/bilibili-startup-trace.js?v=20261019.1, requires-body=true, binary-body-mode=true, max-size=-1, timeout=5, argument=request
+启动合并请求诊断 = type=http-request, pattern=(?i)^https:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.app\.coldstart\.v1\.ColdStart\/GetColdStartDeferredData$, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/bilibili-startup-trace.js?v=20261020.1, requires-body=true, binary-body-mode=true, max-size=-1, timeout=5, argument=request
 
-启动合并响应诊断 = type=http-response, pattern=(?i)^https:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.app\.coldstart\.v1\.ColdStart\/GetColdStartDeferredData$, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/bilibili-startup-trace.js?v=20261019.1, requires-body=true, binary-body-mode=true, max-size=-1, timeout=5, argument=response
+启动合并响应诊断 = type=http-response, pattern=(?i)^https:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.app\.coldstart\.v1\.ColdStart\/GetColdStartDeferredData$, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/bilibili-startup-trace.js?v=20261020.1, requires-body=true, binary-body-mode=true, max-size=-1, timeout=5, argument=response
 
 广告图片拦截 = type=http-request, pattern=(?i)^https?:\/\/i[012]\.hdslb\.com\/bfs\/(?:sycp|sycp_brand)\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/wechat-ad-response.js?v=20261017.5, engine=webview, timeout=5, argument=bili-asset
 
