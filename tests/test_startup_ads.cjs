@@ -11,7 +11,8 @@ const script = read('scripts/bilibili-splash-response.js');
 const localReply = read('scripts/wechat-ad-response.js');
 // Resolver interception belongs to the shared module, alongside the other apps.
 assert.doesNotMatch(bili, /^(?:DOMAIN,httpdns\.bilivideo\.com|AND,.*191607)/m);
-const rule = bili.split('\n').find(l => l.startsWith('开屏素材失效 ='));
+// Retain checks for the previously published response helper, alongside the active expiry checks.
+const rule = bili.split('\n').find(l => l.startsWith('开屏响应兜底 ='));
 const pattern = compile(rule.split('pattern=')[1].split(', script-path=')[0]);
 function rewrite(url, body, withResponse = true) {
   let result;

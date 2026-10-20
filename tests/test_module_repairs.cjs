@@ -39,7 +39,7 @@ assert.deepEqual(rewrite(undefined), {});
 for (const module of ['Bilibili', 'AppleWeather', 'NeteaseCloudMusic']) {
   const text = read(`modules/${module}.sgmodule`);
   for (const line of text.split('\n').filter(l => l.includes('script-path='))) {
-    if (module === 'Bilibili' && (line.startsWith('开屏素材失效 =') || line.includes('/bilibili-startup-trace.js?'))) continue;
+    if (module === 'Bilibili' && (line.includes('/bilibili-splash-expire.js?') || line.includes('/bilibili-startup-trace.js?'))) continue;
     assert.match(line, /engine=webview/);
   }
 }
@@ -88,13 +88,13 @@ for (const endpoint of ['list', 'show', 'event/list2', 'brand/list']) {
   assert.equal(Number(response.headers['Content-Length']), Buffer.byteLength(response.body));
   assert.deepEqual(JSON.parse(response.body).data.list, []);
 }
-// New modules must let the real response reach the schedule filter.
-const splashRule = bili.split('\n').find(l => l.startsWith('开屏素材失效 ='));
+// Both phases use the same JSCore helper; the response backstop can replace the origin body.
+const splashRule = bili.split('\n').find(l => l.startsWith('开屏响应兜底 ='));
 assert.match(splashRule, /type=http-response/);
-assert.match(splashRule, /requires-body=true/);
-assert.match(splashRule, /bilibili-splash-response\.js\?v=20261018\.2,/);
+assert.match(splashRule, /requires-body=true, max-size=-1/);
+assert.match(splashRule, /bilibili-splash-expire\.js\?v=20261020\.3,/);
 assert.doesNotMatch(splashRule, /engine=webview/);
-assert(!bili.split('\n').some(l => l.includes('splash') && (l.includes('data-type=') || l.includes('type=http-request'))));
+assert(bili.split('\n').some(l => l.startsWith('开屏请求拦截 =') && l.includes('type=http-request')));
 const compatScript = read('scripts/bilibili-protobuf-compat.js');
 function runCompat(argument, cache = new Map(), status = 200) {
   let result;
