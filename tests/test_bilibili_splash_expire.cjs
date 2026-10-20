@@ -30,20 +30,12 @@ for (const endpoint of ['list', 'show', 'event/list2', 'brand/list', 'brand/conf
     else {
       for (const key of ['show', 'resources', 'keep_ids', 'preload', 'event_list']) assert.deepEqual(parsed.data[key], []);
       assert.equal(parsed.data.max_time, 0);
-      assert.equal(parsed.data.list.length, endpoint === 'list' ? 1 : 0);
-      if (endpoint === 'list') {
-        const retired = parsed.data.list[0];
-        assert.equal(retired.id, 1);
-        assert.equal(retired.duration, 0);
-        assert(retired.begin_time > 0 && retired.begin_time < retired.end_time && retired.end_time < 1000000000);
-        for (const key of ['thumb', 'hash', 'video_url', 'video_hash', 'logo_url', 'logo_hash', 'uri', 'schema', 'ad_cb']) assert.equal(retired[key], '');
-        for (const key of ['is_ad', 'is_topview', 'enable_pre_download', 'enable_background_download']) assert.equal(retired[key], false);
-      }
+      assert.deepEqual(parsed.data.list, []);
       assert.doesNotMatch(reply.body, /5380|5381|922337|123456|private-token|bili-expired-id/);
     }
     assert.doesNotMatch(logs.join(''), /5380|5381|922337|123456|private-token|access_key/);
-    assert.match(logs[0], /version=20261020\.4/);
-    assert.match(logs[0], endpoint === 'list' ? /list=1 schedules=0/ : /list=0 schedules=0/);
+    assert.match(logs[0], /version=20261020\.6/);
+    assert.match(logs[0], /list=0 schedules=0/);
   }
 }
 for (const url of ['https://app.bilibili.com/x/v2/feed/index', 'https://app.bilibili.com/x/v2/splash/list2', 'https://app.bilibili.com/x/v2/splash/brand/configuration', 'https://example.com/x/v2/splash/list']) {
@@ -70,11 +62,11 @@ const rules = moduleText.split('\n').filter(line => line.includes('/bilibili-spl
 assert.equal(rules.length, 2);
 for (const rule of rules) {
   assert.doesNotMatch(rule, /engine=webview|binary-body-mode=true/);
-  assert.match(rule, /v=20261020\.4/);
+  assert.match(rule, /v=20261020\.6/);
   if (rule.includes('type=http-request,')) assert.doesNotMatch(rule, /requires-body=true/);
   else assert.match(rule, /requires-body=true, max-size=-1/);
   const regex = new RegExp(rule.split('pattern=')[1].split(', script-path=')[0].replace(/^\(\?i\)/, ''), 'i');
   assert(regex.test('https://app.bilibili.com/x/v2/splash/list' + query));
   assert(!regex.test('https://app.bilibili.com/x/v2/feed/index'));
 }
-console.log('Bilibili splash inventory replacement checks passed');
+console.log('Bilibili empty splash response checks passed');

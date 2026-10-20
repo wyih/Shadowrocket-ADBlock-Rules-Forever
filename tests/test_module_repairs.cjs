@@ -92,7 +92,7 @@ for (const endpoint of ['list', 'show', 'event/list2', 'brand/list']) {
 const splashRule = bili.split('\n').find(l => l.startsWith('开屏响应兜底 ='));
 assert.match(splashRule, /type=http-response/);
 assert.match(splashRule, /requires-body=true, max-size=-1/);
-assert.match(splashRule, /bilibili-splash-expire\.js\?v=20261020\.4,/);
+assert.match(splashRule, /bilibili-splash-expire\.js\?v=20261020\.6,/);
 assert.doesNotMatch(splashRule, /engine=webview/);
 assert(bili.split('\n').some(l => l.startsWith('开屏请求拦截 =') && l.includes('type=http-request')));
 const compatScript = read('scripts/bilibili-protobuf-compat.js');

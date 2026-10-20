@@ -32,7 +32,7 @@
 ## 更新哔哩哔哩与闲鱼，配套共用模块
 
 - **共用拦截**：沿[原 HTTPDNS 订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/HTTPDNS.sgmodule)更新至 `20261018.2`，显示名称恢复“HTTPDNS拦截器”，规则恢复为合并前 `83e5a8c` 的版本。重新启用原“广告平台拦截器”和“可莉广告过滤器”，恢复原有 Map Local 处理。本模块继续置顶，保留解析拦截、闲鱼 AMDC 规则及两个阿里 HTTPS 解析 IP。
-- **哔哩哔哩**：当前模块 `20261020.5`、开屏 helper `.4`。用户关闭独立 DNS 模块、使用直连配置后，信息流恢复，仍出现闪退，继续核对启动处理。DNS 设置已并入白名单主配置，直连版保留原有加密 DNS，场景切换后不再受独立模块覆盖。路由器未修改；开屏去除和闪退继续排查，详见兼容性记录。
+- **哔哩哔哩**：当前模块及开屏 helper 均为 `20261020.6`。用户关闭独立 DNS 模块后信息流恢复，三次启动均在返回占位开屏清单后约 1.1–1.3 秒退出。此版撤掉虚构素材，改回空清单，保留其他过滤，手机闪退修复待验证。DNS 设置已并入白名单主配置，直连版保留原有加密 DNS；路由器未修改。开屏去除继续排查，详见兼容性记录。
 - **闲鱼**：先启用上述共用拦截器 `20261018.2`，再沿[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)更新至 `20261017.3`。已在手机验证的 AMDC 原生拒绝规则原样迁入共用模块，闲鱼模块移除重复条目，保留两个广告域名拦截、17 条 jq、10 条请求脚本及备用网关解密。不要同时启用两份闲鱼模块。
 - **共用传输层**：另外导入并启用[去广告传输兼容](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule)。只需一份，可供现有各 App 模块共用。它设置 `block-quic = all`，阻止 UDP/443 绕过 HTTPS 改写；不修改 DNS、证书或其他 UDP 端口。
 
@@ -44,7 +44,7 @@
 
 HTTPDNS 检查：`node tests/test_httpdns.cjs`。覆盖 IPv4/IPv6、端口、轮换解析地址、不同账户、AMDC 调度、原有嘀嗒例外及正常业务请求。详情见下方 HTTPDNS 说明。
 
-评论与动态检查：`node tests/test_bilibili_comments.cjs` 下载原作者固定版本的请求和响应包，验证评论的两种处理路径，以及动态商品卡、商品链接、多层转发、压缩响应、正常内容和未知字段保留。也可把两个包的本地路径依次作为参数传入，避免重复下载。兼容层地址为 `v=20261017.4`；动态过滤命中输出 `Bilibili dynamic: version=20261017.4 removed-commerce=1`。当前开屏清单替换脚本为 `20261020.4`，资源脚本仍为 `20261017.3`，素材请求脚本为 `20261017.5`。动态过滤已由手机两次各删除 3 条的日志确认。沿用原订阅入口更新模块，无须另装脚本；回滚素材处理可恢复提交 `654ddcf` 的 B 站模块和共享响应脚本。
+评论与动态检查：`node tests/test_bilibili_comments.cjs` 下载原作者固定版本的请求和响应包，验证评论的两种处理路径，以及动态商品卡、商品链接、多层转发、压缩响应、正常内容和未知字段保留。也可把两个包的本地路径依次作为参数传入，避免重复下载。兼容层地址为 `v=20261017.4`；动态过滤命中输出 `Bilibili dynamic: version=20261017.4 removed-commerce=1`。当前开屏空清单脚本为 `20261020.6`，资源脚本仍为 `20261017.3`，素材请求脚本为 `20261017.5`。动态过滤已由手机两次各删除 3 条的日志确认。沿用原订阅入口更新模块，无须另装脚本；回滚素材处理可恢复提交 `654ddcf` 的 B 站模块和共享响应脚本。
 
 ## Apple 天气
 
