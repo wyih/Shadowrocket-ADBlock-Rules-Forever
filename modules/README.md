@@ -32,7 +32,7 @@
 ## 更新哔哩哔哩与闲鱼，配套共用模块
 
 - **共用拦截**：沿[原 HTTPDNS 订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/HTTPDNS.sgmodule)更新至 `20261018.2`，显示名称恢复“HTTPDNS拦截器”，规则恢复为合并前 `83e5a8c` 的版本。重新启用原“广告平台拦截器”和“可莉广告过滤器”，恢复原有 Map Local 处理。本模块继续置顶，保留解析拦截、闲鱼 AMDC 规则及两个阿里 HTTPS 解析 IP。
-- **哔哩哔哩**：当前模块 `20261020.5`、开屏 helper `.4`。手机实测仍有开屏，并出现首页空白和闪退；这轮加载 `sr_direct_banad_tailscale`，正常服务因强制经代理的 DNS 路径超时而返回 no answer。`.5` 的开屏优先分流未消除等待；list 替换已执行两次，库存仍为 132。通过同手机直连 AliDNS/DNSPod 已验证有效解析，原生首页查询另取得 11 条正常内容。现先请用户暂时停用独立 DNS 模块，使用主配置原有 DoH 验证正常内容和闪退；开屏去除继续排查，详见兼容性记录。
+- **哔哩哔哩**：当前模块 `20261020.5`、开屏 helper `.4`。手机实测仍有开屏；信息流在流量下正常、Wi-Fi 下空白。切网日志确认同一代理节点在 Wi-Fi 下被系统 DNS 解析为虚拟地址，导致代理 DNS 超时。DNS 模块已补节点专用加密解析，保留业务查询经代理；手机应用后待验。流量下 list 替换同样已执行，开屏问题继续排查，详见兼容性记录。
 - **闲鱼**：先启用上述共用拦截器 `20261018.2`，再沿[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)更新至 `20261017.3`。已在手机验证的 AMDC 原生拒绝规则原样迁入共用模块，闲鱼模块移除重复条目，保留两个广告域名拦截、17 条 jq、10 条请求脚本及备用网关解密。不要同时启用两份闲鱼模块。
 - **共用传输层**：另外导入并启用[去广告传输兼容](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule)。只需一份，可供现有各 App 模块共用。它设置 `block-quic = all`，阻止 UDP/443 绕过 HTTPS 改写；不修改 DNS、证书或其他 UDP 端口。
 
@@ -153,7 +153,9 @@ ca-p12 = {{{证书内容}}}
 
 两份 `_tailscale.conf` 的默认 `dns-server` 是 `dns.alidns.com` 和 `doh.pub`，该模块启用后使用模块中的设置。它没有 Script Hub 更新地址，也没有转换脚本；Script Hub Beta 不参与这个模块的加载。
 
-2026-10-20 日志确认三个主 DoH 均使用同一默认代理节点且持续超时；更换备用地址不能恢复失效的代理线路。应保持 DNS 模块启用，修复或切换其使用的节点。该文件原无更新地址，手机现有本地模块需手动替换备用 DNS 一行；仓库修改不会自动进入手机。`1.0.0.1` 的 HTTPS 证书及 DNS wireformat 应答已通过同手机的可用转发线路验证，当前强制 DNS 代理路径的验收仍需切换节点后进行。
+2026-10-20 的 Wi-Fi→流量→Wi-Fi 对照确认三条主 DoH 使用同一节点：流量下连接节点真实地址、解析成功；Wi-Fi 下系统 DNS 返回 `198.18.1.132`，主、备解析均超时。现添加 `proxy-dns-server = https://223.5.5.5/dns-query`，只为节点域名提供独立的直连加密解析，先取得真实节点地址，再承载业务 DNS；三个主 DoH 和备用继续带 `#proxy`。该参数的节点解析用途见 [Shadowrocket 发布说明](https://t.me/ShadowrocketNews/932)，本机同版本解析器确认与主 DNS 使用同一地址解析函数。同手机当前 Wi-Fi 下对新增 IP HTTPS 地址的证书校验通过，节点域名应答与流量所得真实地址一致，耗时 0.231 秒。
+
+该文件原无更新地址，仓库发布不会自动替换手机本地模块。两种场景实际加载不同配置：Wi-Fi 为 `sr_direct_banad_tailscale`，流量为 `sr_top500_whitelist_ad_tailscale`；日志中仅 Wi-Fi 已改加密备用，流量仍载入旧 `8.8.4.4`。两份配置对应的 DNS 设置都需同步新增节点解析和加密备用，再重连 VPN 验证。回滚本轮节点解析修改只删除 `proxy-dns-server` 一行，保留加密备用。
 
 ## HTTPDNS 拦截器：通用合并回退
 
