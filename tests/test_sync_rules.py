@@ -69,8 +69,40 @@ class SyncRulesTests(unittest.TestCase):
         self.assertEqual(config.count("update-url ="), 1)
         expected_rules = "\n".join(sync_rules.RULES) + "\n" + source.split("[Rule]\n", 1)[1]
         self.assertEqual(config.split("[Rule]\n", 1)[1], expected_rules)
-        self.assertIn("dns-server = https://dns.alidns.com/dns-query", config)
+        self.assertIn("dns-server = https://dns.google/dns-query#proxy,", config)
         self.assertEqual(sync_rules.customize(config, PRIMARY), config)
+
+    def test_dns_module_settings_are_integrated_only_into_whitelist(self):
+        direct_name = sync_rules.CONFIGS["sr_direct_banad.conf"]
+        direct = sync_rules.customize(
+            UPSTREAM.replace("FINAL,PROXY", "FINAL,direct"), direct_name
+        )
+        whitelist = sync_rules.customize(UPSTREAM, PRIMARY)
+
+        def general(config):
+            section = config.split("[General]\n", 1)[1].split("[Rule]", 1)[0]
+            result = {}
+            for line in section.splitlines():
+                if "=" in line and not line.lstrip().startswith("#"):
+                    key, value = line.split("=", 1)
+                    key = key.strip()
+                    self.assertNotIn(key, result)
+                    result[key] = value.strip()
+            return result
+
+        plain, proxied = general(direct), general(whitelist)
+        self.assertEqual(plain["dns-server"], "https://dns.alidns.com/dns-query")
+        self.assertNotIn("fallback-dns-server", plain)
+        self.assertNotIn("proxy-dns-server", plain)
+        for key in ("dns-server", "fallback-dns-server"):
+            self.assertTrue(all(
+                server.startswith("https://") and server.endswith("/dns-query#proxy")
+                for server in proxied[key].split(",")
+            ))
+        self.assertEqual(proxied["proxy-dns-server"], "https://223.5.5.5/dns-query")
+        self.assertEqual(proxied["dns-direct-system"], "false")
+        self.assertEqual(proxied["hijack-dns"], "8.8.4.4:53")
+        self.assertEqual(sync_rules.customize(whitelist, PRIMARY), whitelist)
 
     def test_invalid_source_is_rejected(self):
         for source in (

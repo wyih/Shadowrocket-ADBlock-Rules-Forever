@@ -18,6 +18,24 @@ UPDATE_BASE = (
 TAILSCALE_ROUTES = ("100.64.0.0/10", "192.168.2.0/24", "192.168.55.0/24")
 NETWORKS = tuple(ipaddress.ip_network(route) for route in TAILSCALE_ROUTES)
 RULES = tuple(f"IP-CIDR,{route},TAILSCALE,no-resolve" for route in TAILSCALE_ROUTES)
+WHITELIST_GENERAL = {
+    "proxy-dns-server": "https://223.5.5.5/dns-query",
+    "dns-server": (
+        "https://dns.google/dns-query#proxy,"
+        "https://8.8.8.8/dns-query#proxy,"
+        "https://cloudflare-dns.com/dns-query#proxy"
+    ),
+    "fallback-dns-server": "https://1.0.0.1/dns-query#proxy",
+    "private-ip-answer": "false",
+    "bypass-system": "true",
+    "ipv6": "false",
+    "prefer-ipv6": "false",
+    "dns-direct-system": "false",
+    "dns-direct-fallback-proxy": "true",
+    "icmp-auto-reply": "false",
+    "always-reject-url-rewrite": "true",
+    "hijack-dns": "8.8.4.4:53",
+}
 
 
 def keep_bypass_entry(entry: str) -> bool:
@@ -32,6 +50,11 @@ def keep_bypass_entry(entry: str) -> bool:
 
 
 def customize(source: str, filename: str) -> str:
+    settings = (
+        WHITELIST_GENERAL
+        if filename == CONFIGS["sr_top500_whitelist_ad.conf"]
+        else {}
+    )
     lines = source.splitlines(keepends=True)
     sections = [line.strip() for line in lines if line.strip().startswith("[")]
     if sections.count("[General]") != 1 or sections.count("[Rule]") != 1:
@@ -49,6 +72,7 @@ def customize(source: str, filename: str) -> str:
             output.append(line)
             if section == "[General]":
                 output.append(f"update-url = {UPDATE_BASE}/{filename}\n")
+                output.extend(f"{key} = {value}\n" for key, value in settings.items())
             elif section == "[Rule]":
                 output.extend(rule + "\n" for rule in RULES)
             continue
@@ -57,7 +81,7 @@ def customize(source: str, filename: str) -> str:
             match = re.match(r"\s*([\w-]+)\s*=\s*(.*)", line)
             if match:
                 key, value = match.groups()
-                if key == "update-url":
+                if key == "update-url" or key in settings:
                     continue
                 if key in ("skip-proxy", "bypass-tun", "tun-excluded-routes"):
                     entries = [entry.strip() for entry in value.split(",")]

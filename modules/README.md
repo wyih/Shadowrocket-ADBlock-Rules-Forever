@@ -17,7 +17,7 @@
 | 腾讯视频首页广告修复版 | [`TencentVideo.sgmodule`](TencentVideo.sgmodule) |
 | 微信公众号文章广告修复版 | [`WeChatOfficialAccounts.sgmodule`](WeChatOfficialAccounts.sgmodule) |
 | 微信小程序规则与依赖修复版 | [`WeChatMiniPrograms.sgmodule`](WeChatMiniPrograms.sgmodule) |
-| 自己的 DNS 模块 | [`DNS.sgmodule`](DNS.sgmodule) |
+| DNS 旧模块（已并入白名单，无需启用） | [`DNS.sgmodule`](DNS.sgmodule) |
 | MITM Keep Enabled 通用参数模板 | [`MITM-Keep-Enabled.sgmodule`](MITM-Keep-Enabled.sgmodule) |
 | Script Hub Beta | 官方仓库，见下方依赖说明 |
 
@@ -32,7 +32,7 @@
 ## 更新哔哩哔哩与闲鱼，配套共用模块
 
 - **共用拦截**：沿[原 HTTPDNS 订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/HTTPDNS.sgmodule)更新至 `20261018.2`，显示名称恢复“HTTPDNS拦截器”，规则恢复为合并前 `83e5a8c` 的版本。重新启用原“广告平台拦截器”和“可莉广告过滤器”，恢复原有 Map Local 处理。本模块继续置顶，保留解析拦截、闲鱼 AMDC 规则及两个阿里 HTTPS 解析 IP。
-- **哔哩哔哩**：当前模块 `20261020.5`、开屏 helper `.4`。手机实测仍有开屏；信息流在流量下正常、Wi-Fi 下空白并退出。新增节点专用加密解析已在手机生效，节点取得真实地址，业务 DNS 仍超时。后续抓到家中 OpenClash 将手机到节点的连接再次交给同一节点代理；绕开此转发后，同节点加密 DNS 查询成功。已准备仅匹配该手机到当前节点端口的直连例外，路由器变更待用户授权。流量下 list 替换同样已执行，开屏问题继续排查，详见兼容性记录。
+- **哔哩哔哩**：当前模块 `20261020.5`、开屏 helper `.4`。用户关闭独立 DNS 模块、使用直连配置后，信息流恢复，仍出现闪退，继续核对启动处理。DNS 设置已并入白名单主配置，直连版保留原有加密 DNS，场景切换后不再受独立模块覆盖。路由器未修改；开屏去除和闪退继续排查，详见兼容性记录。
 - **闲鱼**：先启用上述共用拦截器 `20261018.2`，再沿[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)更新至 `20261017.3`。已在手机验证的 AMDC 原生拒绝规则原样迁入共用模块，闲鱼模块移除重复条目，保留两个广告域名拦截、17 条 jq、10 条请求脚本及备用网关解密。不要同时启用两份闲鱼模块。
 - **共用传输层**：另外导入并启用[去广告传输兼容](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule)。只需一份，可供现有各 App 模块共用。它设置 `block-quic = all`，阻止 UDP/443 绕过 HTTPS 改写；不修改 DNS、证书或其他 UDP 端口。
 
@@ -149,15 +149,11 @@ ca-p12 = {{{证书内容}}}
 
 ## DNS
 
-[`DNS.sgmodule`](DNS.sgmodule) 按用户的防泄露要求保留三个带 `#proxy` 的主 DoH，将原明文备用 `8.8.4.4` 改为 `https://1.0.0.1/dns-query#proxy`。`dns-direct-system=false` 及其余设置保留；主、备查询都要求经代理，失败时不通过此配置切换到明文备用。原 DNS 劫持条目继续截获发往 `8.8.4.4:53` 的请求，不代表模块主动使用它解析。
+原 [`DNS.sgmodule`](DNS.sgmodule) 的全部 `[General]` 设置已并入外出场景使用的 [`sr_top500_whitelist_ad_tailscale.conf`](../sr_top500_whitelist_ad_tailscale.conf)：三个主 DoH 与备用 `https://1.0.0.1/dns-query#proxy` 继续经代理，节点域名单独通过 `https://223.5.5.5/dns-query` 加密解析。`dns-direct-system=false`、DNS 劫持和其他原模块设置一并保留。生成脚本会在每次同步上游时保留这些个人设置。
 
-两份 `_tailscale.conf` 的默认 `dns-server` 是 `dns.alidns.com` 和 `doh.pub`，该模块启用后使用模块中的设置。它没有 Script Hub 更新地址，也没有转换脚本；Script Hub Beta 不参与这个模块的加载。
+家中、办公室 Wi-Fi 使用的 [`sr_direct_banad_tailscale.conf`](../sr_direct_banad_tailscale.conf) 保持原有 AliDNS/DNSPod 加密直连解析，未合入代理 DNS 设置。手机先更新白名单主配置，再停用原独立 DNS 模块并重连 VPN；之后随场景自动使用对应 DNS。旧模块文件仅作历史副本，无需导入或保持开启。
 
-2026-10-20 的 Wi-Fi→流量→Wi-Fi 对照确认三条主 DoH 使用同一节点：流量下连接节点真实地址、解析成功；Wi-Fi 下系统 DNS 返回 `198.18.1.132`，主、备解析均超时。现添加 `proxy-dns-server = https://223.5.5.5/dns-query`，只为节点域名提供独立的直连加密解析，先取得真实节点地址，再承载业务 DNS；三个主 DoH 和备用继续带 `#proxy`。该参数的节点解析用途见 [Shadowrocket 发布说明](https://t.me/ShadowrocketNews/932)，本机同版本解析器确认与主 DNS 使用同一地址解析函数。同手机当前 Wi-Fi 下对新增 IP HTTPS 地址的证书校验通过，节点域名应答与流量所得真实地址一致，耗时 0.231 秒。
-
-该文件原无更新地址，仓库发布不会自动替换手机本地模块。两种场景实际加载不同配置：Wi-Fi 为 `sr_direct_banad_tailscale`，流量为 `sr_top500_whitelist_ad_tailscale`；日志中仅 Wi-Fi 已改加密备用，流量仍载入旧 `8.8.4.4`。两份配置对应的 DNS 设置都需同步新增节点解析和加密备用，再重连 VPN 验证。回滚本轮节点解析修改只删除 `proxy-dns-server` 一行，保留加密备用。
-
-用户应用后，14:41 日志确认新增节点解析正常、已连接真实节点地址，主/备 DNS 仍无应答；单改引导解析未恢复首页。家中 OpenClash 的连接 API 实测将手机到节点的 TCP 流量交给同一节点代理，受控 TLS 请求只有上行并超时。保留同一 REALITY 节点、认证和目标 DoH，改用 SSH 转发绕开此透明代理后，0.304 秒获得 HTTP 200、rcode=0、9 个答案。已准备一条仅匹配手机源地址、当前节点地址和端口的 DIRECT 例外，并通过 Mihomo 原生解析检查；尚未修改路由器。OpenClash 自定义规则开关当前为关闭，不能直接开启它而同时激活原有 26 条规则。
+此前独立模块覆盖直连场景，强制 DNS 查询经手机节点，Wi-Fi 下又被家中透明代理再次转发。用户明确要求保留两份场景配置、禁止修改路由器；本次在主配置内解决覆盖问题。直连 DNS 通路已通过同手机 HTTPS 证书及有效应答验证，用户停用模块后确认 B 站信息流恢复；仍有闪退，另查启动改写。回滚本轮合并可恢复白名单配置和生成脚本至 `2f9b736`。
 
 ## HTTPDNS 拦截器：通用合并回退
 

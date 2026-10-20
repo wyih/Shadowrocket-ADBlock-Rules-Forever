@@ -14,6 +14,8 @@
 
 两份定制版的 `update-url` 指向各自的新地址。白名单版保持上游的默认代理策略；直连版保持上游的默认直连策略。手机现有 Rule 场景应引用对应的定制版，并启用 Shadowrocket 的 Tailscale 模块及「使用 Tailscale 子网」。
 
+外出使用的白名单版已内置原 DNS 模块的全部设置：业务主、备 DoH 经代理，节点域名单独使用加密解析。家中、办公室 Wi-Fi 使用的直连版保留原有 AliDNS/DNSPod 加密直连解析。更新白名单配置后停用独立 DNS 模块，再重连 VPN；DNS 设置随场景切换。
+
 ## 自动同步
 
 [Sync fork and generate Tailscale configs](https://github.com/wyih/Shadowrocket-ADBlock-Rules-Forever/actions/workflows/tailscale.yml) 在每小时第 17 分钟运行，也支持手动运行：
@@ -28,7 +30,7 @@ GitHub 定时任务可能延迟。仓库发布更新后，手机仍需在 Shadow
 
 ## 个人模块
 
-[`modules/`](modules/README.md) 维护小红书（RedNote）修复版、现有 DNS 模块，以及 [`MITM Keep Enabled 通用参数模板`](modules/MITM-Keep-Enabled.sgmodule)。通过 Shadowrocket 的“编辑参数”填写自己的证书和密码，公共模板不含真实证书或密码。Script Hub Beta 直接使用官方模块，说明中记录依赖地址。自动同步只生成两份 `_tailscale.conf`，保留这些模块。
+[`modules/`](modules/README.md) 维护小红书（RedNote）修复版，以及 [`MITM Keep Enabled 通用参数模板`](modules/MITM-Keep-Enabled.sgmodule)。DNS 旧模块保留为历史副本，新配置无需启用。通过 Shadowrocket 的“编辑参数”填写自己的证书和密码，公共模板不含真实证书或密码。Script Hub Beta 直接使用官方模块，说明中记录依赖地址。自动同步只生成两份 `_tailscale.conf`，保留这些模块。
 
 ## 个人规则
 
