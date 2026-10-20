@@ -28,36 +28,44 @@ for (const endpoint of ['list', 'show', 'event/list2', 'brand/list', 'brand/conf
     }
     if (endpoint === 'brand/config') assert.deepEqual(parsed.data, {});
     else {
-      for (const key of ['list', 'keep_ids', 'preload', 'event_list']) assert.deepEqual(parsed.data[key], []);
-      assert.equal(parsed.data.show.length, 3);
-      for (const schedule of parsed.data.show) assert(schedule.stime > 0 && schedule.etime < 1000000000 && schedule.stime < schedule.etime);
-      assert.match(reply.body, /"id":9223372036854775807,/);
-      assert.doesNotMatch(reply.body, /123456|private-token|bili-expired-id/);
+      for (const key of ['show', 'resources', 'keep_ids', 'preload', 'event_list']) assert.deepEqual(parsed.data[key], []);
+      assert.equal(parsed.data.max_time, 0);
+      assert.equal(parsed.data.list.length, endpoint === 'list' ? 1 : 0);
+      if (endpoint === 'list') {
+        const retired = parsed.data.list[0];
+        assert.equal(retired.id, 1);
+        assert.equal(retired.duration, 0);
+        assert(retired.begin_time > 0 && retired.begin_time < retired.end_time && retired.end_time < 1000000000);
+        for (const key of ['thumb', 'hash', 'video_url', 'video_hash', 'logo_url', 'logo_hash', 'uri', 'schema', 'ad_cb']) assert.equal(retired[key], '');
+        for (const key of ['is_ad', 'is_topview', 'enable_pre_download', 'enable_background_download']) assert.equal(retired[key], false);
+      }
+      assert.doesNotMatch(reply.body, /5380|5381|922337|123456|private-token|bili-expired-id/);
     }
     assert.doesNotMatch(logs.join(''), /5380|5381|922337|123456|private-token|access_key/);
-    assert.match(logs[0], endpoint === 'brand/config' ? /schedules=0 id_limit=false/ : /schedules=3 id_limit=false/);
+    assert.match(logs[0], /version=20261020\.4/);
+    assert.match(logs[0], endpoint === 'list' ? /list=1 schedules=0/ : /list=0 schedules=0/);
   }
 }
 for (const url of ['https://app.bilibili.com/x/v2/feed/index', 'https://app.bilibili.com/x/v2/splash/list2', 'https://app.bilibili.com/x/v2/splash/brand/configuration', 'https://example.com/x/v2/splash/list']) {
   assert.deepEqual(run(url).result, {});
 }
 assert.deepEqual(run('https://app.bilibili.com/x/v2/splash/list', 'other').result, {});
-assert.deepEqual(JSON.parse(run('https://app.bilibili.com/x/v2/splash/list').reply.body).data.show, []);
-const invalid = run('https://app.bilibili.com/x/v2/splash/list?loaded_creative_list=%22%7D%5D%7D%2C0001%2C-2%2C1.2%2C0%2C99999999999999999999');
-assert.deepEqual(JSON.parse(invalid.reply.body).data.show, []);
-assert.deepEqual(JSON.parse(run('https://app.bilibili.com/x/v2/splash/list?loaded_creative_list=%zz&topview_ids=5380').reply.body).data.show.map(x => x.id), [5380]);
-const many = run('https://app.bilibili.com/x/v2/splash/list?loaded_creative_list=' + Array.from({ length: 300 }, (_, i) => i + 1).join(',') + '&topview_ids=9999');
-assert.equal(JSON.parse(many.reply.body).data.show.length, 256);
-assert.equal(JSON.parse(many.reply.body).data.show[0].id, 9999);
-assert.match(many.logs[0], /id_limit=true/);
+// Neither malformed, secret-bearing nor very large ID inventories can become new schedules.
+const canonical = run('https://app.bilibili.com/x/v2/splash/list').reply.body;
+for (const suffix of [query, '?loaded_creative_list=%zz&topview_ids=5380',
+  '?loaded_creative_list=%22%7D%5D%7D%2C0001%2C-2%2C1.2%2C0%2C99999999999999999999',
+  '?loaded_creative_list=' + Array.from({ length: 300 }, (_, i) => i + 1).join(',')]) {
+  assert.equal(run('https://app.bilibili.com/x/v2/splash/list' + suffix).reply.body, canonical);
+}
 const rules = moduleText.split('\n').filter(line => line.includes('/bilibili-splash-expire.js?'));
 assert.equal(rules.length, 2);
 for (const rule of rules) {
   assert.doesNotMatch(rule, /engine=webview|binary-body-mode=true/);
+  assert.match(rule, /v=20261020\.4/);
   if (rule.includes('type=http-request,')) assert.doesNotMatch(rule, /requires-body=true/);
   else assert.match(rule, /requires-body=true, max-size=-1/);
   const regex = new RegExp(rule.split('pattern=')[1].split(', script-path=')[0].replace(/^\(\?i\)/, ''), 'i');
   assert(regex.test('https://app.bilibili.com/x/v2/splash/list' + query));
   assert(!regex.test('https://app.bilibili.com/x/v2/feed/index'));
 }
-console.log('Bilibili splash expiry checks passed');
+console.log('Bilibili splash inventory replacement checks passed');

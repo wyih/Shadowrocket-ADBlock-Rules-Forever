@@ -32,7 +32,7 @@
 ## 更新哔哩哔哩与闲鱼，配套共用模块
 
 - **共用拦截**：沿[原 HTTPDNS 订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/HTTPDNS.sgmodule)更新至 `20261018.2`，显示名称恢复“HTTPDNS拦截器”，规则恢复为合并前 `83e5a8c` 的版本。重新启用原“广告平台拦截器”和“可莉广告过滤器”，恢复原有 Map Local 处理。本模块继续置顶，保留解析拦截、闲鱼 AMDC 规则及两个阿里 HTTPS 解析 IP。
-- **哔哩哔哩**：`20261020.3` 为过期排期验证版。用户确认断网后仍能看到广告；11:03 日志另有 show 域名解析超时、list 返回前连接关闭。新版在请求阶段直接返回空素材列表，并将 `topview_ids`、`loaded_creative_list` 中的编号逐项写入已过期的 `show[].stime/etime`，尝试让已有展示记录失效；保留响应阶段兜底及 `20261020.2` 启动诊断。真实请求的 132 个编号已在本机 Apple JavaScriptCore 验证，客户端是否接受该排期仍待手机联网启动验证。沿原订阅更新并重连 VPN；回滚恢复 `228157e` 的 B 站模块。
+- **哔哩哔哩**：`20261020.4` 改为用一条无素材、无跳转链接、已过期的占位记录替换商业开屏清单，同时清空保留项和展示排期。`.3` 在新日志中执行 19 次仍有广告，库存始终 132；复查旧 Task 并读取公开 iOS 8.89 客户端后，发现空 list 会直接跳过本地清单更新。本版针对该分支保留非空 list，手机 9.15 是否接受替换仍待验证。四项回归检查通过，本机 Apple JavaScriptCore 的真实请求验证两个阶段均为 488 字节。沿原订阅更新并重连 VPN，先联网打开再检查后续冷、热启动；回滚恢复 `215d428` 的 B 站模块和 helper。
 - **闲鱼**：先启用上述共用拦截器 `20261018.2`，再沿[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)更新至 `20261017.3`。已在手机验证的 AMDC 原生拒绝规则原样迁入共用模块，闲鱼模块移除重复条目，保留两个广告域名拦截、17 条 jq、10 条请求脚本及备用网关解密。不要同时启用两份闲鱼模块。
 - **共用传输层**：另外导入并启用[去广告传输兼容](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule)。只需一份，可供现有各 App 模块共用。它设置 `block-quic = all`，阻止 UDP/443 绕过 HTTPS 改写；不修改 DNS、证书或其他 UDP 端口。
 
@@ -44,7 +44,7 @@
 
 HTTPDNS 检查：`node tests/test_httpdns.cjs`。覆盖 IPv4/IPv6、端口、轮换解析地址、不同账户、AMDC 调度、原有嘀嗒例外及正常业务请求。详情见下方 HTTPDNS 说明。
 
-评论与动态检查：`node tests/test_bilibili_comments.cjs` 下载原作者固定版本的请求和响应包，验证评论的两种处理路径，以及动态商品卡、商品链接、多层转发、压缩响应、正常内容和未知字段保留。也可把两个包的本地路径依次作为参数传入，避免重复下载。兼容层地址为 `v=20261017.4`；动态过滤命中输出 `Bilibili dynamic: version=20261017.4 removed-commerce=1`。当前开屏排期脚本为 `20261020.3`，资源脚本仍为 `20261017.3`，素材请求脚本为 `20261017.5`。动态过滤已由手机两次各删除 3 条的日志确认。沿用原订阅入口更新模块，无须另装脚本；回滚素材处理可恢复提交 `654ddcf` 的 B 站模块和共享响应脚本。
+评论与动态检查：`node tests/test_bilibili_comments.cjs` 下载原作者固定版本的请求和响应包，验证评论的两种处理路径，以及动态商品卡、商品链接、多层转发、压缩响应、正常内容和未知字段保留。也可把两个包的本地路径依次作为参数传入，避免重复下载。兼容层地址为 `v=20261017.4`；动态过滤命中输出 `Bilibili dynamic: version=20261017.4 removed-commerce=1`。当前开屏清单替换脚本为 `20261020.4`，资源脚本仍为 `20261017.3`，素材请求脚本为 `20261017.5`。动态过滤已由手机两次各删除 3 条的日志确认。沿用原订阅入口更新模块，无须另装脚本；回滚素材处理可恢复提交 `654ddcf` 的 B 站模块和共享响应脚本。
 
 ## Apple 天气
 
