@@ -66,6 +66,32 @@ assert.equal(run('other', fixture).logs.length, 0);
 // A public URL crossing a scan block is captured once, with bounded samples.
 const crossing = frame(' '.repeat(4080) + 'https://i0.hdslb.com/bfs/sycp_brand/img/test.webp?secret=private');
 assert.match(run('response', crossing).logs[0], /sycp_brand\/img\/test\.webp/);
+function bytesField(number, value) {
+  const bytes = Buffer.from(value), length = []; let n = bytes.length;
+  do { length.push((n & 127) | (n > 127 ? 128 : 0)); n >>>= 7; } while (n);
+  return Buffer.concat([Buffer.from([number * 8 + 2, ...length]), bytes]);
+}
+const inner = bytesField(2, gzipSync(fixture.subarray(5)));
+const envelope = bytesField(1, inner);
+const nested = run('response', frame(gzipSync(envelope), 1));
+assert.match(nested.logs[0], /fields=\["1:2:\d+","1.2:2:\d+"\]/);
+assert.match(nested.logs[0], /formats=\["1.2:gzip:\d+"\]/);
+assert.match(nested.logs[0], /nested_decoded=\d+ nested_failures=0 inspect_limit=false/);
+assert.match(nested.logs[0], /i0\.hdslb\.com\/bfs\/sycp\/img\/test\.webp/);
+assert.doesNotMatch(nested.logs.join(''), /private-|token=|access_key=/);
+assert.match(run('response', frame(bytesField(1, Buffer.from([31, 139, 1])))).logs[0], /nested_failures=1/);
+const json = frame('{"splash":"private-account","payload":"private-value","ad_info":{},"rpc":"bilibili.app.resource.v1.Module/List"}');
+const jsonTrace = run('response', json).logs[0];
+assert.match(jsonTrace, /rpcs=\["bilibili.app.resource.v1.Module\/List"\]/);
+assert.match(jsonTrace, /markers=\["splash","ad_info"\]/);
+assert.match(jsonTrace, /formats=\[":json-like:\d+"\]/);
+assert.doesNotMatch(jsonTrace, /private-|payload/);
+assert.match(run('response', frame('H4sIprivate-value')).logs[0], /base64-gzip-like:/);
+assert.match(run('response', frame(Buffer.from([120, 156, 1, 2]))).logs[0], /zlib-like:/);
+assert.match(run('response', frame(Buffer.from([10, 255, 255, 255, 255, 127]))).logs[0], /fields=\[\]/);
+const many = frame(Buffer.concat(Array.from({ length: 65 }, () => bytesField(1, 'private-field'))));
+assert.match(run('response', many).logs[0], /inspect_limit=true/);
+assert.doesNotMatch(run('response', many).logs[0], /private-field/);
 const rules = moduleText.split('\n').filter(line => line.includes('/bilibili-startup-trace.js?'));
 assert.equal(rules.length, 2);
 for (const rule of rules) {

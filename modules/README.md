@@ -32,7 +32,7 @@
 ## 更新哔哩哔哩与闲鱼，配套共用模块
 
 - **共用拦截**：沿[原 HTTPDNS 订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/HTTPDNS.sgmodule)更新至 `20261018.2`，显示名称恢复“HTTPDNS拦截器”，规则恢复为合并前 `83e5a8c` 的版本。重新启用原“广告平台拦截器”和“可莉广告过滤器”，恢复原有 Map Local 处理。本模块继续置顶，保留解析拦截、闲鱼 AMDC 规则及两个阿里 HTTPS 解析 IP。
-- **哔哩哔哩**：`20261020.1` 修正来源诊断的压缩读取，保留 `20261018.3` 的全部过滤。10 月 20 日日志已执行 `20261019.1` 诊断，但启动合并接口的五组请求、响应仍是压缩帧，旧脚本跳过了正文。新版使用 Shadowrocket 原生 gzip 解压后记录公共开屏 API 和素材路径，并输出解压字节数、失败计数；原请求头和正文均原样传递。该诊断用于确认启动合并接口是否另行下发开屏内容。沿原订阅更新即可，不需要新增模块。
+- **哔哩哔哩**：`20261020.2` 补充启动合并响应的内部结构诊断。10:50–10:51 的两轮启动已确认原生 gzip 解压成功，每轮响应解出 33,318 字节，当前素材路径样本为空；开屏列表清空时连接仍存在，全段无内存告急。新版记录 protobuf 字段编号、类型、长度、固定开屏关键词和公共 RPC 名称，并检查字段内部的 gzip；仅输出限量结构和公共路径。原过滤、请求头和正文均保留。沿原订阅更新即可。
 - **闲鱼**：先启用上述共用拦截器 `20261018.2`，再沿[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)更新至 `20261017.3`。已在手机验证的 AMDC 原生拒绝规则原样迁入共用模块，闲鱼模块移除重复条目，保留两个广告域名拦截、17 条 jq、10 条请求脚本及备用网关解密。不要同时启用两份闲鱼模块。
 - **共用传输层**：另外导入并启用[去广告传输兼容](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule)。只需一份，可供现有各 App 模块共用。它设置 `block-quic = all`，阻止 UDP/443 绕过 HTTPS 改写；不修改 DNS、证书或其他 UDP 端口。
 
