@@ -32,7 +32,7 @@
 ## 更新哔哩哔哩与闲鱼，配套共用模块
 
 - **共用拦截**：沿[原 HTTPDNS 订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/HTTPDNS.sgmodule)更新至 `20261018.2`，显示名称恢复“HTTPDNS拦截器”，规则恢复为合并前 `83e5a8c` 的版本。重新启用原“广告平台拦截器”和“可莉广告过滤器”，恢复原有 Map Local 处理。本模块继续置顶，保留解析拦截、闲鱼 AMDC 规则及两个阿里 HTTPS 解析 IP。
-- **哔哩哔哩**：`20261020.4` 改为用一条无素材、无跳转链接、已过期的占位记录替换商业开屏清单，同时清空保留项和展示排期。`.3` 在新日志中执行 19 次仍有广告，库存始终 132；复查旧 Task 并读取公开 iOS 8.89 客户端后，发现空 list 会直接跳过本地清单更新。本版针对该分支保留非空 list，手机 9.15 是否接受替换仍待验证。四项回归检查通过，本机 Apple JavaScriptCore 的真实请求验证两个阶段均为 488 字节。沿原订阅更新并重连 VPN，先联网打开再检查后续冷、热启动；回滚恢复 `215d428` 的 B 站模块和 helper。
+- **哔哩哔哩**：`20261020.5` 为五个开屏专用接口添加优先 DIRECT 分流，避免 HTTP/2 在执行请求脚本前，先被主配置的 IP 规则拖入 DNS 等待。手机原生三次 list 仅存活约 54–60 毫秒，均未执行清单替换；同一真实请求经手机代理重放，HTTP/1.1 为 0.069 秒、H2 为 5.172 秒。继续使用 `.4` 的无素材过期占位清单和原脚本缓存，尚需手机确认优先规则命中后 H2 延迟下降、库存更新与开屏消失。普通 B 站请求分流不变。沿原订阅更新模块并重连 VPN；回滚本次分流可恢复 `1e1ff65` 的 B 站模块。
 - **闲鱼**：先启用上述共用拦截器 `20261018.2`，再沿[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)更新至 `20261017.3`。已在手机验证的 AMDC 原生拒绝规则原样迁入共用模块，闲鱼模块移除重复条目，保留两个广告域名拦截、17 条 jq、10 条请求脚本及备用网关解密。不要同时启用两份闲鱼模块。
 - **共用传输层**：另外导入并启用[去广告传输兼容](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule)。只需一份，可供现有各 App 模块共用。它设置 `block-quic = all`，阻止 UDP/443 绕过 HTTPS 改写；不修改 DNS、证书或其他 UDP 端口。
 

@@ -57,6 +57,15 @@ for (const suffix of [query, '?loaded_creative_list=%zz&topview_ids=5380',
   '?loaded_creative_list=' + Array.from({ length: 300 }, (_, i) => i + 1).join(',')]) {
   assert.equal(run('https://app.bilibili.com/x/v2/splash/list' + suffix).reply.body, canonical);
 }
+// The early route is limited to the same five ad APIs, preserving other routing.
+const earlyRoute = moduleText.split('\n').find(line => line.startsWith('URL-REGEX,'));
+assert(earlyRoute.endsWith(',DIRECT'));
+const routePattern = new RegExp(earlyRoute.split('"')[1].replace(/^\(\?i\)/, ''), 'i');
+for (const endpoint of ['list', 'show', 'event/list2', 'brand/list', 'brand/config']) {
+  assert(routePattern.test('https://app.bilibili.com/x/v2/splash/' + endpoint));
+  assert(routePattern.test('https://app.bilibili.com/x/v2/splash/' + endpoint + query));
+}
+for (const url of ['https://app.bilibili.com/x/v2/feed/index', 'https://app.bilibili.com/x/v2/splash/list2', 'https://app.bilibili.com/x/v2/splash/brand/configuration', 'https://example.com/x/v2/splash/list']) assert(!routePattern.test(url));
 const rules = moduleText.split('\n').filter(line => line.includes('/bilibili-splash-expire.js?'));
 assert.equal(rules.length, 2);
 for (const rule of rules) {
