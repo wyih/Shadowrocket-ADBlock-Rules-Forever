@@ -32,7 +32,7 @@
 ## 更新哔哩哔哩与闲鱼，配套共用模块
 
 - **共用拦截**：沿[原 HTTPDNS 订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/HTTPDNS.sgmodule)更新至 `20261018.2`，显示名称恢复“HTTPDNS拦截器”，规则恢复为合并前 `83e5a8c` 的版本。重新启用原“广告平台拦截器”和“可莉广告过滤器”，恢复原有 Map Local 处理。本模块继续置顶，保留解析拦截、闲鱼 AMDC 规则及两个阿里 HTTPS 解析 IP。
-- **哔哩哔哩**：`20261020.5` 为五个开屏专用接口添加优先 DIRECT 分流，避免 HTTP/2 在执行请求脚本前，先被主配置的 IP 规则拖入 DNS 等待。手机原生三次 list 仅存活约 54–60 毫秒，均未执行清单替换；同一真实请求经手机代理重放，HTTP/1.1 为 0.069 秒、H2 为 5.172 秒。继续使用 `.4` 的无素材过期占位清单和原脚本缓存，尚需手机确认优先规则命中后 H2 延迟下降、库存更新与开屏消失。普通 B 站请求分流不变。沿原订阅更新模块并重连 VPN；回滚本次分流可恢复 `1e1ff65` 的 B 站模块。
+- **哔哩哔哩**：当前模块 `20261020.5`、开屏 helper `.4`。手机实测仍有开屏，并出现首页空白和闪退；这轮加载 `sr_direct_banad_tailscale`，正常服务因强制经代理的 DNS 路径超时而返回 no answer。`.5` 的开屏优先分流未消除等待；list 替换已执行两次，库存仍为 132。通过同手机直连 AliDNS/DNSPod 已验证有效解析，原生首页查询另取得 11 条正常内容。现先请用户暂时停用独立 DNS 模块，使用主配置原有 DoH 验证正常内容和闪退；开屏去除继续排查，详见兼容性记录。
 - **闲鱼**：先启用上述共用拦截器 `20261018.2`，再沿[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)更新至 `20261017.3`。已在手机验证的 AMDC 原生拒绝规则原样迁入共用模块，闲鱼模块移除重复条目，保留两个广告域名拦截、17 条 jq、10 条请求脚本及备用网关解密。不要同时启用两份闲鱼模块。
 - **共用传输层**：另外导入并启用[去广告传输兼容](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule)。只需一份，可供现有各 App 模块共用。它设置 `block-quic = all`，阻止 UDP/443 绕过 HTTPS 改写；不修改 DNS、证书或其他 UDP 端口。
 
