@@ -30,6 +30,12 @@
 
 验证完成后已关闭诊断页“允许访问”和临时启用的日志记录；本地调试服务已停止。网易云、腾讯视频和爱奇艺的验证仍限于所列依赖、规则与运行环境，未逐项实测客户端广告位。
 
+## 场景 DNS 与 WebRTC（2026-10-20）
+
+15:41:40 的流量场景加载白名单配置，15:41:47 的原生 UDP 规则记录显示，Blackberry STUN 命中 `DOMAIN-SUFFIX,blackberry.com,DIRECT`，Cloudflare STUN 命中 `DOMAIN-SUFFIX,cloudflare.com,DIRECT`；Twilio、Google STUN 走代理。DNS 查询已走代理 DoH，但前两条 STUN 连接另行直连，与用户测试出现真实出口一致。白名单增加两个精确 STUN 域名的优先代理规则，保留对应公司其他域名原有分流。用户确认直连版没有 WebRTC 泄露，该版分流保持。
+
+15:42:21 切回 Wi-Fi 直连配置后，仍创建 AliDNS/DNSPod DoH 并收到应答。用户确认同 Wi-Fi 的笔记本 DNS 测试正常，要求手机也自动获取 DNS。直连主、备 DNS 均改为 `system`，与本机 Shadowrocket 内置 `default.conf` 的系统 DNS 写法一致；白名单保留原有代理 DNS。生成脚本固定两场景差异，独立 DNS 模块继续关闭，B 站 `.6` 保留。手机须更新两份配置、重连 VPN 后复测。回滚本轮可恢复 `3f16b19` 的两份配置与生成脚本。
+
 ## 哔哩哔哩启动广告修复记录
 
 ### `.6` 首轮实机：未再闪退，未见开屏（2026-10-20）

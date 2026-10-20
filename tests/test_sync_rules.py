@@ -67,7 +67,7 @@ class SyncRulesTests(unittest.TestCase):
         config = sync_rules.customize(source, PRIMARY)
         self.assertIn(f"update-url = {sync_rules.UPDATE_BASE}/{PRIMARY}\n", config)
         self.assertEqual(config.count("update-url ="), 1)
-        expected_rules = "\n".join(sync_rules.RULES) + "\n" + source.split("[Rule]\n", 1)[1]
+        expected_rules = "\n".join(sync_rules.RULES + sync_rules.WHITELIST_RULES) + "\n" + source.split("[Rule]\n", 1)[1]
         self.assertEqual(config.split("[Rule]\n", 1)[1], expected_rules)
         self.assertIn("dns-server = https://dns.google/dns-query#proxy,", config)
         self.assertEqual(sync_rules.customize(config, PRIMARY), config)
@@ -91,8 +91,8 @@ class SyncRulesTests(unittest.TestCase):
             return result
 
         plain, proxied = general(direct), general(whitelist)
-        self.assertEqual(plain["dns-server"], "https://dns.alidns.com/dns-query")
-        self.assertNotIn("fallback-dns-server", plain)
+        self.assertEqual(plain["dns-server"], "system")
+        self.assertEqual(plain["fallback-dns-server"], "system")
         self.assertNotIn("proxy-dns-server", plain)
         for key in ("dns-server", "fallback-dns-server"):
             self.assertTrue(all(
@@ -102,6 +102,39 @@ class SyncRulesTests(unittest.TestCase):
         self.assertEqual(proxied["proxy-dns-server"], "https://223.5.5.5/dns-query")
         self.assertEqual(proxied["dns-direct-system"], "false")
         self.assertEqual(proxied["hijack-dns"], "8.8.4.4:53")
+        self.assertEqual(sync_rules.customize(whitelist, PRIMARY), whitelist)
+        self.assertEqual(sync_rules.customize(direct, direct_name), direct)
+
+    def test_whitelist_stun_rules_override_upstream_direct_suffixes(self):
+        source = UPSTREAM.replace(
+            "FINAL,PROXY",
+            "DOMAIN-SUFFIX,blackberry.com,Direct\n"
+            "DOMAIN-SUFFIX,cloudflare.com,Direct\nFINAL,PROXY",
+        )
+
+        def domain_policy(config, domain):
+            rules = config.split("[Rule]\n", 1)[1].split("[URL Rewrite]", 1)[0]
+            for line in rules.splitlines():
+                parts = line.split(",")
+                if parts[0] == "DOMAIN" and domain == parts[1]:
+                    return parts[2]
+                if parts[0] == "DOMAIN-SUFFIX" and (
+                    domain == parts[1] or domain.endswith("." + parts[1])
+                ):
+                    return parts[2]
+                if parts[0] == "FINAL":
+                    return parts[1]
+
+        whitelist = sync_rules.customize(source, PRIMARY)
+        direct_name = sync_rules.CONFIGS["sr_direct_banad.conf"]
+        direct = sync_rules.customize(source.replace("FINAL,PROXY", "FINAL,direct"), direct_name)
+        for domain in ("stun.voip.blackberry.com", "stun.cloudflare.com"):
+            self.assertEqual(domain_policy(whitelist, domain), "PROXY")
+            self.assertEqual(domain_policy(direct, domain), "Direct")
+        for domain in ("www.blackberry.com", "www.cloudflare.com"):
+            self.assertEqual(domain_policy(whitelist, domain), "Direct")
+        for domain in ("stun.l.google.com", "global.stun.twilio.com"):
+            self.assertEqual(domain_policy(whitelist, domain), "PROXY")
         self.assertEqual(sync_rules.customize(whitelist, PRIMARY), whitelist)
 
     def test_invalid_source_is_rejected(self):

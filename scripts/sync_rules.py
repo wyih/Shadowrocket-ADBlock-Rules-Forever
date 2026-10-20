@@ -18,6 +18,11 @@ UPDATE_BASE = (
 TAILSCALE_ROUTES = ("100.64.0.0/10", "192.168.2.0/24", "192.168.55.0/24")
 NETWORKS = tuple(ipaddress.ip_network(route) for route in TAILSCALE_ROUTES)
 RULES = tuple(f"IP-CIDR,{route},TAILSCALE,no-resolve" for route in TAILSCALE_ROUTES)
+DIRECT_GENERAL = {"dns-server": "system", "fallback-dns-server": "system"}
+WHITELIST_RULES = (
+    "DOMAIN,stun.voip.blackberry.com,PROXY",
+    "DOMAIN,stun.cloudflare.com,PROXY",
+)
 WHITELIST_GENERAL = {
     "proxy-dns-server": "https://223.5.5.5/dns-query",
     "dns-server": (
@@ -50,11 +55,9 @@ def keep_bypass_entry(entry: str) -> bool:
 
 
 def customize(source: str, filename: str) -> str:
-    settings = (
-        WHITELIST_GENERAL
-        if filename == CONFIGS["sr_top500_whitelist_ad.conf"]
-        else {}
-    )
+    whitelist = filename == CONFIGS["sr_top500_whitelist_ad.conf"]
+    settings = WHITELIST_GENERAL if whitelist else DIRECT_GENERAL
+    rules = RULES + (WHITELIST_RULES if whitelist else ())
     lines = source.splitlines(keepends=True)
     sections = [line.strip() for line in lines if line.strip().startswith("[")]
     if sections.count("[General]") != 1 or sections.count("[Rule]") != 1:
@@ -74,7 +77,7 @@ def customize(source: str, filename: str) -> str:
                 output.append(f"update-url = {UPDATE_BASE}/{filename}\n")
                 output.extend(f"{key} = {value}\n" for key, value in settings.items())
             elif section == "[Rule]":
-                output.extend(rule + "\n" for rule in RULES)
+                output.extend(rule + "\n" for rule in rules)
             continue
 
         if section == "[General]":
@@ -90,7 +93,7 @@ def customize(source: str, filename: str) -> str:
                         key = "tun-excluded-routes"
                     line = f"{key} = {', '.join(entries)}\n"
 
-        if section == "[Rule]" and stripped in RULES:
+        if section == "[Rule]" and stripped in rules:
             continue
         output.append(line)
 
