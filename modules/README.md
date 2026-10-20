@@ -149,9 +149,11 @@ ca-p12 = {{{证书内容}}}
 
 ## DNS
 
-[`DNS.sgmodule`](DNS.sgmodule) 保存用户现有模块，全部设置值保持原样。它覆盖 `[General]` 参数，包括三个带 `#proxy` 的 DoH 地址、备用 DNS、DNS 劫持条目，以及 IPv6、ICMP 和重写拒绝选项。
+[`DNS.sgmodule`](DNS.sgmodule) 按用户的防泄露要求保留三个带 `#proxy` 的主 DoH，将原明文备用 `8.8.4.4` 改为 `https://1.0.0.1/dns-query#proxy`。`dns-direct-system=false` 及其余设置保留；主、备查询都要求经代理，失败时不通过此配置切换到明文备用。原 DNS 劫持条目继续截获发往 `8.8.4.4:53` 的请求，不代表模块主动使用它解析。
 
 两份 `_tailscale.conf` 的默认 `dns-server` 是 `dns.alidns.com` 和 `doh.pub`，该模块启用后使用模块中的设置。它没有 Script Hub 更新地址，也没有转换脚本；Script Hub Beta 不参与这个模块的加载。
+
+2026-10-20 日志确认三个主 DoH 均使用同一默认代理节点且持续超时；更换备用地址不能恢复失效的代理线路。应保持 DNS 模块启用，修复或切换其使用的节点。该文件原无更新地址，手机现有本地模块需手动替换备用 DNS 一行；仓库修改不会自动进入手机。`1.0.0.1` 的 HTTPS 证书及 DNS wireformat 应答已通过同手机的可用转发线路验证，当前强制 DNS 代理路径的验收仍需切换节点后进行。
 
 ## HTTPDNS 拦截器：通用合并回退
 
