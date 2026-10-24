@@ -9,6 +9,8 @@
 | HTTPDNS 拦截器（已恢复合并前规则） | [`HTTPDNS.sgmodule`](HTTPDNS.sgmodule) |
 | 闲鱼修复版 | [`FleaMarket.sgmodule`](FleaMarket.sgmodule) |
 | 米家去广告 | [`MiHome.sgmodule`](MiHome.sgmodule) |
+| 大众点评开屏去广告 | [`Dianping.sgmodule`](Dianping.sgmodule) |
+| 百度网盘去广告修复版 | [`BaiduNetDisk.sgmodule`](BaiduNetDisk.sgmodule) |
 | 哔哩哔哩修复版 | [`Bilibili.sgmodule`](Bilibili.sgmodule) |
 | 高德地图修复版 | [`Amap.sgmodule`](Amap.sgmodule) |
 | Apple 天气增强修复版 | [`AppleWeather.sgmodule`](AppleWeather.sgmodule) |
@@ -20,6 +22,16 @@
 | DNS 旧模块（已并入白名单，无需启用） | [`DNS.sgmodule`](DNS.sgmodule) |
 | MITM Keep Enabled 通用参数模板 | [`MITM-Keep-Enabled.sgmodule`](MITM-Keep-Enabled.sgmodule) |
 | Script Hub Beta | 官方仓库，见下方依赖说明 |
+
+## 大众点评与百度网盘
+
+当前版本均为 `20261024.1`。在 Shadowrocket 导入[大众点评模块](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/Dianping.sgmodule)和[百度网盘模块](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/BaiduNetDisk.sgmodule)。百度网盘替换原 Script Hub 模块，保留原来的七条空响应和首页入口过滤；补充 `/buy/ad/conf?type=splashMode`、`/buy/ad/get` 的成功空结果。原模块来自用户提供的[可莉模块转换地址](http://script.hub/file/_start_/https://kelee.one/Tool/Loon/Lpx/BaiduNetDisk_remove_ads.lpx/_end_/BaiduNetDisk_remove_ads.sgmodule?type=loon-plugin&target=shadowrocket-module&del=true&jqEnabled=true)，本次经手机 HTTP 代理取回，源日期为 `2026-10-02 13:57:49`。
+
+2026-10-24 18:53 的日志记录了网盘 `13.34.0` 的开屏配置请求、广告 SDK 竞价和 `iOS_key_splash_ad_show_iphone` 展示上报。旧 `/rest/2.0/pcs/adv` 已命中 Map Local，新增两个接口继续连接上游。本次 `/buy/ad/get` 的 `pathname=/8001/homeHeaderIOS` 对应首页横幅。匿名请求确认两个新接口均使用 `errno:0,data:{...}` 结构，新规则返回空 `data`。文件、上传、下载、会员和传输接口保留原处理。
+
+[`Dianping.sgmodule`](Dianping.sgmodule) 拦截点评的 `loadsplashconfig`，素材脚本按 [zirawell 原脚本的固定版本](https://github.com/zirawell/R-Store/blob/cb61657d11df96473c8cf6188e695fe867357349/Res/Scripts/AntiAd/dianping.js) 识别 `/dpmobile/` 请求：广告跟踪头存在且无业务图片头时返回 404，GIF 或 `lossless=1` 素材返回透明图片；其余请求继续访问上游。脚本改在请求阶段执行，无须读取图片正文。许可证见 [`dianping-splash-request.LICENSE`](../scripts/dianping-splash-request.LICENSE)。18:50 和 18:52 的手机日志确认访问了点评及其素材域名，当时没有这些域名的解密路径；具体素材命中需启用后核对。
+
+本地验证：`node tests/test_dianping_baidu.cjs`，检查开屏匹配、素材响应、原过滤保留及正常文件接口边界。手机效果待导入后验证。点评素材脚本由模块自动加载。回滚时停用点评模块；网盘停用仓库版并恢复原订阅，避免两份同时启用。
 
 ## 米家去广告
 

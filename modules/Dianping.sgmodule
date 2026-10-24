@@ -1,0 +1,17 @@
+#!url=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/Dianping.sgmodule
+#!name=大众点评开屏去广告
+#!desc=拦截开屏配置，按请求头和素材格式识别大众点评开屏图片。
+#!author=wyih[https://github.com/wyih], zirawell[https://github.com/zirawell/R-Store]
+#!homepage=https://github.com/wyih/Shadowrocket-ADBlock-Rules-Forever
+#!category=去广告
+#!date=2026-10-24
+#!version=20261024.1
+
+[URL Rewrite]
+^https?:\/\/mapi\.dianping\.com\/mapi\/operating\/loadsplashconfig(?:\.bin)?\/?(?:\?|$) - reject
+
+[Script]
+大众点评开屏素材 = type=http-request, pattern=^https?:\/\/img\.meituan\.net\/dpmobile\/, script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/dianping-splash-request.js?v=20261024.1, engine=webview, timeout=5
+
+[MITM]
+hostname = %APPEND% mapi.dianping.com, img.meituan.net
