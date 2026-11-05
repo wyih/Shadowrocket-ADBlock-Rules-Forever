@@ -44,7 +44,7 @@
 ## 更新哔哩哔哩与闲鱼，配套共用模块
 
 - **共用拦截**：沿[原 HTTPDNS 订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/HTTPDNS.sgmodule)更新至 `20261018.2`，显示名称恢复“HTTPDNS拦截器”，规则恢复为合并前 `83e5a8c` 的版本。重新启用原“广告平台拦截器”和“可莉广告过滤器”，恢复原有 Map Local 处理。本模块继续置顶，保留解析拦截、闲鱼 AMDC 规则及两个阿里 HTTPS 解析 IP。
-- **哔哩哔哩**：当前模块及开屏 helper 均为 `20261020.6`。撤掉虚构开屏素材、改回空清单后，用户首轮反馈未再闪退、未见开屏；15:07 日志确认 `.6` 的 show/list/event/brand 均执行，首页请求持续约 30 秒，未复现此前清单回调后约一秒整组断连。当前保留此版。DNS 设置已并入白名单主配置，直连版改用网络自动提供的系统 DNS；路由器未修改。此前失败及本轮验证范围见兼容性记录。
+- **哔哩哔哩**：当前模块为 `20261105.1`。11 月 5 日京东开屏再次出现，23:08 日志确认 Google DNS 拦截与本轮 5 次开屏请求过滤均生效，广告库存仍为同一批 84 条。新增配置包处理，将商业开屏及其特效素材的缓存上限设为 0，使客户端在开屏结束后的清理流程中删除素材；同步改写索引、完整包版本及 MD5，保留其他配置，校验失败则放行原包。清理调用链已在公开 8.89 客户端中核对，当前手机 9.17 的效果待验证。更新后先联网停留约 15 秒，再完整退出重开两次，以跨过配置加载和素材清理。原空清单 helper 仍为 `20261020.6`，不再添加占位素材。回滚恢复 `7dfac9b` 的 B 站模块；已落盘的缓存设置会随 B 站后续配置更新恢复。
 - **闲鱼**：先启用上述共用拦截器 `20261018.2`，再沿[现有仓库订阅地址](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/FleaMarket.sgmodule)更新至 `20261017.3`。已在手机验证的 AMDC 原生拒绝规则原样迁入共用模块，闲鱼模块移除重复条目，保留两个广告域名拦截、17 条 jq、10 条请求脚本及备用网关解密。不要同时启用两份闲鱼模块。
 - **共用传输层**：另外导入并启用[去广告传输兼容](https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/modules/AdBlock-Transport.sgmodule)。只需一份，可供现有各 App 模块共用。它设置 `block-quic = all`，阻止 UDP/443 绕过 HTTPS 改写；不修改 DNS、证书或其他 UDP 端口。
 
@@ -52,7 +52,7 @@
 
 这一共用层解决的是传输绕过。广告响应结构仍由各 App 的专用模块处理；它不能直接清理 App 沙盒内已有的素材文件。两个修复版均已做本地检查，手机上的冷启动、切回前台和闲鱼正常浏览效果待用户更新后复测。
 
-本地检查：`node tests/test_bilibili_splash_expire.cjs`、`node tests/test_startup_ads.cjs`、`node tests/test_module_repairs.cjs`、`node tests/test_bilibili_startup_trace.cjs`。新排期脚本检查五个精确接口、请求/响应两阶段、大整数编号、隐私和响应头。旧响应脚本最初参考 [kokoryh/Sparkle 的固定版本](https://github.com/kokoryh/Sparkle/blob/290bcbdd2f158cdd8f7db9c996e90fe63490e16f/src/script/bilibili/json/handler.ts)，按 GPL-3.0 发布，许可证见 [`bilibili-splash-response.LICENSE`](../scripts/bilibili-splash-response.LICENSE)。两个旧开屏脚本地址保留原行为，供尚未更新模块的订阅使用。
+本地检查：`node tests/test_bilibili_splash_cache.cjs`、`node tests/test_bilibili_splash_expire.cjs`、`node tests/test_startup_ads.cjs`、`node tests/test_module_repairs.cjs`、`node tests/test_bilibili_startup_trace.cjs`。新排期脚本检查五个精确接口、请求/响应两阶段、大整数编号、隐私和响应头。旧响应脚本最初参考 [kokoryh/Sparkle 的固定版本](https://github.com/kokoryh/Sparkle/blob/290bcbdd2f158cdd8f7db9c996e90fe63490e16f/src/script/bilibili/json/handler.ts)，按 GPL-3.0 发布，许可证见 [`bilibili-splash-response.LICENSE`](../scripts/bilibili-splash-response.LICENSE)。两个旧开屏脚本地址保留原行为，供尚未更新模块的订阅使用。
 
 HTTPDNS 检查：`node tests/test_httpdns.cjs`。覆盖 IPv4/IPv6、端口、轮换解析地址、不同账户、AMDC 调度、原有嘀嗒例外及正常业务请求。详情见下方 HTTPDNS 说明。
 
