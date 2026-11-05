@@ -163,11 +163,17 @@ ca-p12 = {{{证书内容}}}
 
 原 [`DNS.sgmodule`](DNS.sgmodule) 的全部 `[General]` 设置已并入外出场景使用的 [`sr_top500_whitelist_ad_tailscale.conf`](../sr_top500_whitelist_ad_tailscale.conf)：三个主 DoH 与备用 `https://1.0.0.1/dns-query#proxy` 继续经代理，节点域名单独通过 `https://223.5.5.5/dns-query` 加密解析。`dns-direct-system=false`、DNS 劫持和其他原模块设置一并保留。生成脚本会在每次同步上游时保留这些个人设置。
 
-家中、办公室 Wi-Fi 使用的 [`sr_direct_banad_tailscale.conf`](../sr_direct_banad_tailscale.conf) 保持原有 AliDNS/DNSPod 加密直连解析，未合入代理 DNS 设置。手机先更新白名单主配置，再停用原独立 DNS 模块并重连 VPN；之后随场景自动使用对应 DNS。旧模块文件仅作历史副本，无需导入或保持开启。
+家中、办公室 Wi-Fi 使用的 [`sr_direct_banad_tailscale.conf`](../sr_direct_banad_tailscale.conf) 使用系统自动取得的 DNS，未合入代理 DNS 设置。手机更新两份主配置后，停用原独立 DNS 模块并重连 VPN；之后随场景自动使用对应 DNS。旧模块文件仅作历史副本，无需导入或保持开启。
 
 此前独立模块覆盖直连场景，强制 DNS 查询经手机节点，Wi-Fi 下又被家中透明代理再次转发。用户明确要求保留两份场景配置、禁止修改路由器；本次在主配置内解决覆盖问题。直连 DNS 通路已通过同手机 HTTPS 证书及有效应答验证，用户停用模块后确认 B 站信息流恢复；仍有闪退，另查启动改写。回滚本轮合并可恢复白名单配置和生成脚本至 `2f9b736`。
 
-## HTTPDNS 拦截器：通用合并回退
+## HTTPDNS 拦截器
+
+`20261105.1` 补拦 App 自行访问的 Google DNS：`dns.google`、`8.8.8.8`、`8.8.4.4`。11 月 5 日 B 站启动时，阿里 HTTPDNS 已被拒绝，仍出现大量 Google DoH 连接；同手机查询该服务能得到日志中绕过解密的 B 站 API IP。此次针对取地址入口，现有 B 站开屏和视频过滤脚本继续使用原版本。
+
+三条原生流量规则也适用于其他 App 访问同一解析服务；不新增脚本或 MITM 主机。两份主配置保持原样：直连版使用系统 DNS，白名单版由 Shadowrocket 内部通过 `#proxy` 发起加密解析。此更新是否能让 B 站回退系统解析，以及白名单场景下正常解析与广告展示，需手机更新模块、重连后核对。回滚本次改动只恢复 `c77b7a6` 的 `modules/HTTPDNS.sgmodule`。
+
+### 通用合并回退记录
 
 [`HTTPDNS.sgmodule`](HTTPDNS.sgmodule) `20261018.2` 恢复合并前 `83e5a8c` 的全部规则，仅日期和版本标记更新。撤下合并增加的 86 条广告请求脚本（其中 84 条来自 Map Local）、广告平台规则、两条正文改写及追加解密主机；保留原 13 条 HTTPDNS 请求脚本。共享响应脚本保持兼容旧订阅，其他 App 模块不变。
 

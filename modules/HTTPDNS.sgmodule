@@ -4,11 +4,16 @@
 #!author=wyih
 #!homepage=https://github.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tree/tailscale/modules
 #!category=去广告, 依赖
-#!date=2026-10-18
-#!version=20261018.2
+#!date=2026-11-05
+#!version=20261105.1
 
 # Based on the user's Kelee/VirgilClyne module; upstream references are in modules/README.md.
 [Rule]
+# Google DoH remained reachable during Bilibili launches with IP-only MITM bypasses.
+# These traffic rules do not replace Shadowrocket's internal dns-server #proxy transport.
+DOMAIN,dns.google,REJECT
+IP-CIDR,8.8.8.8/32,REJECT,no-resolve
+IP-CIDR,8.8.4.4/32,REJECT,no-resolve
 DOMAIN-KEYWORD,httpdns,REJECT
 DOMAIN-KEYWORD,httpsdns,REJECT
 USER-AGENT,httpdns*,REJECT
