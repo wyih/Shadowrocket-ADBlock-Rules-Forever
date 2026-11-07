@@ -57,7 +57,12 @@ def keep_bypass_entry(entry: str) -> bool:
 def customize(source: str, filename: str) -> str:
     whitelist = filename == CONFIGS["sr_top500_whitelist_ad.conf"]
     settings = WHITELIST_GENERAL if whitelist else DIRECT_GENERAL
-    rules = RULES + (WHITELIST_RULES if whitelist else ())
+    lan_policy = "TAILSCALE" if whitelist else "DIRECT"
+    rules = (RULES[0],) + tuple(
+        f"IP-CIDR,{route},{lan_policy},no-resolve" for route in TAILSCALE_ROUTES[1:]
+    )
+    if whitelist:
+        rules += WHITELIST_RULES
     lines = source.splitlines(keepends=True)
     sections = [line.strip() for line in lines if line.strip().startswith("[")]
     if sections.count("[General]") != 1 or sections.count("[Rule]") != 1:
@@ -93,7 +98,7 @@ def customize(source: str, filename: str) -> str:
                         key = "tun-excluded-routes"
                     line = f"{key} = {', '.join(entries)}\n"
 
-        if section == "[Rule]" and stripped in rules:
+        if section == "[Rule]" and stripped in RULES + rules:
             continue
         output.append(line)
 

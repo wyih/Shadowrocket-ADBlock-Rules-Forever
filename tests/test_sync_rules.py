@@ -55,9 +55,19 @@ class SyncRulesTests(unittest.TestCase):
         filename = sync_rules.CONFIGS["sr_direct_banad.conf"]
         source = UPSTREAM.replace("FINAL,PROXY", "FINAL,direct")
         config = sync_rules.customize(source, filename)
-        self.assertEqual(ip_policy(config, "192.168.55.249"), "TAILSCALE")
+        for address in ("192.168.2.249", "192.168.55.249", "192.168.55.101"):
+            self.assertEqual(ip_policy(config, address), "DIRECT")
+        self.assertEqual(ip_policy(config, "100.69.118.0"), "TAILSCALE")
         self.assertEqual(ip_policy(config, "203.0.113.10"), "direct")
         self.assertIn(f"update-url = {sync_rules.UPDATE_BASE}/{filename}\n", config)
+        old = config.replace(
+            "IP-CIDR,192.168.2.0/24,DIRECT,no-resolve",
+            "IP-CIDR,192.168.2.0/24,TAILSCALE,no-resolve",
+        ).replace(
+            "IP-CIDR,192.168.55.0/24,DIRECT,no-resolve",
+            "IP-CIDR,192.168.55.0/24,TAILSCALE,no-resolve",
+        )
+        self.assertEqual(sync_rules.customize(old, filename), config)
 
     def test_upstream_changes_survive_and_update_url_stays_on_fork(self):
         source = UPSTREAM.replace(
