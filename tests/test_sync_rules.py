@@ -60,6 +60,13 @@ class SyncRulesTests(unittest.TestCase):
         self.assertEqual(ip_policy(config, "100.69.118.0"), "TAILSCALE")
         self.assertEqual(ip_policy(config, "203.0.113.10"), "direct")
         self.assertIn(f"update-url = {sync_rules.UPDATE_BASE}/{filename}\n", config)
+        for key in ("skip-proxy", "tun-excluded-routes"):
+            line = next(line for line in config.splitlines() if line.startswith(key + " ="))
+            entries = [entry.strip() for entry in line.split("=", 1)[1].split(",")]
+            self.assertIn("192.168.2.0/24", entries)
+            self.assertIn("192.168.55.0/24", entries)
+            self.assertNotIn("100.64.0.0/10", entries)
+            self.assertNotIn("192.168.0.0/16", entries)
         old = config.replace(
             "IP-CIDR,192.168.2.0/24,DIRECT,no-resolve",
             "IP-CIDR,192.168.2.0/24,TAILSCALE,no-resolve",

@@ -94,6 +94,9 @@ def customize(source: str, filename: str) -> str:
                 if key in ("skip-proxy", "bypass-tun", "tun-excluded-routes"):
                     entries = [entry.strip() for entry in value.split(",")]
                     entries = [entry for entry in entries if keep_bypass_entry(entry)]
+                    if not whitelist:
+                        # The global Tailscale subnet module also intercepts DIRECT.
+                        entries.extend(TAILSCALE_ROUTES[1:])
                     if key == "bypass-tun":
                         key = "tun-excluded-routes"
                     line = f"{key} = {', '.join(entries)}\n"

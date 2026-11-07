@@ -44,9 +44,9 @@ GitHub 定时任务可能延迟。仓库发布更新后，手机仍需在 Shadow
 | `192.168.2.0/24` | `DIRECT` | `TAILSCALE` |
 | `192.168.55.0/24` | `DIRECT` | `TAILSCALE` |
 
-直连版通过当前 Wi-Fi 网关访问两个内网，适用于已配置跨内网路由的家中、办公室网络。外出使用白名单版，由手机的 Tailscale 模块访问两个内网。
+直连版将两个内网同时加入 `skip-proxy` 和 `tun-excluded-routes`，让手机系统通过当前 Wi-Fi 网关访问，避免“使用 Tailscale 子网”继续接管 `DIRECT` 连接。它适用于已配置跨内网路由的家中、办公室网络。外出使用白名单版，由手机的 Tailscale 模块访问两个内网。
 
-同时移除与这些网段重叠的 `skip-proxy`、TUN 旁路条目，并把旧的 `bypass-tun` 写法改为 `tun-excluded-routes`。其余上游规则保留。认证密钥只保存在手机中。
+生成器移除与 `100.64.0.0/10` 重叠的旁路条目；白名单版还会移除与两个内网重叠的旁路条目。旧的 `bypass-tun` 写法统一改为 `tun-excluded-routes`。其余上游规则保留。认证密钥只保存在手机中。
 
 本地重新生成与验证：
 
