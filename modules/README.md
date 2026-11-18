@@ -62,3 +62,5 @@
 - 微信：可莉、RuCu6 的[模块存档](https://github.com/mihoyo-typ/KeleeOne/blob/ab6c3182fb2b09bcc34456f496282ec0b8e9217b/Plugin/WexinMiniPrograms_Remove_ads.lpx)、[NobyDa](https://github.com/NobyDa/Script/blob/0b8d083d444f4476700cb9d5d059c07b42da85eb/QuantumultX/File/Wechat.js) 与 [qDonl 丰巢插件](https://github.com/qDonl/loon-plugin/blob/c8d3a63653fb2163e6b811eb2f262eb08d071ec4/fengchao/fengchao.plugin)。
 - HTTPDNS：[VirgilClyne/GetSomeFries](https://github.com/VirgilClyne/GetSomeFries/blob/b4aa767bcbc4d39bea5b549a3277a00517891d1e/sgmodule/HTTPDNS.Block.sgmodule) 与 [blackmatrix7/ios_rule_script](https://github.com/blackmatrix7/ios_rule_script/blob/master/rewrite/Shadowrocket/BlockHTTPDNS/BlockHTTPDNS.sgmodule)。
 - Apple 天气：iRingo WeatherKit v3.3.2。
+
+2026-11-18 从 [fmz200 / wool_scripts](https://github.com/fmz200/wool_scripts/tree/eca3853dfed0f2db829408a81b98ff279bcfe8f9/Shadowrocket/module) 核对并补入的域名和接口覆盖小红书、高德、爱奇艺、米家、闲鱼、网易云音乐、微信小程序和 HTTPDNS 模块。美团点单小程序广告接口来自上游的大众点评分项。

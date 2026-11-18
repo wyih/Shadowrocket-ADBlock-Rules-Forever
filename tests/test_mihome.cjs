@@ -16,6 +16,7 @@ function rewrite(url, value) {
 const prefix = 'https://home.mi.com/cgi-op/api/v1/';
 const endpoints = [
   'recommendation/openingBanner',
+  'recommendation/banner',
   'resource/realtime/openingBanner',
   'recommendation/carousel/banners',
   'recommendation/model/banner',
@@ -39,6 +40,7 @@ for (const endpoint of endpoints) {
 for (const url of [
   prefix + 'recommendation/openingBannerExtra',
   prefix + 'recommendation/openingBanner/extra',
+  prefix + 'recommendation/banner/extra',
   prefix + 'resource/realtime/manage',
   prefix + 'common/findTabConfig',
   prefix + 'recommendation/mihome/bottom/tab',
@@ -49,4 +51,4 @@ for (const url of [
 }
 assert.match(moduleText, /hostname = %APPEND% home\.mi\.com\s*$/);
 assert.doesNotMatch(moduleText, /^DOMAIN|^enable\s*=|^ca-p12\s*=|\[Map Local\]/m);
-console.log('MiHome: five ad endpoints, query boundaries, JSON preservation and device operations passed');
+console.log('MiHome: six ad endpoints, query boundaries, JSON preservation and device operations passed');

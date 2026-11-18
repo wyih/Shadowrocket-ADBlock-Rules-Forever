@@ -91,6 +91,19 @@ assert.deepEqual(rewrite('https://chong.qq.com/tws/usernumberinfo/GetUserInfo?te
   data: { request: { number: { servicehallOperList: [1], servicehallFuncList: [2], markSeat: { servicehallOperList: [3], servicehallFuncList: [4], keep: 5 }, keep: 6 } } }
 }), { data: { request: { number: { markSeat: { keep: 5 }, keep: 6 } } } });
 
+const restaurantAds = 'https://rms.meituan.com/api/v1/rmsmina/c/queryWechatAdvertisement';
+const restaurantReply = { code: 200, success: true, data: { adSiteList: [{ adSiteId: 'fixture' }], keep: true } };
+for (const suffix of ['', '?shopId=fixture']) {
+  assert.deepEqual(rewrite(restaurantAds + suffix, restaurantReply), {
+    ...restaurantReply, data: { adSiteList: [], keep: true }
+  });
+}
+for (const value of [null, [], { data: null }, { data: [] }, { data: { adSiteList: 'unknown' } }]) {
+  assert.deepEqual(rewrite(restaurantAds, value), value);
+}
+assert.equal(rules.filter(rule => rule.pattern.test(restaurantAds + 'Extra')).length, 0);
+assert(rules.some(rule => rule.pattern.test(restaurantAds.replace('queryWechatAdvertisement', 'queryShopPortalInfo') + '?shopId=fixture')));
+
 // Nested JSON contains whole component definitions; remove only original ad IDs.
 const qmai = 'https://webapi.qmai.cn/web/catering/design/homePage-Config';
 const qmaiInput = { data: { config: JSON.stringify([{ id: '13502ede-f5fd-4d5c-90f5-f2454a30fda0', type: 'ad' }, { id: 'order-menu', type: 'menu' }]), shop: 1 } };

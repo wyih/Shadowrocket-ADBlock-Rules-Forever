@@ -287,7 +287,20 @@ for (const line of jqLines) {
   const filter = line.match(/ '(.+)'$/)[1];
   execFileSync('jq', ['-n', `def filter: (${filter}); empty`]);
 }
-const homeFilter = jqLines.find(l => l.includes('idlehome\\.home\\.nextfresh')).match(/ '(.+)'$/)[1];
+const homeRule = jqLines.find(l => l.includes('idlehome\\.home\\.nextfresh'));
+const localRule = jqLines.find(l => l.includes('idle\\.local\\.home\\/'));
+for (const [line, endpoint] of [
+  [homeRule, 'idlehome.home.nextfresh'],
+  [localRule, 'idle.local.home']
+]) {
+  const pattern = compile(line.split(' ')[1]);
+  for (const host of ['acs.m.goofish.com', 'g-acs.m.goofish.com']) {
+    const url = 'https://' + host + '/gw/mtop.taobao.' + endpoint;
+    assert(pattern.test(url + '/1.0?test=1'));
+    assert(!pattern.test(url + '.extra/1.0?test=1'));
+  }
+}
+const homeFilter = homeRule.match(/ '(.+)'$/)[1];
 const cards = { data: { homeTopList: [{ sectionType: 'kingkongDo' }, { sectionType: 'ad' }], sections: [
   { data: { clickParam: { args: { cardType: 'mamaAD' } } }, template: { name: 'ad' } },
   { data: { clickParam: { args: { cardType: 'normal' } } }, template: { name: 'idlefish_home_new_commodity_card' } }

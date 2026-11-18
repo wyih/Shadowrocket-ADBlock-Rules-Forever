@@ -6,9 +6,15 @@
 #!category=去广告
 #!loon_version=3.5.1(998)
 #!homepage=https://hub.kelee.one
-#!date=2026-10-12
+#!date=2026-11-18
+#!version=20261118.1
 
 [Rule]
+DOMAIN,ads-img-al.xhscdn.com,REJECT
+DOMAIN,ads-img-qc.xhscdn.com,REJECT
+DOMAIN,ads-video-al.xhscdn.com,REJECT
+DOMAIN,ads-video-qc.xhscdn.com,REJECT
+DOMAIN,t-ads.xiaohongshu.com,REJECT
 AND,((PROTOCOL,QUIC),(DOMAIN-SUFFIX,xiaohongshu.com)),REJECT
 
 [Body Rewrite]

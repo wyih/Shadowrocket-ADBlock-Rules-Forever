@@ -7,7 +7,8 @@
 #!category=去广告
 #!loon_version=3.5.1(998)
 #!homepage=https://hub.kelee.one
-#!date=2026-10-15
+#!date=2026-11-18
+#!version=20261118.1
 
 [Rule]
 IP-CIDR,103.44.59.54/32,REJECT,no-resolve
@@ -20,6 +21,7 @@ DOMAIN,api.iqiyi.com,DIRECT
 DOMAIN,hotchat-im.iqiyi.com,DIRECT
 DOMAIN,policy.video.iqiyi.com,DIRECT
 DOMAIN,access.if.iqiyi.com,REJECT
+DOMAIN,iqiyim.adtrack.enlightent.cn,REJECT
 
 [Body Rewrite]
 http-response-jq (?i)^https:\/\/(?:api\.iqiyi\.com\/3f4\/)?cards\.iqiyi\.com\/views_home\/3\.0\/qy_home\? 'delpaths([["base","statistics"]])'

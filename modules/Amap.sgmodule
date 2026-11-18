@@ -7,9 +7,12 @@
 #!category=去广告
 #!loon_version=3.5.1(998)
 #!homepage=https://hub.kelee.one
-#!date=2026-10-15
+#!date=2026-11-18
+#!version=20261118.1
 
 [Rule]
+DOMAIN,optimus-ads.amap.com,REJECT
+DOMAIN,optimus-ads.amap.com.w.alikunlun.com,REJECT
 DOMAIN,amap-aos-info-nogw.amap.com,REJECT
 DOMAIN,free-aos-cdn-image.amap.com,REJECT
 DOMAIN-SUFFIX,v.smtcdns.com,REJECT

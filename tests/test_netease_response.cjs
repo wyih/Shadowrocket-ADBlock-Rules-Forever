@@ -15,6 +15,16 @@ const recommendationRule = rules.find(line => line.startsWith('推荐、'));
 const tabRule = rules.find(line => line.startsWith('底部选项卡'));
 const argumentFor = line => line.split('argument=')[1].replace(/\{\{\{\w+\}\}\}/g, 'false');
 
+const adMap = moduleText.split('\n').find(line => line.includes('\\/ad(?:'));
+assert.match(adMap, /data-type=text data="\{\}" status-code=200/);
+const adPattern = new RegExp(adMap.split(' ')[0].replace(/^\(\?i\)/, ''), 'i');
+for (const endpoint of ['/api/ad', '/eapi/ad?test=1', '/eapi/ad/get']) {
+  assert(adPattern.test('https://interface3.music.163.com' + endpoint));
+}
+for (const endpoint of ['/eapi/address/list', '/eapi/advice', '/eapi/song/detail']) {
+  assert(!adPattern.test('https://interface3.music.163.com' + endpoint));
+}
+
 function run(source, { argument = '', endpoint = '/batch', body, compressed = true,
   cache = new Map(), status = 200, nativeDecoder = false, decodedBytes } = {}) {
   let result;

@@ -4,11 +4,11 @@
 #!author=wyih[https://github.com/wyih], luoxx[https://github.com/luoxmc/loon]
 #!homepage=https://github.com/wyih/Shadowrocket-ADBlock-Rules-Forever
 #!category=去广告
-#!date=2026-10-17
-#!version=20261017.1
+#!date=2026-11-18
+#!version=20261118.1
 
 [Body Rewrite]
-http-response-jq ^https:\/\/home\.mi\.com\/cgi-op\/api\/v1\/(?:recommendation\/(?:openingBanner|carousel\/banners|model\/banner)|resource\/realtime\/openingBanner)\/?(?:\?|$) 'if type != "object" then . elif (.data | type) != "object" then . elif (.data.list | type) == "array" then .data.list = [] else . end'
+http-response-jq ^https:\/\/home\.mi\.com\/cgi-op\/api\/v1\/(?:recommendation\/(?:openingBanner|banner|carousel\/banners|model\/banner)|resource\/realtime\/openingBanner)\/?(?:\?|$) 'if type != "object" then . elif (.data | type) != "object" then . elif (.data.list | type) == "array" then .data.list = [] else . end'
 http-response-jq ^https:\/\/home\.mi\.com\/cgi-op\/api\/v1\/recommendation\/myTab\/?(?:\?|$) 'if type != "object" then . elif (.data | type) != "object" then . elif (.data.banners | type) == "array" then .data.banners = [] else . end'
 
 [MITM]

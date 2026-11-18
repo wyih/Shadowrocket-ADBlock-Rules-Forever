@@ -7,7 +7,8 @@
 #!category=去广告
 #!loon_version=3.5.1(998)
 #!homepage=https://hub.kelee.one
-#!date=2026-10-15
+#!date=2026-11-18
+#!version=20261118.1
 
 [Rule]
 DOMAIN,wxsnsdy.wxs.qq.com,REJECT
@@ -21,6 +22,7 @@ DOMAIN,e.jparking.cn,REJECT
 http-response-jq (?i)^https:\/\/mcsp\.cloudpnr\.com\/api\/miniapp\/popular\/T_MINIAPP(?:\?|$) 'delpaths([["data"]])'
 http-response-jq (?i)^https:\/\/saas-ad\.cloudpnr\.com\/huifuad-base-api\/api\/tactics\/ad(?:\?|$) 'delpaths([["data",0],["data",1],["data",2]])'
 http-response-jq (?i)^https:\/\/rms\.meituan\.com\/api\/v1\/rmsmina\/c\/queryShopPortalInfo\? 'delpaths([["data","popUpWindows"]])'
+http-response-jq (?i)^https:\/\/rms\.meituan\.com\/api\/v[0-9]+\/rmsmina\/c\/queryWechatAdvertisement(?:\?|$) 'if type != "object" then . elif (.data | type) != "object" then . elif (.data.adSiteList | type) == "array" then .data.adSiteList = [] else . end'
 http-response-jq (?i)^https:\/\/chong\.qq\.com\/tws\/wxmobile\/GetProduct4App\? 'del(.respInfo.reserveProductList) | .respInfo.shortcut |= map(select(.name != "充流量" and .name != "领话费券"))'
 http-response-jq (?i)^https:\/\/chong\.qq\.com\/tws\/wxmobile4app\/GetSecondProduct\? 'del(.respInfo.productList) | .respInfo.shortcut |= map(select(.name != "充流量" and .name != "领话费券"))'
 http-response-jq (?i)^https:\/\/chong\.qq\.com\/tws\/usernumberinfo\/GetUserInfo\? 'delpaths([["data","request","number","markSeat","servicehallOperList"],["data","request","number","servicehallOperList"],["data","request","number","markSeat","servicehallFuncList"],["data","request","number","servicehallFuncList"]])'

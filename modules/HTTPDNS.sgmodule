@@ -4,8 +4,8 @@
 #!author=wyih
 #!homepage=https://github.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tree/tailscale/modules
 #!category=去广告, 依赖
-#!date=2026-11-05
-#!version=20261105.1
+#!date=2026-11-18
+#!version=20261118.1
 
 # Based on the user's Kelee/VirgilClyne module; upstream references are in modules/README.md.
 [Rule]
@@ -146,6 +146,14 @@ DOMAIN,dns.jd.com,REJECT
 DOMAIN,dns.weibo.cn,REJECT
 DOMAIN,doh.iqiyi.com,REJECT
 DOMAIN,amdc-sibling.alipay.com.cn,REJECT
+
+# Resolver hostnames from wool_scripts not matched by the HTTPDNS keywords above.
+DOMAIN,dig.bdurl.net,REJECT
+DOMAIN,dig.zjurl.cn,REJECT
+DOMAIN,dns.iqiyi.com,REJECT
+DOMAIN,dns.qiyipic.iqiyi.com,REJECT
+DOMAIN,dotserver.douyucdn.cn,REJECT
+DOMAIN,hdns.ksyun.com,REJECT
 
 [Script]
 HTTPDNS IPv4解析 = type=http-request, pattern=^http:\/\/(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?::80)?(?:\/v?[0-9]+)?\/(?:sign_)?(?:(?:d|ss)[46]?|resolve)(?:\?|$), script-path=https://raw.githubusercontent.com/wyih/Shadowrocket-ADBlock-Rules-Forever/tailscale/scripts/httpdns-response.js?v=20261017.1, engine=webview, timeout=5
